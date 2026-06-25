@@ -68,12 +68,12 @@ gitGraph
     commit id: "feat(payment): add validation logic"
     commit id: "test(payment): add validation tests"
     checkout main
-    merge feature/add-payment-validation id: "squash merge" tag: "v1.1.0"
+    merge feature/add-payment-validation id: "squash merge 1" tag: "v1.1.0"
     branch fix/42-jwt-refresh
     checkout fix/42-jwt-refresh
     commit id: "fix(identity): correct token rotation"
     checkout main
-    merge fix/42-jwt-refresh id: "squash merge" tag: "v1.1.1"
+    merge fix/42-jwt-refresh id: "squash merge 2" tag: "v1.1.1"
 ```
 
 ### Branch Naming
