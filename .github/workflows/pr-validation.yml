@@ -1,0 +1,112 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  validate-branch-name:
+    name: Branch Name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          TYPES="feature|fix|chore|refactor|docs|test|ci|security"
+          PATTERN="^($TYPES)/[a-z0-9][a-z0-9-]*$"
+
+          if [[ ! "$BRANCH" =~ $PATTERN ]]; then
+            echo "::error::Branch name '$BRANCH' does not follow convention."
+            echo "Expected: <type>/<short-description>"
+            echo "Types: $TYPES"
+            echo "Rules: lowercase kebab-case, no spaces or underscores"
+            exit 1
+          fi
+          echo "Branch name '$BRANCH' is valid."
+
+  validate-commit-messages:
+    name: Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          TYPES="feat|fix|refactor|test|docs|chore|ci|perf|security"
+          SCOPES="identity|wallet|payment|fraud|notification|audit|reporting|gateway|infra|frontend"
+          PATTERN="^($TYPES)\(($SCOPES)\)!?: .{1,72}$"
+
+          FAILED=0
+          while IFS= read -r MSG; do
+            if [[ "$MSG" =~ ^(Merge|Revert)\  ]]; then
+              continue
+            fi
+            if [[ ! "$MSG" =~ $PATTERN ]]; then
+              echo "::error::Invalid commit message: $MSG"
+              FAILED=1
+            fi
+          done < <(git log --format=%s origin/main..HEAD)
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "Expected format: <type>(<scope>): <description>"
+            echo "Types: $TYPES"
+            echo "Scopes: $SCOPES"
+            echo "Rules: lowercase, imperative mood, no period, max 72 chars"
+            exit 1
+          fi
+          echo "All commit messages are valid."
+
+  validate-pr-title:
+    name: PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          TYPES="feat|fix|refactor|test|docs|chore|ci|perf|security"
+          SCOPES="identity|wallet|payment|fraud|notification|audit|reporting|gateway|infra|frontend"
+          PATTERN="^($TYPES)\(($SCOPES)\)!?: .{1,72}$"
+
+          if [[ ! "$TITLE" =~ $PATTERN ]]; then
+            echo "::error::PR title '$TITLE' does not follow convention."
+            echo "Expected: <type>(<scope>): <description>"
+            echo "Types: $TYPES"
+            echo "Scopes: $SCOPES"
+            exit 1
+          fi
+          echo "PR title '$TITLE' is valid."
+
+  validate-pr-body:
+    name: PR Body
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR body sections
+        run: |
+          BODY="${{ github.event.pull_request.body }}"
+          FAILED=0
+
+          if ! echo "$BODY" | grep -qi "summary"; then
+            echo "::error::PR body missing 'Summary' section"
+            FAILED=1
+          fi
+          if ! echo "$BODY" | grep -qi "changes"; then
+            echo "::error::PR body missing 'Changes' section"
+            FAILED=1
+          fi
+          if ! echo "$BODY" | grep -qi "testing"; then
+            echo "::error::PR body missing 'Testing' section"
+            FAILED=1
+          fi
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo "PR body must include: Summary, Changes, Testing sections"
+            exit 1
+          fi
+          echo "PR body has all required sections."
