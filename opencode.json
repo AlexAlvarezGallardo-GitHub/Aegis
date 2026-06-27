@@ -45,7 +45,7 @@
       "color": "info"
     },
     "test-engineer": {
-      "description": "Test engineer - generates JUnit 5, Mockito, Testcontainers, and WireMock tests following project conventions",
+      "description": "Test engineer - generates JUnit 5, Mockito, Testcontainers, WireMock, and Playwright E2E tests following project conventions",
       "mode": "subagent",
       "model": "opencode-go/qwen3.7-plus",
       "color": "secondary"
@@ -92,6 +92,10 @@
       "environment": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
       }
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest"]
     }
   },
   "compaction": {

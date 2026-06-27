@@ -113,9 +113,11 @@ Features MUST follow the Specify lifecycle:
 3. **Clarify** — resolve ambiguities before planning
 4. **Plan** — generate technical design (data model, contracts, research)
 5. **Tasks** — produce actionable, dependency-ordered task breakdown
-6. **Analyze** — cross-artifact consistency and quality validation
-7. **Checklist** — generate domain-specific quality checklists
-8. **Implement** — execute tasks phase-by-phase with validation checkpoints
+6. **Issues** — the `issue-manager` agent creates epics, features, and sub-tasks in GitHub, linking them with task lists and dependency references
+7. **Analyze** — cross-artifact consistency and quality validation
+8. **Checklist** — generate domain-specific quality checklists
+9. **Implement** — execute tasks phase-by-phase with validation checkpoints; the `issue-manager` agent syncs parent task lists as sub-issues close
+10. **Close** — the `issue-manager` agent verifies all children are resolved, updates epics, and closes completed work
 
 ## Governance
 
@@ -123,7 +125,7 @@ This constitution supersedes all other development practices within the Aegis pl
 
 - **Amendments**: Any principle change requires updating this document with a version bump, rationale, and migration plan for existing services.
 - **Versioning**: MAJOR for principle removals or redefinitions, MINOR for new principles or material expansions, PATCH for clarifications.
-- **Compliance**: All PR reviews and agent validations MUST verify adherence to these principles. The architect agent enforces Principle I and II. The code-reviewer agent enforces Principle V and code quality gates. The security-reviewer agent enforces Principle IV.
+- **Compliance**: All PR reviews and agent validations MUST verify adherence to these principles. The architect agent enforces Principle I and II. The code-reviewer agent enforces Principle V and code quality gates. The security-reviewer agent enforces Principle IV. The issue-manager agent enforces issue hierarchy integrity, label consistency, dependency tracking, and parent-child synchronization.
 - **Complexity justification**: Any deviation from these principles MUST be documented in an Architecture Decision Record (ADR) with explicit rationale.
 
 **Version**: 1.0.0 | **Ratified**: 2026-06-25 | **Last Amended**: 2026-06-25

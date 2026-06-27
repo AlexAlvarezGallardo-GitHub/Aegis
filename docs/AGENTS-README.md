@@ -8,10 +8,11 @@ Aegis uses a set of specialized AI agents configured in `opencode.json`. Each ag
 
 | Agent | Model | Role |
 |-------|-------|------|
+| `issue-manager` | qwen3.7-max | Manages GitHub issue lifecycle: triage, linking, sync, status reports |
 | `architect` | qwen3.7-max | Validates DDD boundaries, microservice decomposition, C4 models |
 | `security-reviewer` | deepseek-v4-flash | Reviews OAuth2/JWT, scans secrets, OWASP compliance |
 | `code-reviewer` | qwen3.7-plus | Enforces SOLID, Clean Code, hexagonal architecture |
-| `service-builder` | kimi-k2.7-code | Generates Spring Boot microervices |
+| `service-builder` | kimi-k2.7-code | Generates Spring Boot microservices |
 | `frontend-builder` | kimi-k2.7-code | Generates Angular components and services |
 | `test-engineer` | qwen3.7-plus | Generates JUnit 5, Mockito, Testcontainers tests |
 | `infra-engineer` | qwen3.7-plus | Creates Docker, Kubernetes, Helm, GitHub Actions |
@@ -23,6 +24,11 @@ Aegis uses a set of specialized AI agents configured in `opencode.json`. Each ag
 ```mermaid
 flowchart TD
     TASK[Task Arrives] --> PHASE{Which Phase?}
+
+    PHASE -->|Planning| PLAN_ROUTE{Issue Work?}
+    PLAN_ROUTE -->|Create epic/feature| IM[issue-manager]
+    PLAN_ROUTE -->|Break down issue| IM2[issue-manager]
+    PLAN_ROUTE -->|Triage / status| IM3[issue-manager]
 
     PHASE -->|Setup| SETUP_ROUTE{Task Type?}
     SETUP_ROUTE -->|Docker/Helm/K8s| INFRA[infra-engineer]
@@ -44,6 +50,14 @@ flowchart TD
     POLISH_ROUTE -->|Security Audit| SR[security-reviewer]
     POLISH_ROUTE -->|Architecture| AR[architect]
 
+    PHASE -->|Close| CLOSE_ROUTE{Issue Done?}
+    CLOSE_ROUTE -->|Close + sync| IM4[issue-manager]
+    CLOSE_ROUTE -->|PR validation| GG[git-guardian]
+
+    style IM fill:#f59e0b,color:#fff
+    style IM2 fill:#f59e0b,color:#fff
+    style IM3 fill:#f59e0b,color:#fff
+    style IM4 fill:#f59e0b,color:#fff
     style INFRA fill:#3b82f6,color:#fff
     style SB fill:#22c55e,color:#fff
     style SB2 fill:#22c55e,color:#fff
@@ -54,6 +68,7 @@ flowchart TD
     style CR fill:#eab308,color:#fff
     style SR fill:#ef4444,color:#fff
     style AR fill:#8b5cf6,color:#fff
+    style GG fill:#22d3ee,color:#fff
 ```
 
 ## Git Workflow (GitHub Flow)
@@ -198,14 +213,80 @@ flowchart LR
     REVIEW --> CR[code-reviewer]
     REVIEW --> SR[security-reviewer]
 
+    T -.->|issue-manager creates| ISSUES[GitHub Issues & Sub-Tasks]
+    I -.->|issue-manager syncs| SYNC[Task Lists & Dependencies]
+    REVIEW -.->|issue-manager closes| CLOSE[Close Issues & Update Epics]
+
     style C fill:#8b5cf6,color:#fff
     style I fill:#22c55e,color:#fff
     style AR fill:#8b5cf6,color:#fff
     style CR fill:#eab308,color:#fff
     style SR fill:#ef4444,color:#fff
+    style ISSUES fill:#f59e0b,color:#fff
+    style SYNC fill:#f59e0b,color:#fff
+    style CLOSE fill:#f59e0b,color:#fff
 ```
 
 ## Quick Reference
+
+### Using the issue-manager agent
+
+The `issue-manager` agent is your project manager for all GitHub issue operations. Use it at every stage of the development lifecycle.
+
+**Before starting work:**
+- "Create epic for [feature name]" — scaffolds the epic with sub-issues per service, links them all
+- "Break down #N" — decomposes a feature into implementation, test, and documentation sub-tasks
+
+**While working:**
+- "Sync issues" — fixes broken links, updates parent task lists, checks label consistency
+- "What's blocked?" — lists all issues waiting on unresolved dependencies
+- "Link #A to #B" — creates cross-references between related issues
+
+**After completing work:**
+- "Close #N" — verifies all children are closed, updates parent checklist, closes issue
+- "Status report" — generates epic progress table, blocked items, stale issues, risk flags
+
+**Maintenance:**
+- "Triage" — classifies unlabeled/unassigned issues, applies labels, suggests assignees
+- "Prioritize" — sorts open issues by impact/urgency matrix, suggests reordering
+
+#### Issue Lifecycle
+
+```mermaid
+flowchart LR
+    PLAN[Plan] -->|issue-manager| EPIC[Create Epic]
+    EPIC --> BREAK[Break Down]
+    BREAK -->|issue-manager| SUBS[Sub-Issues Created & Linked]
+    SUBS --> IMPL[Implement]
+    IMPL -->|Closes #N| CLOSE[Child Closed]
+    CLOSE -->|issue-manager| SYNC[Parent Task List Updated]
+    SYNC --> ALL{All Children Done?}
+    ALL -->|Yes| EPIC_CLOSE[Close Epic]
+    ALL -->|No| IMPL
+
+    style PLAN fill:#f59e0b,color:#fff
+    style EPIC fill:#f59e0b,color:#fff
+    style BREAK fill:#f59e0b,color:#fff
+    style SUBS fill:#f59e0b,color:#fff
+    style SYNC fill:#f59e0b,color:#fff
+    style EPIC_CLOSE fill:#22c55e,color:#fff
+```
+
+#### Issue Hierarchy & Labels
+
+```
+Epic (label: epic)
+ ├── Feature / Story (label: enhancement)
+ │    ├── Sub-task: implementation
+ │    ├── Sub-task: tests (label: test)
+ │    └── Sub-task: documentation (label: documentation)
+ ├── Bug (label: bug)
+ └── Tech Debt (label: tech-debt)
+
+Scope labels:   identity | wallet | payment | fraud | notification | audit | reporting | gateway | infra | frontend
+Priority labels: priority-critical | priority-high | priority-medium | priority-low
+Size labels:    size-small | size-medium | size-large | size-xlarge
+```
 
 ### Using the git-guardian agent
 

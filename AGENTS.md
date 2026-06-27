@@ -79,6 +79,48 @@ Git hooks in `.githooks/` enforce commit message format locally. Enable with:
 git config core.hooksPath .githooks
 ```
 
+## Issue Management
+
+The `issue-manager` agent owns all GitHub issue lifecycle operations. Use it for every issue-related task.
+
+### Workflow
+
+1. **Plan** — Before starting work, ask the issue-manager to create an epic or feature issue with sub-tasks.
+2. **Track** — Reference the issue number in branch names and commits: `Closes #42`.
+3. **Sync** — After completing sub-tasks, ask the issue-manager to sync parent task lists and unblock dependents.
+4. **Report** — Request status reports to track epic progress, blockers, and stale issues.
+
+### Common Requests
+
+| Request | What it does |
+|---------|--------------|
+| `Create epic for [feature]` | Creates epic + sub-issues per service/task, links them |
+| `Break down #N` | Reads issue, creates sub-tasks, updates parent task list |
+| `Sync issues` | Fixes broken links, updates task lists, checks label consistency |
+| `What's blocked?` | Lists all issues waiting on unresolved dependencies |
+| `Status report` | Generates epic progress, blocked items, stale issues, risks |
+| `Triage` | Classifies unlabeled issues, applies labels, suggests assignees |
+| `Link #A to #B` | Updates both issues with cross-references |
+| `Close #N` | Verifies children closed, updates parent, closes issue |
+
+### Issue Hierarchy
+
+```
+Epic
+ ├── Feature / Story
+ │    ├── Sub-task (implementation)
+ │    ├── Sub-task (tests)
+ │    └── Sub-task (documentation)
+ ├── Bug
+ └── Tech Debt
+```
+
+- Every issue MUST be linked to a parent or be an epic (no orphans).
+- Parent issues maintain a GitHub task list of all children.
+- Closing a child automatically updates the parent's checklist.
+- Priority cascades: critical epics require at least high-priority children.
+- Cross-service dependencies are explicitly tracked with `Depends on` / `Blocks`.
+
 ## Authority
 
 All architectural principles, naming conventions, API design standards, security requirements, testing standards, and infrastructure constraints are defined in `.specify/memory/constitution.md`. That document supersedes all other development guidance.
