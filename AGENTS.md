@@ -1,0 +1,131 @@
+# Aegis - AI Engineering Conventions
+
+## Project Overview
+
+Aegis is an enterprise-grade digital payment platform built with Java 21, Spring Boot 3, Angular, Kafka, and Kubernetes. It follows microservices architecture with event-driven communication.
+
+## Hexagonal Architecture
+
+Every service MUST follow this package structure (rules defined in `.specify/memory/constitution.md` Principle I):
+
+```
+com.aegis.<service>/
+├── domain/
+│   ├── model/          (entities, value objects, enums)
+│   ├── event/          (domain events)
+│   ├── exception/      (domain exceptions)
+│   └── port/
+│       ├── inbound/    (use case interfaces)
+│       └── outbound/   (repository, gateway interfaces)
+├── application/
+│   ├── service/        (use case implementations)
+│   ├── mapper/         (DTO <-> Domain mappers)
+│   └── dto/            (data transfer objects)
+├── infrastructure/
+│   ├── persistence/    (JPA entities, repositories, adapters)
+│   ├── messaging/      (Kafka producers/consumers)
+│   ├── config/         (Spring configuration)
+│   └── security/       (security config)
+└── web/
+    ├── controller/     (REST controllers)
+    ├── advice/         (exception handlers)
+    └── filter/         (request filters)
+```
+
+## Java Conventions
+
+- Use records for immutable DTOs and value objects
+- Use `@Value` for immutable Spring beans
+- Use `@Entity` only in infrastructure layer
+
+## Build Commands
+
+- Build all: `mvn clean install`
+- Run tests: `mvn test`
+- Run integration tests: `mvn verify -Pintegration-tests`
+- Lint/Checkstyle: `mvn checkstyle:check`
+- Frontend build: `npm run build` (in `aegis-frontend/`)
+- Frontend lint: `npm run lint` (in `aegis-frontend/`)
+- Frontend test: `npm run test` (in `aegis-frontend/`)
+
+## Git Workflow (GitHub Flow)
+
+### Branching
+- `main` is the only long-lived branch and must always be deployable.
+- Create feature branches from `main`, merge back via pull requests.
+- Branch naming: `<type>/<short-description>` (lowercase kebab-case).
+- Types: `feature/`, `fix/`, `chore/`, `refactor/`, `docs/`, `test/`, `ci/`, `security/`
+- Example: `feature/add-payment-validation`, `fix/42-jwt-refresh-rotation`
+
+### Commit Messages
+Format: `<type>(<scope>): <description>`
+
+- **Types**: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`, `perf`, `security`
+- **Scopes**: `identity`, `wallet`, `payment`, `fraud`, `notification`, `audit`, `reporting`, `gateway`, `infra`, `frontend`
+- Description: lowercase, imperative mood, no period, max 72 chars.
+- Breaking changes: add `!` after scope or `BREAKING CHANGE:` in body.
+- Reference issues in footer: `Closes #42`
+
+### Pull Requests
+- PR title follows the same commit message format.
+- PR body must include: Summary, Changes, Testing, and Checklist.
+- One PR per feature/fix. Keep PRs small and focused (< 400 lines preferred).
+- Squash merge to keep history clean.
+- All CI checks must pass. At least one approval required.
+
+### Pre-Commit Validation
+Git hooks in `.githooks/` enforce commit message format locally. Enable with:
+```
+git config core.hooksPath .githooks
+```
+
+## Issue Management
+
+The `issue-manager` agent owns all GitHub issue lifecycle operations. Use it for every issue-related task.
+
+### Workflow
+
+1. **Plan** — Before starting work, ask the issue-manager to create an epic or feature issue with sub-tasks.
+2. **Track** — Reference the issue number in branch names and commits: `Closes #42`.
+3. **Sync** — After completing sub-tasks, ask the issue-manager to sync parent task lists and unblock dependents.
+4. **Report** — Request status reports to track epic progress, blockers, and stale issues.
+
+### Common Requests
+
+| Request | What it does |
+|---------|--------------|
+| `Create epic for [feature]` | Creates epic + sub-issues per service/task, links them |
+| `Break down #N` | Reads issue, creates sub-tasks, updates parent task list |
+| `Sync issues` | Fixes broken links, updates task lists, checks label consistency |
+| `What's blocked?` | Lists all issues waiting on unresolved dependencies |
+| `Status report` | Generates epic progress, blocked items, stale issues, risks |
+| `Triage` | Classifies unlabeled issues, applies labels, suggests assignees |
+| `Link #A to #B` | Updates both issues with cross-references |
+| `Close #N` | Verifies children closed, updates parent, closes issue |
+
+### Issue Hierarchy
+
+```
+Epic
+ ├── Feature / Story
+ │    ├── Sub-task (implementation)
+ │    ├── Sub-task (tests)
+ │    └── Sub-task (documentation)
+ ├── Bug
+ └── Tech Debt
+```
+
+- Every issue MUST be linked to a parent or be an epic (no orphans).
+- Parent issues maintain a GitHub task list of all children.
+- Closing a child automatically updates the parent's checklist.
+- Priority cascades: critical epics require at least high-priority children.
+- Cross-service dependencies are explicitly tracked with `Depends on` / `Blocks`.
+
+## Authority
+
+All architectural principles, naming conventions, API design standards, security requirements, testing standards, and infrastructure constraints are defined in `.specify/memory/constitution.md`. That document supersedes all other development guidance.
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# pre-commit hook: validates branch naming convention
+# Enable: git config core.hooksPath .githooks
+#
+
+BRANCH=$(git branch --show-current)
+
+# Skip if on main or detached HEAD
+if [ "$BRANCH" = "main" ] || [ -z "$BRANCH" ]; then
+  exit 0
+fi
+
+TYPES="feature|fix|chore|refactor|docs|test|ci|security"
+PATTERN="^($TYPES)/[a-z0-9][a-z0-9-]*$"
+
+if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
+  echo ""
+  echo "WARNING: Branch name '$BRANCH' does not follow convention."
+  echo ""
+  echo "  Expected: <type>/<short-description>"
+  echo "  Types:    $TYPES"
+  echo "  Rules:    lowercase kebab-case, no spaces or underscores"
+  echo ""
+  echo "  Examples:"
+  echo "    feature/add-payment-validation"
+  echo "    fix/42-jwt-refresh-rotation"
+  echo "    chore/upgrade-spring-boot"
+  echo ""
+  echo "  Rename with: git branch -m <new-name>"
+  echo ""
+  # Warning only, do not block commit
+fi

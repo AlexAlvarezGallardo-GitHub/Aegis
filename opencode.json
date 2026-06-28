@@ -1,0 +1,105 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "skills": {
+    "paths": [".opencode/skills"]
+  },
+  "agent": {
+    "explore": {
+      "model": "opencode/deepseek-v4-flash-free"
+    },
+    "scout": {
+      "model": "opencode/deepseek-v4-flash-free"
+    },
+    "plan": {
+      "model": "opencode-go/qwen3.7-plus"
+    },
+    "architect": {
+      "description": "Architecture guardian - validates DDD boundaries, microservice decomposition, C4 models, and architectural decisions",
+      "mode": "subagent",
+      "model": "opencode-go/qwen3.7-max",
+      "color": "accent"
+    },
+    "security-reviewer": {
+      "description": "Security specialist - reviews OAuth2/JWT flows, scans for secrets, validates OWASP compliance, checks secure API design",
+      "mode": "subagent",
+      "model": "opencode-go/deepseek-v4-flash",
+      "color": "error"
+    },
+    "code-reviewer": {
+      "description": "Code quality reviewer - enforces SOLID, Clean Code, hexagonal architecture patterns, naming conventions",
+      "mode": "subagent",
+      "model": "opencode-go/qwen3.7-plus",
+      "color": "warning"
+    },
+    "service-builder": {
+      "description": "Spring Boot microservice builder - generates services following hexagonal architecture, DDD, and project conventions",
+      "mode": "subagent",
+      "model": "opencode-go/kimi-k2.7-code",
+      "color": "success"
+    },
+    "frontend-builder": {
+      "description": "Angular frontend builder - generates components, services, state management with Angular Material",
+      "mode": "subagent",
+      "model": "opencode-go/kimi-k2.7-code",
+      "color": "info"
+    },
+    "test-engineer": {
+      "description": "Test engineer - generates JUnit 5, Mockito, Testcontainers, WireMock, and Playwright E2E tests following project conventions",
+      "mode": "subagent",
+      "model": "opencode-go/qwen3.7-plus",
+      "color": "secondary"
+    },
+    "infra-engineer": {
+      "description": "Infrastructure engineer - creates Docker, Kubernetes, Helm charts, and GitHub Actions CI/CD pipelines",
+      "mode": "subagent",
+      "model": "opencode-go/qwen3.7-plus",
+      "color": "primary"
+    },
+    "reporter": {
+      "description": "GitHub issue reporter - creates well-structured bug reports, feature requests, tech debt, and security issues with proper labels and formatting",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "prompt": "{file:./.opencode/prompts/reporter.txt}",
+      "color": "#e879f9"
+    },
+    "git-guardian": {
+      "description": "Git workflow guardian - enforces branch naming, conventional commits, and PR conventions following GitHub Flow",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "prompt": "{file:./.opencode/prompts/git-guardian.txt}",
+      "color": "#22d3ee"
+    }
+  },
+  "permission": {
+    "bash": {
+      "git *": "allow",
+      "mvn *": "allow",
+      "docker *": "allow",
+      "kubectl *": "allow",
+      "helm *": "allow",
+      "ng *": "allow",
+      "npm *": "allow",
+      "npx *": "allow",
+      "rm -rf *": "deny",
+      "*": "ask"
+    }
+  },
+  "mcp": {
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
+      }
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest"]
+    }
+  },
+  "compaction": {
+    "auto": true,
+    "tail_turns": 10
+  }
+}

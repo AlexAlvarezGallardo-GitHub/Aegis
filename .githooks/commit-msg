@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#
+# commit-msg hook: validates conventional commit format
+# Enable: git config core.hooksPath .githooks
+#
+
+MSG_FILE="$1"
+MSG=$(head -1 "$MSG_FILE")
+
+# Skip merge commits and revert commits
+if echo "$MSG" | grep -qE "^(Merge|Revert) "; then
+  exit 0
+fi
+
+TYPES="feat|fix|refactor|test|docs|chore|ci|perf|security"
+SCOPES="identity|wallet|payment|fraud|notification|audit|reporting|gateway|infra|frontend"
+
+PATTERN="^($TYPES)(\(($SCOPES)\))?!?: .{1,72}$"
+
+if ! echo "$MSG" | grep -qE "$PATTERN"; then
+  echo ""
+  echo "ERROR: Invalid commit message format."
+  echo ""
+  echo "  Got: $MSG"
+  echo ""
+  echo "  Expected: <type>(<scope>): <description>"
+  echo ""
+  echo "  Types:   $TYPES"
+  echo "  Scopes:  $SCOPES"
+  echo ""
+  echo "  Rules:"
+  echo "    - description: lowercase, imperative, no period, max 72 chars"
+  echo "    - breaking changes: add ! after scope or BREAKING CHANGE: in body"
+  echo ""
+  echo "  Examples:"
+  echo "    feat(payment): add idempotency key to payment creation"
+  echo "    fix(identity): correct JWT refresh token rotation logic"
+  echo "    chore(infra): upgrade Spring Boot to 3.4.1"
+  echo ""
+  exit 1
+fi
