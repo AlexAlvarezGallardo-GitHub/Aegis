@@ -77,7 +77,7 @@ Testing is mandatory at every level with enforced coverage thresholds:
 - REST paths: `/api/v1/<resource>`. URL versioning only.
 - Standard error response: `{ "code", "message", "details", "timestamp" }`.
 - Pagination via `page`, `size`, `sort` query parameters.
-- All endpoints documented with OpenAPI 3.
+- All endpoints documented with OpenAPI 3 via separate YAML files under `specs/<feature>/contracts/`. Controllers MUST NOT carry OpenAPI/swagger annotations.
 
 ## Development Workflow & Quality Gates
 

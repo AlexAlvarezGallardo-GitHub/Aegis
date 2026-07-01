@@ -1,0 +1,128 @@
+# ============================================================================
+# Java / Maven
+# ============================================================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mtj.tmp/
+hs_err_pid*
+
+# Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# ============================================================================
+# Angular / Node.js
+# ============================================================================
+node_modules/
+dist/
+.angular/
+.npm
+.eslintcache
+*.tsbuildinfo
+
+# ============================================================================
+# IDE / Editor
+# ============================================================================
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+.factorypath
+*.sublime-workspace
+*.sublime-project
+
+# ============================================================================
+# OS / System
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ============================================================================
+# Secrets & Credentials (NEVER COMMIT)
+# ============================================================================
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.csr
+.env
+.env.local
+.env.*.local
+application-local.yml
+application-local.yaml
+application-local.properties
+*-secret.yml
+*-secret.yaml
+*-secret.properties
+secrets/
+credentials/
+*.credentials
+*.secret
+
+# ============================================================================
+# Logs & Runtime
+# ============================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# ============================================================================
+# Testing & Coverage
+# ============================================================================
+coverage/
+.nyc_output/
+*.lcov
+.jest-cache/
+
+# ============================================================================
+# Build Artifacts
+# ============================================================================
+build/
+out/
+bin/
+obj/
+
+# ============================================================================
+# Docker (optional - uncomment if needed)
+# ============================================================================
+# docker-compose.override.yml
+
+# ============================================================================
+# Temporary Files
+# ============================================================================
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+.turbo/

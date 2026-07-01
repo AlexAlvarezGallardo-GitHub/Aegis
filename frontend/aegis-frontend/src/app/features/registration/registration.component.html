@@ -1,0 +1,68 @@
+<div class="registration-container">
+  <mat-card class="registration-card">
+    <mat-card-header>
+      <mat-card-title>Create Your Account</mat-card-title>
+      <mat-card-subtitle>Join the Aegis platform</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (successResponse) {
+        <div class="success-message">
+          <mat-icon>check_circle</mat-icon>
+          <h3>Registration Successful!</h3>
+          <p>Your account has been created with ID: {{ successResponse.userId }}</p>
+          <p>Status: {{ successResponse.status }}</p>
+          <p>Please check your email for verification instructions.</p>
+        </div>
+      } @else {
+        <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="john@example.com">
+            @if (registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched) {
+              <mat-error>{{ getErrorMessage('email') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
+            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched) {
+              <mat-error>{{ getErrorMessage('password') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="name-fields">
+            <mat-form-field appearance="outline">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName" placeholder="John">
+              @if (registrationForm.get('firstName')?.invalid && registrationForm.get('firstName')?.touched) {
+                <mat-error>{{ getErrorMessage('firstName') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName" placeholder="Doe">
+              @if (registrationForm.get('lastName')?.invalid && registrationForm.get('lastName')?.touched) {
+                <mat-error>{{ getErrorMessage('lastName') }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <button mat-raised-button color="primary" type="submit" class="submit-button"
+                  [disabled]="isLoading">
+            @if (isLoading) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              Create Account
+            }
+          </button>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

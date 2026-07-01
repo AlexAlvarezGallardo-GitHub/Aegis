@@ -1,8 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": ["AGENTS.md"],
+  "model": "opencode-go/deepseek-v4-flash",
+  "small_model": "opencode/deepseek-v4-flash-free",
   "skills": {
     "paths": [".opencode/skills"]
+  },
+  "watcher": {
+    "ignore": ["node_modules/**", ".opencode/node_modules/**", "dist/**", "target/**", ".git/**", ".angular/**", "build/**", "out/**", "bin/**", "obj/**", "coverage/**"]
   },
   "agent": {
     "explore": {
@@ -17,8 +22,18 @@
     "architect": {
       "description": "Architecture guardian - validates DDD boundaries, microservice decomposition, C4 models, and architectural decisions",
       "mode": "subagent",
-      "model": "opencode-go/qwen3.7-max",
+      "model": "opencode-go/qwen3.7-plus",
       "color": "accent"
+    },
+    "general": {
+      "model": "opencode/deepseek-v4-flash-free",
+      "color": "primary"
+    },
+    "issue-manager": {
+      "description": "GitHub issue manager - triages, creates, links sub-issues, syncs state, tracks dependencies, and generates status reports for the Aegis platform",
+      "mode": "subagent",
+      "model": "opencode/deepseek-v4-flash-free",
+      "color": "secondary"
     },
     "security-reviewer": {
       "description": "Security specialist - reviews OAuth2/JWT flows, scans for secrets, validates OWASP compliance, checks secure API design",
@@ -35,20 +50,21 @@
     "service-builder": {
       "description": "Spring Boot microservice builder - generates services following hexagonal architecture, DDD, and project conventions",
       "mode": "subagent",
-      "model": "opencode-go/kimi-k2.7-code",
+      "model": "opencode-go/qwen3.7-plus",
       "color": "success"
     },
     "frontend-builder": {
       "description": "Angular frontend builder - generates components, services, state management with Angular Material",
       "mode": "subagent",
-      "model": "opencode-go/kimi-k2.7-code",
+      "model": "opencode-go/qwen3.7-plus",
       "color": "info"
     },
     "test-engineer": {
       "description": "Test engineer - generates JUnit 5, Mockito, Testcontainers, WireMock, and Playwright E2E tests following project conventions",
       "mode": "subagent",
       "model": "opencode-go/qwen3.7-plus",
-      "color": "secondary"
+      "color": "secondary",
+      "prompt": "You generate tests following Aegis conventions.\n\nPlaywright MCP policy (STRICT):\n- Playwright browser tools (browser_navigate, browser_snapshot, browser_click, browser_fill_form, etc.) are EXPENSIVE: each snapshot is thousands of tokens.\n- Only use the Playwright MCP when the task is a REAL end-to-end test that requires a running browser session (e.g. 'write an E2E test for the login flow', 'verify the payment confirmation page end-to-end').\n- DO NOT use Playwright to explore the codebase, read files, inspect the DOM out of curiosity, or verify non-UI behavior. Use Read/Grep/Glob and the test files themselves instead.\n- For unit tests, integration tests with Testcontainers, or WireMock-based API tests, NEVER invoke the browser. Write the test source directly.\n- If the user did not explicitly ask for an E2E/browser test, default to writing test source files without any Playwright call.\n- When you DO need a browser session, take a single snapshot, act on it, and immediately close the page with browser_close to free context."
     },
     "infra-engineer": {
       "description": "Infrastructure engineer - creates Docker, Kubernetes, Helm charts, and GitHub Actions CI/CD pipelines",
@@ -100,6 +116,8 @@
   },
   "compaction": {
     "auto": true,
+    "prune": true,
+    "reserved": 10000,
     "tail_turns": 10
   }
 }

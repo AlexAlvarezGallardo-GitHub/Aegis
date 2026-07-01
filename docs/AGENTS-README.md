@@ -6,18 +6,33 @@ This document describes the AI agent system, git workflow, and CI/CD pipeline fo
 
 Aegis uses a set of specialized AI agents configured in `opencode.json`. Each agent handles a specific domain of the development lifecycle.
 
-| Agent | Model | Role |
-|-------|-------|------|
-| `issue-manager` | qwen3.7-max | Manages GitHub issue lifecycle: triage, linking, sync, status reports |
-| `architect` | qwen3.7-max | Validates DDD boundaries, microservice decomposition, C4 models |
-| `security-reviewer` | deepseek-v4-flash | Reviews OAuth2/JWT, scans secrets, OWASP compliance |
-| `code-reviewer` | qwen3.7-plus | Enforces SOLID, Clean Code, hexagonal architecture |
-| `service-builder` | kimi-k2.7-code | Generates Spring Boot microservices |
-| `frontend-builder` | kimi-k2.7-code | Generates Angular components and services |
-| `test-engineer` | qwen3.7-plus | Generates JUnit 5, Mockito, Testcontainers tests |
-| `infra-engineer` | qwen3.7-plus | Creates Docker, Kubernetes, Helm, GitHub Actions |
-| `reporter` | deepseek-v4-flash-free | Creates GitHub issues (bugs, features, tech debt) |
-| `git-guardian` | deepseek-v4-flash-free | Enforces branch naming, commits, and PR conventions |
+Agents are tiered by cost to keep token usage low. The main session model and `small_model` (titles/lightweight tasks) are set in `opencode.json`.
+
+| Agent | Model | Tier | Role |
+|-------|-------|------|------|
+| _main session_ | `opencode-go/deepseek-v4-flash` | flash | Default agent for every turn |
+| _small_model_ | `opencode/deepseek-v4-flash-free` | free | Titles and lightweight tasks |
+| `explore` | `opencode/deepseek-v4-flash-free` | free | Fast codebase search and file discovery |
+| `scout` | `opencode/deepseek-v4-flash-free` | free | Open-ended exploration across multiple locations |
+| `plan` | `opencode-go/qwen3.7-plus` | plus | Planning and breakdown |
+| `general` | `opencode/deepseek-v4-flash-free` | free | General-purpose multi-step research and execution |
+| `issue-manager` | `opencode/deepseek-v4-flash-free` | free | Manages GitHub issue lifecycle: triage, linking, sync, status reports |
+| `architect` | `opencode-go/qwen3.7-plus` | plus | Validates DDD boundaries, microservice decomposition, C4 models |
+| `security-reviewer` | `opencode-go/deepseek-v4-flash` | flash | Reviews OAuth2/JWT, scans secrets, OWASP compliance |
+| `code-reviewer` | `opencode-go/qwen3.7-plus` | plus | Enforces SOLID, Clean Code, hexagonal architecture |
+| `service-builder` | `opencode-go/qwen3.7-plus` | plus | Generates Spring Boot microservices, OpenAPI/Swagger documentation |
+| `frontend-builder` | `opencode-go/qwen3.7-plus` | plus | Generates Angular components and services |
+| `test-engineer` | `opencode-go/qwen3.7-plus` | plus | Generates JUnit 5, Mockito, Testcontainers tests; Playwright only for real E2E |
+| `infra-engineer` | `opencode-go/qwen3.7-plus` | plus | Creates Docker, Kubernetes, Helm, GitHub Actions |
+| `reporter` | `opencode/deepseek-v4-flash-free` | free | Creates GitHub issues (bugs, features, tech debt) |
+| `git-guardian` | `opencode/deepseek-v4-flash-free` | free | Enforces branch naming, commits, and PR conventions |
+
+**Tier guide:**
+- `free` — routine work (search, triage, git/issue ops). No token cost.
+- `flash` — main session and security review. Cheap, good for most turns.
+- `plus` — planning, architecture, builders, tests, infra. Use when quality matters.
+
+**Token-saving policy:** `compaction.prune` is enabled and `watcher.ignore` excludes `node_modules/`, `target/`, `dist/`, and `.opencode/node_modules/` so searches and the file watcher do not ingest build artifacts or vendored JS.
 
 ### Agent Routing
 
@@ -40,6 +55,7 @@ flowchart TD
     STORY_ROUTE -->|Angular/UI| FB[frontend-builder]
     STORY_ROUTE -->|Kafka/Events| SB2[service-builder + event-design]
     STORY_ROUTE -->|REST/API| SB3[service-builder + api-design]
+    STORY_ROUTE -->|Swagger/OpenAPI| SB5[service-builder + api-design]
     STORY_ROUTE -->|Entity/Model/Service| SB
     STORY_ROUTE -->|Test/Coverage| TE[test-engineer]
     STORY_ROUTE -->|Security/OAuth2| SB4[service-builder then security-reviewer]
@@ -63,6 +79,7 @@ flowchart TD
     style SB2 fill:#22c55e,color:#fff
     style SB3 fill:#22c55e,color:#fff
     style SB4 fill:#22c55e,color:#fff
+    style SB5 fill:#22c55e,color:#fff
     style FB fill:#06b6d4,color:#fff
     style TE fill:#a855f7,color:#fff
     style CR fill:#eab308,color:#fff
@@ -295,6 +312,35 @@ Ask the `git-guardian` agent to validate your work:
 - "Validate my branch name"
 - "Check my last 5 commit messages"
 - "Review this PR for convention compliance"
+
+### OpenAPI / Swagger Documentation
+
+The `service-builder` agent is responsible for generating and maintaining OpenAPI 3 documentation for every REST endpoint using **springdoc-openapi**.
+
+**Rules:**
+
+- Swagger UI is **only enabled in the `dev` profile** (`@Profile("dev")`). It MUST NOT be available in staging or production.
+- The `SwaggerConfig` class lives in `infrastructure/config/` and is annotated with `@Profile("dev")`.
+- Spring Security MUST permit Swagger paths (`/swagger-ui/**`, `/v3/api-docs/**`, `/webjars/**`) only when the `dev` profile is active.
+- Controllers MUST use `@Tag`, `@Operation`, and `@ApiResponses` annotations from `io.swagger.v3.oas.annotations`.
+- Request/response DTOs MUST use `@Schema` annotations with descriptions and examples.
+- Error responses MUST be documented with `@ExampleObject` entries for each error code.
+- The OpenAPI spec is served at `/v3/api-docs` and Swagger UI at `/swagger-ui.html` (dev profile only).
+
+**When creating a new endpoint, the service-builder agent MUST:**
+
+1. Add `@Tag` to the controller class with a name and description
+2. Add `@Operation` with summary and description to each endpoint method
+3. Add `@ApiResponses` with all possible response codes (2xx, 4xx, 5xx) and example payloads
+4. Add `@Schema` annotations to all request and response DTOs
+5. Add `@Parameter` annotations to path/query/header parameters
+
+**Access (dev profile only):**
+
+| Resource | URL |
+|----------|-----|
+| Swagger UI | `http://localhost:8081/swagger-ui.html` |
+| OpenAPI JSON | `http://localhost:8081/v3/api-docs` |
 
 ### Common commands
 
