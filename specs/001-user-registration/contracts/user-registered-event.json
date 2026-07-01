@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserRegistered Event",
+  "description": "Published when a new user account is successfully created on the Aegis platform.",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "schemaVersion",
+    "userId",
+    "email",
+    "firstName",
+    "lastName",
+    "registeredAt",
+    "correlationId"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event instance. Used for idempotent consumption by downstream services."
+    },
+    "eventType": {
+      "type": "string",
+      "const": "USER_REGISTERED",
+      "description": "Discriminator for event type routing."
+    },
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version for forward compatibility."
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the newly registered user (UUID v7)."
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "The normalized email address of the registered user."
+    },
+    "firstName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "The user's first name."
+    },
+    "lastName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "The user's last name."
+    },
+    "registeredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of when the account was created."
+    },
+    "correlationId": {
+      "type": "string",
+      "description": "Request correlation ID for distributed tracing. Injected by the API Gateway."
+    }
+  }
+}

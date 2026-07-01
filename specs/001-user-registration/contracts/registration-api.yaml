@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  title: Aegis Identity Service - User Registration API
+  description: API for user self-registration on the Aegis platform.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+  - url: https://api.aegis.dev
+    description: Development environment
+
+paths:
+  /api/v1/users/register:
+    post:
+      operationId: registerUser
+      summary: Register a new user account
+      description: |
+        Creates a new user account on the Aegis platform. The account is created
+        in PENDING_VERIFICATION status. A UserRegistered event is published to
+        downstream services (Audit, Notification) via Kafka.
+      tags:
+        - Registration
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+            example:
+              email: "john.doe@example.com"
+              password: "SecureP@ss1"
+              firstName: "John"
+              lastName: "Doe"
+      responses:
+        '201':
+          description: User account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterUserResponse'
+              example:
+                userId: "01912345-6789-7abc-def0-123456789abc"
+                email: "john.doe@example.com"
+                status: "PENDING_VERIFICATION"
+                registeredAt: "2026-06-28T14:30:00.000Z"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidEmail:
+                  summary: Invalid email format
+                  value:
+                    code: "INVALID_EMAIL_FORMAT"
+                    message: "The provided email address is not valid."
+                    details: null
+                    timestamp: "2026-06-28T14:30:00.000Z"
+                passwordTooShort:
+                  summary: Password too short
+                  value:
+                    code: "PASSWORD_TOO_SHORT"
+                    message: "Password must be at least 8 characters long."
+                    details: null
+                    timestamp: "2026-06-28T14:30:00.000Z"
+                passwordTooLong:
+                  summary: Password too long
+                  value:
+                    code: "PASSWORD_TOO_LONG"
+                    message: "Password must not exceed 128 characters."
+                    details: null
+                    timestamp: "2026-06-28T14:30:00.000Z"
+                passwordMissingUppercase:
+                  summary: Missing uppercase
+                  value:
+                    code: "PASSWORD_MISSING_UPPERCASE"
+                    message: "Password must contain at least one uppercase letter."
+                    details: null
+                    timestamp: "2026-06-28T14:30:00.000Z"
+                passwordMissingLowercase:
+                  summary: Missing lowercase
+                  value:
+                    code: "PASSWORD_MISSING_LOWERCASE"
+                    message: "Password must contain at least one lowercase letter."
+                    details: null
+                    timestamp: "2026-06-28T14:30:00.000Z"
+                passwordMissingDigit:
+                  summary: Missing digit
+                  value:
+                    code: "PASSWORD_MISSING_DIGIT"
+                    message: "Password must contain at least one digit."
+                    details: null
+                    timestamp: "2026-06-28T14:30:00.000Z"
+                passwordMissingSpecial:
+                  summary: Missing special character
+                  value:
+                    code: "PASSWORD_MISSING_SPECIAL_CHARACTER"
+                    message: "Password must contain at least one special character."
+                    details: null
+                    timestamp: "2026-06-28T14:30:00.000Z"
+                fieldRequired:
+                  summary: Required field missing
+                  value:
+                    code: "FIELD_REQUIRED"
+                    message: "The field 'firstName' is required."
+                    details:
+                      field: "firstName"
+                    timestamp: "2026-06-28T14:30:00.000Z"
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "EMAIL_ALREADY_REGISTERED"
+                message: "An account with this email address already exists."
+                details: null
+                timestamp: "2026-06-28T14:30:00.000Z"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "RATE_LIMIT_EXCEEDED"
+                message: "Too many registration attempts. Please try again later."
+                details: null
+                timestamp: "2026-06-28T14:30:00.000Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "INTERNAL_ERROR"
+                message: "An unexpected error occurred."
+                details: null
+                timestamp: "2026-06-28T14:30:00.000Z"
+
+components:
+  schemas:
+    RegisterUserRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: User's email address (serves as login identifier)
+          example: "john.doe@example.com"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: |
+            User's password. Must contain at least 1 uppercase letter,
+            1 lowercase letter, 1 digit, and 1 special character.
+          example: "SecureP@ss1"
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: User's last name
+          example: "Doe"
+
+    RegisterUserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique identifier for the new user (UUID v7)
+          example: "01912345-6789-7abc-def0-123456789abc"
+        email:
+          type: string
+          format: email
+          description: The registered email address
+          example: "john.doe@example.com"
+        status:
+          type: string
+          enum:
+            - PENDING_VERIFICATION
+            - ACTIVE
+            - LOCKED
+            - SUSPENDED
+          description: Current account status
+          example: "PENDING_VERIFICATION"
+        registeredAt:
+          type: string
+          format: date-time
+          description: Registration timestamp (UTC)
+          example: "2026-06-28T14:30:00.000Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "EMAIL_ALREADY_REGISTERED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "An account with this email address already exists."
+        details:
+          type: object
+          nullable: true
+          description: Additional error context (field name, validation details, etc.)
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred (UTC)
+          example: "2026-06-28T14:30:00.000Z"

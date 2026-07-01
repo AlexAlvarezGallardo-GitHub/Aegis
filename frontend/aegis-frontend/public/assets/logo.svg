@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="shield-gold" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#E2B859"/>
+      <stop offset="40%" stop-color="#C89B3C"/>
+      <stop offset="100%" stop-color="#9B7426"/>
+    </linearGradient>
+  </defs>
+  <path d="M24 2L6 12v12c0 12.4 7.6 24 18 24s18-11.6 18-24V12L24 2z"
+        fill="url(#shield-gold)" stroke="#9B7426" stroke-width="0.5"/>
+  <text x="24" y="30" font-family="serif" font-size="18" font-weight="700"
+        fill="#0B1220" text-anchor="middle" dominant-baseline="middle">A</text>
+</svg>

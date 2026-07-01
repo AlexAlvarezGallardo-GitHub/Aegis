@@ -38,6 +38,12 @@ com.aegis.<service>/
 - Use `@Value` for immutable Spring beans
 - Use `@Entity` only in infrastructure layer
 
+## API Documentation
+
+- OpenAPI 3 specs MUST be defined in separate YAML files under `specs/<feature>/contracts/`.
+- Controllers MUST NOT contain swagger/OpenAPI annotations (`@Tag`, `@Operation`, `@ApiResponse`, `@Parameter`, etc.). These duplicate the YAML spec and add complexity without gain.
+- The `api-design` skill generates the OpenAPI contract. The `service-builder` agent must produce controllers with zero swagger imports.
+
 ## Build Commands
 
 - Build all: `mvn clean install`
