@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from './auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-auth',
@@ -56,21 +57,21 @@ export class AuthComponent {
 
     this.isLoading = true;
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.snackBar.open('Login successful!', 'Close', {
-          duration: 3000
-        });
-      },
-      error: (error) => {
-        this.isLoading = false;
-        const errorMessage = error.error?.message || 'Login failed. Please try again.';
-        this.snackBar.open(errorMessage, 'Close', {
-          duration: 5000
-        });
-      }
-    });
+    this.authService.login(this.loginForm.value)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Login successful!', 'Close', {
+            duration: 3000
+          });
+        },
+        error: (error) => {
+          const errorMessage = error.error?.message || 'Login failed. Please try again.';
+          this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000
+          });
+        }
+      });
   }
 
   getErrorMessage(controlName: string): string {

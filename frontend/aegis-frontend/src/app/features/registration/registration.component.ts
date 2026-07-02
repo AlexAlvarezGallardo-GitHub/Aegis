@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RegistrationService } from './registration.service';
 import { RegisterUserResponse } from '../../shared/models/registration.model';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-registration',
@@ -59,22 +60,22 @@ export class RegistrationComponent {
     this.isLoading = true;
     this.successResponse = null;
 
-    this.registrationService.register(this.registrationForm.value).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        this.successResponse = response;
-        this.snackBar.open('Registration successful! Please check your email.', 'Close', {
-          duration: 5000
-        });
-      },
-      error: (error) => {
-        this.isLoading = false;
-        const errorMessage = error.error?.message || 'Registration failed. Please try again.';
-        this.snackBar.open(errorMessage, 'Close', {
-          duration: 5000
-        });
-      }
-    });
+    this.registrationService.register(this.registrationForm.value)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (response) => {
+          this.successResponse = response;
+          this.snackBar.open('Registration successful! Please check your email.', 'Close', {
+            duration: 5000
+          });
+        },
+        error: (error) => {
+          const errorMessage = error.error?.message || 'Registration failed. Please try again.';
+          this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000
+          });
+        }
+      });
   }
 
   getErrorMessage(controlName: string): string {
