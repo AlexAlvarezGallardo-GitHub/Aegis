@@ -88,8 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR body sections
+        env:
+          BODY: ${{ github.event.pull_request.body }}
         run: |
-          BODY="${{ github.event.pull_request.body }}"
           FAILED=0
 
           if ! echo "$BODY" | grep -qi "summary"; then
