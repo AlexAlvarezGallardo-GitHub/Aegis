@@ -1,6 +1,5 @@
 package com.aegis.identity.infrastructure.persistence;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,25 +10,28 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class OutboxRelayScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(OutboxRelayScheduler.class);
-    private static final String TOPIC = "aegis.identity.user-registered";
+
+    private static final Map<String, String> TOPIC_MAP = Map.of(
+            "USER_REGISTERED", "aegis.identity.user-registered",
+            "USER_AUTHENTICATED", "aegis.identity.user-authenticated",
+            "USER_ACCOUNT_LOCKED", "aegis.identity.user-account-locked"
+    );
 
     private final OutboxEventJpaRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
     private final int batchSize;
 
     public OutboxRelayScheduler(OutboxEventJpaRepository outboxRepository,
                                  KafkaTemplate<String, String> kafkaTemplate,
-                                 ObjectMapper objectMapper,
                                  @Value("${aegis.outbox.batch-size:50}") int batchSize) {
         this.outboxRepository = outboxRepository;
         this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
         this.batchSize = batchSize;
     }
 
@@ -45,10 +47,17 @@ public class OutboxRelayScheduler {
 
         for (OutboxEventJpaEntity event : pending) {
             try {
-                kafkaTemplate.send(TOPIC, event.getId().toString(), event.getPayload()).get();
+                String topic = TOPIC_MAP.get(event.getEventType());
+                if (topic == null) {
+                    log.warn("No topic mapping for event type: {}", event.getEventType());
+                    event.markPublished();
+                    outboxRepository.save(event);
+                    continue;
+                }
+                kafkaTemplate.send(topic, event.getId().toString(), event.getPayload()).get();
                 event.markPublished();
                 outboxRepository.save(event);
-                log.debug("Published outbox event: id={}, type={}", event.getId(), event.getEventType());
+                log.debug("Published outbox event: id={}, type={}, topic={}", event.getId(), event.getEventType(), topic);
             } catch (Exception e) {
                 log.error("Failed to publish outbox event: id={}", event.getId(), e);
                 break;

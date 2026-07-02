@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UserAccountLockedEvent",
+  "description": "Published when a user account is locked due to excessive failed authentication attempts",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique event identifier (UUID v7)"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["USER_ACCOUNT_LOCKED"],
+      "description": "Domain event type"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The locked user's ID"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "The locked user's email"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the account was locked (ISO 8601 UTC)"
+    },
+    "failureCount": {
+      "type": "integer",
+      "minimum": 5,
+      "description": "Number of consecutive failed attempts that triggered the lock"
+    },
+    "correlationId": {
+      "type": "string",
+      "description": "Correlation ID for request tracing"
+    }
+  },
+  "required": ["eventId", "eventType", "userId", "email", "timestamp", "failureCount", "correlationId"]
+}

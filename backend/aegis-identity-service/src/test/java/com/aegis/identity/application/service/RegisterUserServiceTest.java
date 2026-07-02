@@ -92,7 +92,7 @@ class RegisterUserServiceTest {
         assertThrows(DuplicateEmailException.class, () -> service.register(command));
 
         verify(userRepository, never()).save(any());
-        verify(eventPublisher, never()).publish(any());
+        verify(eventPublisher, never()).publish(any(UserRegistered.class));
     }
 
     @Test

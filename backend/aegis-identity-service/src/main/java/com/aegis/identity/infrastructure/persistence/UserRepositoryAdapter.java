@@ -27,11 +27,15 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public User saveAndFlush(User user) {
+        UserJpaEntity entity = toEntity(user);
+        UserJpaEntity saved = jpaRepository.saveAndFlush(entity);
+        return toDomain(saved);
+    }
+
+    @Override
     public Optional<User> findByEmail(Email email) {
-        return jpaRepository.findAll()
-                .stream()
-                .filter(e -> e.getEmail().equals(email.value()))
-                .findFirst()
+        return jpaRepository.findByEmail(email.value())
                 .map(this::toDomain);
     }
 
@@ -54,6 +58,8 @@ public class UserRepositoryAdapter implements UserRepository {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getStatus().name(),
+                user.getFailedLoginAttempts(),
+                user.getLockedUntil(),
                 user.getRegisteredAt(),
                 user.getUpdatedAt(),
                 user.getVersion()
@@ -68,6 +74,8 @@ public class UserRepositoryAdapter implements UserRepository {
                 entity.getFirstName(),
                 entity.getLastName(),
                 UserStatus.valueOf(entity.getStatus()),
+                entity.getFailedLoginAttempts(),
+                entity.getLockedUntil(),
                 entity.getRegisteredAt(),
                 entity.getUpdatedAt(),
                 entity.getVersion()

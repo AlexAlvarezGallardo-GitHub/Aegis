@@ -40,6 +40,10 @@ aegis:
   outbox:
     polling-interval-ms: 1000
     batch-size: 50
+  jwt:
+    secret: "aegis-dev-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
 
 logging:
   level:

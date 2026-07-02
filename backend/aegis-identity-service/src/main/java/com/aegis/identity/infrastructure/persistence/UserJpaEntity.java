@@ -31,6 +31,12 @@ public class UserJpaEntity {
     @Column(nullable = false, length = 30)
     private String status;
 
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts;
+
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
+
     @Column(name = "registered_at", nullable = false)
     private Instant registeredAt;
 
@@ -44,7 +50,8 @@ public class UserJpaEntity {
     }
 
     public UserJpaEntity(UUID id, String email, String passwordHash, String firstName,
-                          String lastName, String status, Instant registeredAt,
+                          String lastName, String status, int failedLoginAttempts,
+                          Instant lockedUntil, Instant registeredAt,
                           Instant updatedAt, Long version) {
         this.id = id;
         this.email = email;
@@ -52,6 +59,8 @@ public class UserJpaEntity {
         this.firstName = firstName;
         this.lastName = lastName;
         this.status = status;
+        this.failedLoginAttempts = failedLoginAttempts;
+        this.lockedUntil = lockedUntil;
         this.registeredAt = registeredAt;
         this.updatedAt = updatedAt;
         this.version = version;
@@ -63,7 +72,14 @@ public class UserJpaEntity {
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
     public String getStatus() { return status; }
+    public int getFailedLoginAttempts() { return failedLoginAttempts; }
+    public Instant getLockedUntil() { return lockedUntil; }
     public Instant getRegisteredAt() { return registeredAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public Long getVersion() { return version; }
+
+    public void setStatus(String status) { this.status = status; }
+    public void setFailedLoginAttempts(int failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
+    public void setLockedUntil(Instant lockedUntil) { this.lockedUntil = lockedUntil; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
