@@ -9,10 +9,10 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/api/v1/auth`;
+  private readonly baseUrl = `${environment.apiUrl}/api/v1/auth`;
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
+    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, request).pipe(
       tap(response => {
         localStorage.setItem('accessToken', response.accessToken);
         localStorage.setItem('refreshToken', response.refreshToken);

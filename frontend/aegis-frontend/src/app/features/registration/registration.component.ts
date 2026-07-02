@@ -50,6 +50,9 @@ export class RegistrationComponent {
   onSubmit(): void {
     if (this.registrationForm.invalid) {
       this.registrationForm.markAllAsTouched();
+      this.snackBar.open('Please fix the form errors before submitting.', 'Close', {
+        duration: 4000
+      });
       return;
     }
 

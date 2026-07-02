@@ -27,7 +27,7 @@
         </mat-form-field>
 
         <button mat-raised-button color="primary" type="submit" class="submit-button"
-                [disabled]="isLoading">
+                [disabled]="isLoading || loginForm.invalid">
           @if (isLoading) {
             <mat-spinner diameter="20"></mat-spinner>
           } @else {

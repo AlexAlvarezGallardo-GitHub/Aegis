@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -16,6 +17,7 @@ import { AuthService } from './auth.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -46,6 +48,9 @@ export class AuthComponent {
   onSubmit(): void {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
+      this.snackBar.open('Please fix the form errors before submitting.', 'Close', {
+        duration: 4000
+      });
       return;
     }
 

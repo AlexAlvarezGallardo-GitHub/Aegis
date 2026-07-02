@@ -9,9 +9,9 @@ import { environment } from '../../../environments/environment';
 })
 export class RegistrationService {
   private http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/api/v1/users`;
+  private readonly baseUrl = `${environment.apiUrl}/api/v1/users`;
 
   register(request: RegisterUserRequest): Observable<RegisterUserResponse> {
-    return this.http.post<RegisterUserResponse>(`${this.apiUrl}/register`, request);
+    return this.http.post<RegisterUserResponse>(`${this.baseUrl}/register`, request);
   }
 }
