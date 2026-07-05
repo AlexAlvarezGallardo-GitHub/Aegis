@@ -53,6 +53,9 @@ Configuration is stored in `.specify/extensions/git/git-config.yml`:
 # Branch numbering strategy: "sequential" or "timestamp"
 branch_numbering: sequential
 
+# Branch type prefix for GitHub Flow compatibility
+branch_type: feature
+
 # Custom commit message for git init
 init_commit_message: "[Spec Kit] Initial commit"
 

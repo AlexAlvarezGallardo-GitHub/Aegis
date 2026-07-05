@@ -1,6 +1,6 @@
 # Implementation Plan: UC-001 User Registration
 
-**Branch**: `feature/uc-001-user-registration` | **Date**: 2026-06-28 | **Spec**: `specs/001-user-registration/spec.md`
+**Branch**: `feature/001-user-registration` | **Date**: 2026-06-28 | **Spec**: `specs/001-user-registration/spec.md`
 
 ## Summary
 

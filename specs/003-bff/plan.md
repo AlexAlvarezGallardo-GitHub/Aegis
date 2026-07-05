@@ -1,6 +1,6 @@
 # Implementation Plan: UC-003 BFF
 
-**Branch**: `feature/uc-003-bff` | **Date**: 2026-07-05
+**Branch**: `feature/003-bff` | **Date**: 2026-07-05
 
 ## Implementation Order
 

@@ -1,6 +1,6 @@
 # Feature Specification: UC-003 Backend for Frontend (BFF)
 
-**Feature Branch**: `feature/uc-003-bff`
+**Feature Branch**: `feature/003-bff`
 
 **Created**: 2026-07-05
 

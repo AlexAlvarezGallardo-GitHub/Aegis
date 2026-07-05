@@ -1,6 +1,6 @@
 # Feature Specification: UC-002 User Authentication
 
-**Feature Branch**: `feature/uc-002-user-authentication`
+**Feature Branch**: `feature/002-user-authentication`
 
 **Created**: 2026-07-03
 

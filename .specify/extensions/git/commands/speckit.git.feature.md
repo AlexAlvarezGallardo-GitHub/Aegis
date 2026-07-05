@@ -34,6 +34,13 @@ Determine the branch numbering strategy by checking configuration in this order:
 2. Check `.specify/init-options.json` for `branch_numbering` value (backward compatibility)
 3. Default to `sequential` if neither exists
 
+## Branch Type Prefix
+
+Determine the GitHub Flow type prefix by checking `.specify/extensions/git/git-config.yml` for `branch_type` (default: `feature`).
+Valid values: `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `ci`, `security`.
+
+The resulting branch name follows `<type>/<number>-<short-description>` (e.g., `feature/003-user-auth`).
+
 ## Execution
 
 Generate a concise short name (2-4 words) for the branch:
@@ -63,5 +70,6 @@ If Git is not installed or the current directory is not a Git repository:
 ## Output
 
 The script outputs JSON with:
-- `BRANCH_NAME`: The branch name (e.g., `003-user-auth` or `20260319-143022-user-auth`)
+- `BRANCH_NAME`: The full Git branch name (e.g., `feature/003-user-auth` or `feature/20260319-143022-user-auth`)
+- `FEATURE_NAME`: The spec/feature identifier without the type prefix (e.g., `003-user-auth`)
 - `FEATURE_NUM`: The numeric or timestamp prefix used

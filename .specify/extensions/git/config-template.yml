@@ -4,6 +4,10 @@
 # Branch numbering strategy: "sequential" (001, 002, ...) or "timestamp" (YYYYMMDD-HHMMSS)
 branch_numbering: sequential
 
+# Branch type prefix for GitHub Flow compatibility.
+# Valid values: feature, fix, chore, refactor, docs, test, ci, security
+branch_type: feature
+
 # Commit message used by `git commit` during repository initialization
 init_commit_message: "[Spec Kit] Initial commit"
 

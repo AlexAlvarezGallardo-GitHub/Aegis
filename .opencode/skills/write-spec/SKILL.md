@@ -123,7 +123,8 @@ As a [user/system/service], I want to [action] so that [value].
 
 ## Conventions
 
-- Feature branch naming: sequential (`NNN-feature-name`) per `.specify/init-options.json`
 - Spec directory: `specs/<NNN>-<short-name>/`
+- Feature branch: `<type>/<NNN>-<short-name>/` (GitHub Flow + sequential spec number)
+- Default type is `feature`; override via `branch_type` in `.specify/extensions/git/git-config.yml`
 - Constitution reference: `.specify/memory/constitution.md`
 - Next step after spec: `/speckit.clarify` (resolve ambiguities) or `/speckit.plan` (generate technical design)

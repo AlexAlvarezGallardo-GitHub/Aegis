@@ -1,6 +1,6 @@
 # Data Model: UC-001 User Registration
 
-**Branch**: `feature/uc-001-user-registration` | **Date**: 2026-06-28
+**Branch**: `feature/001-user-registration` | **Date**: 2026-06-28
 
 ---
 

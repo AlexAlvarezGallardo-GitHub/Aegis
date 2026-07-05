@@ -74,7 +74,8 @@ function Get-HighestNumberFromNames {
 
     [long]$highest = 0
     foreach ($name in $Names) {
-        if ($name -match '^(\d{3,})-' -and $name -notmatch '^\d{8}-\d{6}-') {
+        # Match sequential prefixes (>=3 digits) with optional GitHub Flow type prefix.
+        if ($name -match '^(?:[a-z]+/)?(\d{3,})-' -and $name -notmatch '^\d{8}-\d{6}-') {
             [long]$num = 0
             if ([long]::TryParse($matches[1], [ref]$num) -and $num -gt $highest) {
                 $highest = $num
@@ -163,6 +164,20 @@ function ConvertTo-CleanBranchName {
 
     return $Name.ToLower() -replace '[^a-z0-9]', '-' -replace '-{2,}', '-' -replace '^-', '' -replace '-$', ''
 }
+
+function Get-BranchType {
+    param([string]$RepoRoot)
+    $configPath = Join-Path $RepoRoot '.specify/extensions/git/git-config.yml'
+    $defaultType = 'feature'
+    if (-not (Test-Path $configPath)) { return $defaultType }
+    $content = Get-Content -Path $configPath -Raw
+    if ($content -match '^\s*branch_type:\s*(\S+)\s*$') {
+        $type = $matches[1].Trim()
+        $validTypes = @('feature', 'fix', 'chore', 'refactor', 'docs', 'test', 'ci', 'security')
+        if ($validTypes -contains $type) { return $type }
+    }
+    return $defaultType
+}
 # Load common functions (includes Get-RepoRoot, Test-HasGit, Resolve-Template)
 . "$PSScriptRoot/common.ps1"
 
@@ -239,10 +254,14 @@ if ($Timestamp -and $Number -ne 0) {
     $Number = 0
 }
 
-# Determine branch prefix
+# Determine branch type from config
+$branchType = Get-BranchType -RepoRoot $repoRoot
+
+# Determine branch name and feature name (spec directory name)
 if ($Timestamp) {
     $featureNum = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $branchName = "$featureNum-$branchSuffix"
+    $featureName = "$featureNum-$branchSuffix"
+    $branchName = "$branchType/$featureName"
 } else {
     # Determine branch number
     if ($Number -eq 0) {
@@ -262,17 +281,18 @@ if ($Timestamp) {
     }
 
     $featureNum = ('{0:000}' -f $Number)
-    $branchName = "$featureNum-$branchSuffix"
+    $featureName = "$featureNum-$branchSuffix"
+    $branchName = "$branchType/$featureName"
 }
 
 # GitHub enforces a 244-byte limit on branch names
 # Validate and truncate if necessary
 $maxBranchLength = 244
 if ($branchName.Length -gt $maxBranchLength) {
-    # Calculate how much we need to trim from suffix
-    # Account for prefix length: timestamp (15) + hyphen (1) = 16, or sequential (3) + hyphen (1) = 4
-    $prefixLength = $featureNum.Length + 1
-    $maxSuffixLength = $maxBranchLength - $prefixLength
+    # Account for type prefix (type + /) and number prefix (number + -)
+    $typePrefixLength = $branchType.Length + 1
+    $numberPrefixLength = $featureNum.Length + 1
+    $maxSuffixLength = $maxBranchLength - $typePrefixLength - $numberPrefixLength
 
     # Truncate suffix
     $truncatedSuffix = $branchSuffix.Substring(0, [Math]::Min($branchSuffix.Length, $maxSuffixLength))
@@ -280,14 +300,15 @@ if ($branchName.Length -gt $maxBranchLength) {
     $truncatedSuffix = $truncatedSuffix -replace '-$', ''
 
     $originalBranchName = $branchName
-    $branchName = "$featureNum-$truncatedSuffix"
+    $featureName = "$featureNum-$truncatedSuffix"
+    $branchName = "$branchType/$featureName"
 
     Write-Warning "[specify] Branch name exceeded GitHub's 244-byte limit"
     Write-Warning "[specify] Original: $originalBranchName ($($originalBranchName.Length) bytes)"
     Write-Warning "[specify] Truncated to: $branchName ($($branchName.Length) bytes)"
 }
 
-$featureDir = Join-Path $specsDir $branchName
+$featureDir = Join-Path $specsDir $featureName
 $specFile = Join-Path $featureDir 'spec.md'
 
 if (-not $DryRun) {
@@ -357,12 +378,13 @@ if (-not $DryRun) {
     }
 
     # Set the SPECIFY_FEATURE environment variable for the current session
-    $env:SPECIFY_FEATURE = $branchName
+    $env:SPECIFY_FEATURE = $featureName
 }
 
 if ($Json) {
     $obj = [PSCustomObject]@{
         BRANCH_NAME = $branchName
+        FEATURE_NAME = $featureName
         SPEC_FILE = $specFile
         FEATURE_NUM = $featureNum
         HAS_GIT = $hasGit
@@ -373,10 +395,11 @@ if ($Json) {
     $obj | ConvertTo-Json -Compress
 } else {
     Write-Output "BRANCH_NAME: $branchName"
+    Write-Output "FEATURE_NAME: $featureName"
     Write-Output "SPEC_FILE: $specFile"
     Write-Output "FEATURE_NUM: $featureNum"
     Write-Output "HAS_GIT: $hasGit"
     if (-not $DryRun) {
-        Write-Output "SPECIFY_FEATURE environment variable set to: $branchName"
+        Write-Output "SPECIFY_FEATURE environment variable set to: $featureName"
     }
 }

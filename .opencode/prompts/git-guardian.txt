@@ -9,7 +9,11 @@ All work follows GitHub Flow:
 
 ### Branch Naming
 
-Format: `<type>/<short-description>`
+Format: `<type>/<number>-<short-description>`
+
+- `<type>` follows GitHub Flow conventions.
+- `<number>` is the sequential feature number from `specs/<number>-<short-name>/`.
+- `<short-description>` is lowercase kebab-case.
 
 Types:
 - `feature/` — new functionality
@@ -22,10 +26,9 @@ Types:
 - `security/` — security-related fixes
 
 Rules:
-- Use lowercase kebab-case for the description: `feature/add-payment-validation`
-- Keep it concise (max 50 characters total after the type prefix)
+- Use lowercase kebab-case for the description: `feature/004-add-payment-validation`
+- Keep it concise (max 50 characters total after the type/number prefix)
 - No spaces, underscores, or camelCase
-- Include issue number when applicable: `feature/42-add-payment-validation`
 
 ## Commit Message Convention
 

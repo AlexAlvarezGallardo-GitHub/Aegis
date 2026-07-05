@@ -1,6 +1,6 @@
 # Implementation Plan: UC-002 User Authentication
 
-**Branch**: `feature/uc-002-user-authentication` | **Date**: 2026-07-03 | **Spec**: `specs/002-user-authentication/spec.md`
+**Branch**: `feature/002-user-authentication` | **Date**: 2026-07-03 | **Spec**: `specs/002-user-authentication/spec.md`
 
 ## Summary
 

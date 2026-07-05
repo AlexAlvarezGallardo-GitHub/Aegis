@@ -70,7 +70,8 @@ function Get-HighestNumberFromNames {
 
     [long]$highest = 0
     foreach ($name in $Names) {
-        if ($name -match '^(\d{3,})-' -and $name -notmatch '^\d{8}-\d{6}-') {
+        # Match sequential prefixes (>=3 digits) with optional GitHub Flow type prefix.
+        if ($name -match '^(?:[a-z]+/)?(\d{3,})-' -and $name -notmatch '^\d{8}-\d{6}-') {
             [long]$num = 0
             if ([long]::TryParse($matches[1], [ref]$num) -and $num -gt $highest) {
                 $highest = $num
@@ -146,6 +147,20 @@ function Get-NextBranchNumber {
 function ConvertTo-CleanBranchName {
     param([string]$Name)
     return $Name.ToLower() -replace '[^a-z0-9]', '-' -replace '-{2,}', '-' -replace '^-', '' -replace '-$', ''
+}
+
+function Get-BranchType {
+    param([string]$RepoRoot)
+    $configPath = Join-Path $RepoRoot '.specify/extensions/git/git-config.yml'
+    $defaultType = 'feature'
+    if (-not (Test-Path $configPath)) { return $defaultType }
+    $content = Get-Content -Path $configPath -Raw
+    if ($content -match '^\s*branch_type:\s*(\S+)\s*$') {
+        $type = $matches[1].Trim()
+        $validTypes = @('feature', 'fix', 'chore', 'refactor', 'docs', 'test', 'ci', 'security')
+        if ($validTypes -contains $type) { return $type }
+    }
+    return $defaultType
 }
 
 # ---------------------------------------------------------------------------
@@ -266,15 +281,21 @@ if ($env:GIT_BRANCH_NAME) {
     if ($branchNameUtf8ByteCount -gt 244) {
         throw "GIT_BRANCH_NAME must be 244 bytes or fewer in UTF-8. Provided value is $branchNameUtf8ByteCount bytes; please supply a shorter override branch name."
     }
-    # Extract FEATURE_NUM from the branch name if it starts with a numeric prefix
-    # Check timestamp pattern first (YYYYMMDD-HHMMSS-) since it also matches the simpler ^\d+ pattern
-    if ($branchName -match '^(\d{8}-\d{6})-') {
+    # Extract FEATURE_NUM/FEATURE_NAME from the branch name if it follows project conventions.
+    # Supports both legacy (001-name) and GitHub Flow (feature/001-name) formats.
+    if ($branchName -match '^(?:[a-z]+/)?(\d{8}-\d{6})-') {
         $featureNum = $matches[1]
-    } elseif ($branchName -match '^(\d+)-') {
+        $featureName = $branchName -replace '^[a-z]+/', ''
+    } elseif ($branchName -match '^(?:[a-z]+/)?(\d+)-') {
         $featureNum = $matches[1]
+        $featureName = $branchName -replace '^[a-z]+/', ''
     } else {
         $featureNum = $branchName
+        $featureName = $branchName
     }
+    $branchType = ($branchName -split '/')[0]
+    $validTypes = @('feature', 'fix', 'chore', 'refactor', 'docs', 'test', 'ci', 'security')
+    if ($validTypes -notcontains $branchType) { $branchType = 'feature' }
 } else {
     if ($ShortName) {
         $branchSuffix = ConvertTo-CleanBranchName -Name $ShortName
@@ -287,9 +308,12 @@ if ($env:GIT_BRANCH_NAME) {
         $Number = 0
     }
 
+    $branchType = Get-BranchType -RepoRoot $repoRoot
+
     if ($Timestamp) {
         $featureNum = Get-Date -Format 'yyyyMMdd-HHmmss'
-        $branchName = "$featureNum-$branchSuffix"
+        $featureName = "$featureNum-$branchSuffix"
+        $branchName = "$branchType/$featureName"
     } else {
         if ($Number -eq 0) {
             if ($DryRun -and $hasGit) {
@@ -304,20 +328,23 @@ if ($env:GIT_BRANCH_NAME) {
         }
 
         $featureNum = ('{0:000}' -f $Number)
-        $branchName = "$featureNum-$branchSuffix"
+        $featureName = "$featureNum-$branchSuffix"
+        $branchName = "$branchType/$featureName"
     }
 }
 
 $maxBranchLength = 244
 if ($branchName.Length -gt $maxBranchLength) {
-    $prefixLength = $featureNum.Length + 1
-    $maxSuffixLength = $maxBranchLength - $prefixLength
+    $typePrefixLength = $branchType.Length + 1
+    $numberPrefixLength = $featureNum.Length + 1
+    $maxSuffixLength = $maxBranchLength - $typePrefixLength - $numberPrefixLength
 
     $truncatedSuffix = $branchSuffix.Substring(0, [Math]::Min($branchSuffix.Length, $maxSuffixLength))
     $truncatedSuffix = $truncatedSuffix -replace '-$', ''
 
     $originalBranchName = $branchName
-    $branchName = "$featureNum-$truncatedSuffix"
+    $featureName = "$featureNum-$truncatedSuffix"
+    $branchName = "$branchType/$featureName"
 
     Write-Warning "[specify] Branch name exceeded GitHub's 244-byte limit"
     Write-Warning "[specify] Original: $originalBranchName ($($originalBranchName.Length) bytes)"
@@ -380,12 +407,13 @@ if (-not $DryRun) {
         }
     }
 
-    $env:SPECIFY_FEATURE = $branchName
+    $env:SPECIFY_FEATURE = $featureName
 }
 
 if ($Json) {
     $obj = [PSCustomObject]@{
         BRANCH_NAME = $branchName
+        FEATURE_NAME = $featureName
         FEATURE_NUM = $featureNum
         HAS_GIT = $hasGit
     }
@@ -395,9 +423,10 @@ if ($Json) {
     $obj | ConvertTo-Json -Compress
 } else {
     Write-Output "BRANCH_NAME: $branchName"
+    Write-Output "FEATURE_NAME: $featureName"
     Write-Output "FEATURE_NUM: $featureNum"
     Write-Output "HAS_GIT: $hasGit"
     if (-not $DryRun) {
-        Write-Output "SPECIFY_FEATURE environment variable set to: $branchName"
+        Write-Output "SPECIFY_FEATURE environment variable set to: $featureName"
     }
 }

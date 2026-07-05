@@ -1,6 +1,6 @@
 # Data Model: UC-002 User Authentication
 
-**Branch**: `feature/uc-002-user-authentication` | **Date**: 2026-07-03
+**Branch**: `feature/002-user-authentication` | **Date**: 2026-07-03
 
 ---
 

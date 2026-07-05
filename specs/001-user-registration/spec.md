@@ -1,6 +1,6 @@
 # Feature Specification: UC-001 User Registration
 
-**Feature Branch**: `feature/uc-001-user-registration`
+**Feature Branch**: `feature/001-user-registration`
 
 **Created**: 2026-06-28
 

@@ -134,8 +134,9 @@ _extract_highest_number() {
     local highest=0
     while IFS= read -r name; do
         [ -z "$name" ] && continue
-        if echo "$name" | grep -Eq '^[0-9]{3,}-' && ! echo "$name" | grep -Eq '^[0-9]{8}-[0-9]{6}-'; then
-            number=$(echo "$name" | grep -Eo '^[0-9]+' || echo "0")
+        # Match optional GitHub Flow type prefix (e.g., feature/001-name)
+        if echo "$name" | grep -Eq '^(feature|fix|chore|refactor|docs|test|ci|security)/[0-9]{3,}-' && ! echo "$name" | grep -Eq '^[0-9]{8}-[0-9]{6}-'; then
+            number=$(echo "$name" | grep -Eo '/?[0-9]+-' | grep -Eo '[0-9]+' | head -n1 || echo "0")
             number=$((10#$number))
             if [ "$number" -gt "$highest" ]; then
                 highest=$number
@@ -190,6 +191,23 @@ check_existing_branches() {
 clean_branch_name() {
     local name="$1"
     echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//'
+}
+
+# Function to read branch type from git config
+get_branch_type() {
+    local repo_root="$1"
+    local config_path="$repo_root/.specify/extensions/git/git-config.yml"
+    local default_type="feature"
+    if [ ! -f "$config_path" ]; then
+        echo "$default_type"
+        return
+    fi
+    local type
+    type=$(grep -E '^\s*branch_type:\s*\S+\s*$' "$config_path" | sed -E 's/^\s*branch_type:\s*(\S+)\s*$/\1/' | head -n1)
+    case "$type" in
+        feature|fix|chore|refactor|docs|test|ci|security) echo "$type" ;;
+        *) echo "$default_type" ;;
+    esac
 }
 
 # ---------------------------------------------------------------------------
@@ -305,18 +323,34 @@ generate_branch_name() {
 # Check for GIT_BRANCH_NAME env var override (exact branch name, no prefix/suffix)
 if [ -n "${GIT_BRANCH_NAME:-}" ]; then
     BRANCH_NAME="$GIT_BRANCH_NAME"
-    # Extract FEATURE_NUM from the branch name if it starts with a numeric prefix
-    # Check timestamp pattern first (YYYYMMDD-HHMMSS-) since it also matches the simpler ^[0-9]+ pattern
-    if echo "$BRANCH_NAME" | grep -Eq '^[0-9]{8}-[0-9]{6}-'; then
+    # Extract FEATURE_NUM/FEATURE_NAME from the branch name if it follows project conventions.
+    # Supports both legacy (001-name) and GitHub Flow (feature/001-name) formats.
+    if echo "$BRANCH_NAME" | grep -Eq '^(feature|fix|chore|refactor|docs|test|ci|security)/[0-9]{8}-[0-9]{6}-'; then
+        FEATURE_NUM=$(echo "$BRANCH_NAME" | grep -Eo '/[0-9]{8}-[0-9]{6}' | sed 's/\///')
+        FEATURE_NAME=$(echo "$BRANCH_NAME" | sed -E 's/^[a-z]+\///')
+        BRANCH_SUFFIX="${FEATURE_NAME#${FEATURE_NUM}-}"
+    elif echo "$BRANCH_NAME" | grep -Eq '^(feature|fix|chore|refactor|docs|test|ci|security)/[0-9]+-'; then
+        FEATURE_NUM=$(echo "$BRANCH_NAME" | grep -Eo '/[0-9]+' | sed 's/\///')
+        FEATURE_NAME=$(echo "$BRANCH_NAME" | sed -E 's/^[a-z]+\///')
+        BRANCH_SUFFIX="${FEATURE_NAME#${FEATURE_NUM}-}"
+    elif echo "$BRANCH_NAME" | grep -Eq '^[0-9]{8}-[0-9]{6}-'; then
         FEATURE_NUM=$(echo "$BRANCH_NAME" | grep -Eo '^[0-9]{8}-[0-9]{6}')
+        FEATURE_NAME="$BRANCH_NAME"
         BRANCH_SUFFIX="${BRANCH_NAME#${FEATURE_NUM}-}"
     elif echo "$BRANCH_NAME" | grep -Eq '^[0-9]+-'; then
         FEATURE_NUM=$(echo "$BRANCH_NAME" | grep -Eo '^[0-9]+')
+        FEATURE_NAME="$BRANCH_NAME"
         BRANCH_SUFFIX="${BRANCH_NAME#${FEATURE_NUM}-}"
     else
         FEATURE_NUM="$BRANCH_NAME"
+        FEATURE_NAME="$BRANCH_NAME"
         BRANCH_SUFFIX="$BRANCH_NAME"
     fi
+    BRANCH_TYPE="${BRANCH_NAME%%/*}"
+    case "$BRANCH_TYPE" in
+        feature|fix|chore|refactor|docs|test|ci|security) : ;;
+        *) BRANCH_TYPE="feature" ;;
+    esac
 else
     # Generate branch name
     if [ -n "$SHORT_NAME" ]; then
@@ -331,10 +365,13 @@ else
         BRANCH_NUMBER=""
     fi
 
-    # Determine branch prefix
+    # Determine branch type and construct names
+    BRANCH_TYPE=$(get_branch_type "$REPO_ROOT")
+
     if [ "$USE_TIMESTAMP" = true ]; then
         FEATURE_NUM=$(date +%Y%m%d-%H%M%S)
-        BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+        FEATURE_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+        BRANCH_NAME="${BRANCH_TYPE}/${FEATURE_NAME}"
     else
         if [ -z "$BRANCH_NUMBER" ]; then
             if [ "$DRY_RUN" = true ] && [ "$HAS_GIT" = true ]; then
@@ -351,7 +388,8 @@ else
         fi
 
         FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
-        BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+        FEATURE_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+        BRANCH_NAME="${BRANCH_TYPE}/${FEATURE_NAME}"
     fi
 fi
 
@@ -363,14 +401,16 @@ if [ -n "${GIT_BRANCH_NAME:-}" ] && [ "$BRANCH_BYTE_LEN" -gt $MAX_BRANCH_LENGTH 
     >&2 echo "Error: GIT_BRANCH_NAME must be 244 bytes or fewer in UTF-8. Provided value is ${BRANCH_BYTE_LEN} bytes."
     exit 1
 elif [ "$BRANCH_BYTE_LEN" -gt $MAX_BRANCH_LENGTH ]; then
-    PREFIX_LENGTH=$(( ${#FEATURE_NUM} + 1 ))
-    MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - PREFIX_LENGTH))
+    TYPE_PREFIX_LENGTH=$(( ${#BRANCH_TYPE} + 1 ))
+    NUMBER_PREFIX_LENGTH=$(( ${#FEATURE_NUM} + 1 ))
+    MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - TYPE_PREFIX_LENGTH - NUMBER_PREFIX_LENGTH))
 
     TRUNCATED_SUFFIX=$(echo "$BRANCH_SUFFIX" | cut -c1-$MAX_SUFFIX_LENGTH)
     TRUNCATED_SUFFIX=$(echo "$TRUNCATED_SUFFIX" | sed 's/-$//')
 
     ORIGINAL_BRANCH_NAME="$BRANCH_NAME"
-    BRANCH_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
+    FEATURE_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
+    BRANCH_NAME="${BRANCH_TYPE}/${FEATURE_NAME}"
 
     >&2 echo "[specify] Warning: Branch name exceeded GitHub's 244-byte limit"
     >&2 echo "[specify] Original: $ORIGINAL_BRANCH_NAME (${#ORIGINAL_BRANCH_NAME} bytes)"
@@ -414,7 +454,7 @@ if [ "$DRY_RUN" != true ]; then
         >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
     fi
 
-    printf '# To persist: export SPECIFY_FEATURE=%q\n' "$BRANCH_NAME" >&2
+    printf '# To persist: export SPECIFY_FEATURE=%q\n' "$FEATURE_NAME" >&2
 fi
 
 if $JSON_MODE; then
@@ -422,32 +462,37 @@ if $JSON_MODE; then
         if [ "$DRY_RUN" = true ]; then
             jq -cn \
                 --arg branch_name "$BRANCH_NAME" \
+                --arg feature_name "$FEATURE_NAME" \
                 --arg feature_num "$FEATURE_NUM" \
-                '{BRANCH_NAME:$branch_name,FEATURE_NUM:$feature_num,DRY_RUN:true}'
+                '{BRANCH_NAME:$branch_name,FEATURE_NAME:$feature_name,FEATURE_NUM:$feature_num,DRY_RUN:true}'
         else
             jq -cn \
                 --arg branch_name "$BRANCH_NAME" \
+                --arg feature_name "$FEATURE_NAME" \
                 --arg feature_num "$FEATURE_NUM" \
-                '{BRANCH_NAME:$branch_name,FEATURE_NUM:$feature_num}'
+                '{BRANCH_NAME:$branch_name,FEATURE_NAME:$feature_name,FEATURE_NUM:$feature_num}'
         fi
     else
         if type json_escape >/dev/null 2>&1; then
             _je_branch=$(json_escape "$BRANCH_NAME")
+            _je_name=$(json_escape "$FEATURE_NAME")
             _je_num=$(json_escape "$FEATURE_NUM")
         else
             _je_branch="$BRANCH_NAME"
+            _je_name="$FEATURE_NAME"
             _je_num="$FEATURE_NUM"
         fi
         if [ "$DRY_RUN" = true ]; then
-            printf '{"BRANCH_NAME":"%s","FEATURE_NUM":"%s","DRY_RUN":true}\n' "$_je_branch" "$_je_num"
+            printf '{"BRANCH_NAME":"%s","FEATURE_NAME":"%s","FEATURE_NUM":"%s","DRY_RUN":true}\n' "$_je_branch" "$_je_name" "$_je_num"
         else
-            printf '{"BRANCH_NAME":"%s","FEATURE_NUM":"%s"}\n' "$_je_branch" "$_je_num"
+            printf '{"BRANCH_NAME":"%s","FEATURE_NAME":"%s","FEATURE_NUM":"%s"}\n' "$_je_branch" "$_je_name" "$_je_num"
         fi
     fi
 else
     echo "BRANCH_NAME: $BRANCH_NAME"
+    echo "FEATURE_NAME: $FEATURE_NAME"
     echo "FEATURE_NUM: $FEATURE_NUM"
     if [ "$DRY_RUN" != true ]; then
-        printf '# To persist in your shell: export SPECIFY_FEATURE=%q\n' "$BRANCH_NAME"
+        printf '# To persist in your shell: export SPECIFY_FEATURE=%q\n' "$FEATURE_NAME"
     fi
 fi
