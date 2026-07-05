@@ -14,3 +14,5 @@ spring:
 aegis:
   identity-service:
     url: http://localhost:8081
+  wallet-service:
+    url: http://localhost:8083

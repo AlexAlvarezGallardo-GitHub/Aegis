@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, isDevMode } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from './auth.service';
@@ -24,6 +25,7 @@ import { finalize } from 'rxjs/operators';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatDividerModule,
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],
@@ -38,6 +40,8 @@ export class AuthComponent {
   loginForm: FormGroup;
   isLoading = false;
   hidePassword = true;
+
+  readonly isDev = isDevMode();
 
   constructor() {
     this.loginForm = this.fb.group({
@@ -68,6 +72,24 @@ export class AuthComponent {
         error: (error) => {
           const errorMessage = error.error?.message || 'Login failed. Please try again.';
           this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000
+          });
+        }
+      });
+  }
+
+  mockLogin(): void {
+    this.isLoading = true;
+    this.authService.mockLogin()
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Mock login successful! Redirecting...', 'Close', {
+            duration: 3000
+          });
+        },
+        error: () => {
+          this.snackBar.open('Mock login failed. Is the dev profile active?', 'Close', {
             duration: 5000
           });
         }

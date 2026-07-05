@@ -12,6 +12,11 @@ export const routes: Routes = [
       .then(m => m.RegistrationComponent)
   },
   {
+    path: 'wallets',
+    loadComponent: () => import('./features/wallet/wallet.component')
+      .then(m => m.WalletComponent)
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full'

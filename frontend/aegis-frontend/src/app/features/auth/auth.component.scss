@@ -54,3 +54,20 @@
     text-decoration: none;
   }
 }
+
+.mock-login-section {
+  margin-top: 1.5rem;
+  text-align: center;
+
+  .mock-label {
+    font-size: 0.75rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 1rem 0 0.5rem;
+  }
+
+  .mock-button {
+    width: 100%;
+  }
+}

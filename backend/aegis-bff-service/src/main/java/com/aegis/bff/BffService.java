@@ -2,7 +2,7 @@ package com.aegis.bff;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -15,11 +15,11 @@ public class BffService {
     private final ObjectMapper objectMapper;
     private final SessionJwtStore sessionJwtStore;
 
-    public BffService(
-            @Value("${aegis.identity-service.url}") String identityServiceUrl,
-            ObjectMapper objectMapper,
-            SessionJwtStore sessionJwtStore) {
-        this(RestClient.builder().baseUrl(identityServiceUrl).build(), objectMapper, sessionJwtStore);
+    @Autowired
+    BffService(BffProperties bffProperties,
+                ObjectMapper objectMapper,
+                SessionJwtStore sessionJwtStore) {
+        this(RestClient.builder().baseUrl(bffProperties.getIdentityService().getUrl()).build(), objectMapper, sessionJwtStore);
     }
 
     BffService(RestClient restClient, ObjectMapper objectMapper, SessionJwtStore sessionJwtStore) {

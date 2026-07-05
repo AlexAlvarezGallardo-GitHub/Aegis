@@ -21,6 +21,7 @@
         <module>aegis-common</module>
         <module>aegis-identity-service</module>
         <module>aegis-bff-service</module>
+        <module>aegis-wallet-service</module>
     </modules>
 
     <properties>

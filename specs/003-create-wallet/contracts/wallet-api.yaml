@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: Aegis Wallet Service API
+  description: |
+    Wallet management API for the Aegis digital payment platform.
+    Handles wallet creation, balance queries, and ledger tracking.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8083
+    description: Local development server
+  - url: https://api.aegis.dev
+    description: Development environment
+
+paths:
+  /api/v1/wallets:
+    post:
+      operationId: createWallet
+      summary: Create a new wallet
+      description: |
+        Creates a new digital wallet for the authenticated user with
+        an initial zero balance. A WalletCreated event is published
+        to downstream services via Kafka.
+      tags: [Wallets]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWalletRequest'
+            example:
+              currency: EUR
+      responses:
+        '201':
+          description: Wallet created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+              example:
+                walletId: "01912345-6789-7abc-def0-123456789abc"
+                userId: "01912345-6789-7abc-def0-123456789abd"
+                balance: 0.00
+                currency: EUR
+                status: ACTIVE
+                createdAt: "2026-07-05T12:00:00.000Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Wallet limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: WALLET_LIMIT_EXCEEDED
+                message: "User cannot have more than 5 wallets"
+                details: null
+                timestamp: "2026-07-05T12:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      operationId: listWallets
+      summary: List user wallets
+      description: Returns all wallets belonging to the authenticated user.
+      tags: [Wallets]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of wallets retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wallets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WalletResponse'
+              example:
+                wallets:
+                  - walletId: "01912345-6789-7abc-def0-123456789abc"
+                    userId: "01912345-6789-7abc-def0-123456789abd"
+                    balance: 150.50
+                    currency: EUR
+                    status: ACTIVE
+                    createdAt: "2026-07-05T12:00:00.000Z"
+                  - walletId: "01912345-6789-7abc-def0-123456789xxy"
+                    userId: "01912345-6789-7abc-def0-123456789abd"
+                    balance: 500.00
+                    currency: USD
+                    status: ACTIVE
+                    createdAt: "2026-07-05T13:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/wallets/{walletId}:
+    get:
+      operationId: getWallet
+      summary: Get wallet by ID
+      description: Returns a single wallet by its ID. The wallet must belong to the authenticated user.
+      tags: [Wallets]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          description: UUID of the wallet to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Wallet found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+              example:
+                walletId: "01912345-6789-7abc-def0-123456789abc"
+                userId: "01912345-6789-7abc-def0-123456789abd"
+                balance: 150.50
+                currency: EUR
+                status: ACTIVE
+                createdAt: "2026-07-05T12:00:00.000Z"
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: WALLET_NOT_FOUND
+                message: "Wallet not found: 01912345-6789-7abc-def0-123456789abc"
+                details: null
+                timestamp: "2026-07-05T12:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from the Auth API
+
+  schemas:
+    CreateWalletRequest:
+      type: object
+      required: [currency]
+      properties:
+        currency:
+          type: string
+          description: ISO 4217 currency code (3 letters)
+          example: EUR
+          minLength: 3
+          maxLength: 3
+
+    WalletResponse:
+      type: object
+      properties:
+        walletId:
+          type: string
+          format: uuid
+          description: Unique wallet identifier (UUID v7)
+          example: "01912345-6789-7abc-def0-123456789abc"
+        userId:
+          type: string
+          format: uuid
+          description: Owner user identifier
+          example: "01912345-6789-7abc-def0-123456789abd"
+        balance:
+          type: number
+          format: double
+          description: Current wallet balance
+          example: 0.00
+        currency:
+          type: string
+          description: ISO 4217 currency code
+          example: EUR
+        status:
+          type: string
+          enum: [ACTIVE, FROZEN, CLOSED]
+          description: Wallet status
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp (UTC)
+          example: "2026-07-05T12:00:00.000Z"
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: WALLET_LIMIT_EXCEEDED
+        message:
+          type: string
+          description: Human-readable error message
+          example: "User cannot have more than 5 wallets"
+        details:
+          type: object
+          nullable: true
+          description: Additional error context
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred (UTC)
+          example: "2026-07-05T12:00:00.000Z"
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_ERROR
+            message: "currency: Currency must be a 3-letter ISO 4217 code"
+            details:
+              currency: "Currency must be a 3-letter ISO 4217 code"
+            timestamp: "2026-07-05T12:00:00.000Z"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: INTERNAL_ERROR
+            message: "An unexpected error occurred."
+            details: null
+            timestamp: "2026-07-05T12:00:00.000Z"

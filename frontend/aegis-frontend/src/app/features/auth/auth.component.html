@@ -39,6 +39,17 @@
       <div class="auth-links">
         <a mat-button color="accent" routerLink="/register">Don't have an account? Register</a>
       </div>
+
+      @if (isDev) {
+        <div class="mock-login-section">
+          <mat-divider></mat-divider>
+          <p class="mock-label">Development Mode</p>
+          <button mat-stroked-button color="warn" type="button" class="mock-button"
+                  (click)="mockLogin()" [disabled]="isLoading">
+            Mock Login (skip auth)
+          </button>
+        </div>
+      }
     </mat-card-content>
   </mat-card>
 </div>

@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WalletCreatedEvent",
+  "description": "Emitted when a new wallet is created in the Wallet Service",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique event identifier (UUIDv7)"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["WALLET_CREATED"]
+    },
+    "schemaVersion": {
+      "type": "string",
+      "example": "1.0"
+    },
+    "walletId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 currency code"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": "string",
+      "description": "Client correlation id for tracing"
+    }
+  },
+  "required": ["eventId", "eventType", "schemaVersion", "walletId", "userId", "currency", "timestamp", "correlationId"]
+}
