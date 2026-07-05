@@ -82,8 +82,8 @@ describe('AuthComponent', () => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
     component.onSubmit();
     expect(component.isLoading).toBeTrue();
-    httpMock.expectOne('/api/v1/auth/login').flush({
-      accessToken: 'token', refreshToken: 'refresh', tokenType: 'Bearer', expiresIn: 900, emailVerified: true
+    httpMock.expectOne('/api/bff/auth/login').flush({
+      tokenType: 'Bearer', expiresIn: 900, emailVerified: true
     });
     tick();
     expect(component.isLoading).toBeFalse();
@@ -94,7 +94,7 @@ describe('AuthComponent', () => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'wrong' });
     component.onSubmit();
     expect(component.isLoading).toBeTrue();
-    httpMock.expectOne('/api/v1/auth/login').flush(
+    httpMock.expectOne('/api/bff/auth/login').flush(
       { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.', details: null, timestamp: '2026-01-01T00:00:00Z' },
       { status: 401, statusText: 'Unauthorized' }
     );
@@ -107,31 +107,31 @@ describe('AuthComponent', () => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
     component.onSubmit();
     expect(component.isLoading).toBeTrue();
-    httpMock.expectOne('/api/v1/auth/login').error(new ProgressEvent('network error'));
+    httpMock.expectOne('/api/bff/auth/login').error(new ProgressEvent('network error'));
     tick();
     expect(component.isLoading).toBeFalse();
     flush();
   }));
 
-  it('should store tokens in localStorage on success', fakeAsync(() => {
+  it('should NOT store tokens in localStorage (BFF uses HttpOnly cookies)', fakeAsync(() => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
     component.onSubmit();
-    httpMock.expectOne('/api/v1/auth/login').flush({
-      accessToken: 'abc123', refreshToken: 'xyz789', tokenType: 'Bearer', expiresIn: 900, emailVerified: true
+    httpMock.expectOne('/api/bff/auth/login').flush({
+      tokenType: 'Bearer', expiresIn: 900, emailVerified: true
     });
     tick();
-    expect(localStorage.getItem('accessToken')).toBe('abc123');
-    expect(localStorage.getItem('refreshToken')).toBe('xyz789');
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('refreshToken')).toBeNull();
     flush();
   }));
 
   it('should call relative URL through proxy', fakeAsync(() => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
     component.onSubmit();
-    const req = httpMock.expectOne('/api/v1/auth/login');
-    expect(req.request.url).toBe('/api/v1/auth/login');
+    const req = httpMock.expectOne('/api/bff/auth/login');
+    expect(req.request.url).toBe('/api/bff/auth/login');
     expect(req.request.url).not.toContain('localhost');
-    req.flush({ accessToken: 't', refreshToken: 'r', tokenType: 'Bearer', expiresIn: 900, emailVerified: true });
+    req.flush({ tokenType: 'Bearer', expiresIn: 900, emailVerified: true });
     tick();
     flush();
   }));

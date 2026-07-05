@@ -20,6 +20,7 @@
     <modules>
         <module>aegis-common</module>
         <module>aegis-identity-service</module>
+        <module>aegis-bff-service</module>
     </modules>
 
     <properties>
