@@ -6,10 +6,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# ── 2. Build app (dev config — this is for local dev) ──
+# ── 2. Build app ───────────────────────────────────────
 #     (only invalidated if source files change)
 COPY . .
-RUN npm run build -- --configuration development
+RUN npm run build
 
 # ── Runtime ──────────────────────────────────────────────
 FROM nginx:stable-alpine

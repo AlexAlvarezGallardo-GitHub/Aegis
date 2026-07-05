@@ -40,7 +40,7 @@
         <a mat-button color="accent" routerLink="/register">Don't have an account? Register</a>
       </div>
 
-      @if (isDev) {
+      @if (enableMockLogin) {
         <div class="mock-login-section">
           <mat-divider></mat-divider>
           <p class="mock-label">Development Mode</p>

@@ -1,4 +1,4 @@
-import { Component, inject, isDevMode } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,6 +11,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -41,7 +42,7 @@ export class AuthComponent {
   isLoading = false;
   hidePassword = true;
 
-  readonly isDev = isDevMode();
+  readonly enableMockLogin = environment.enableMockLogin;
 
   constructor() {
     this.loginForm = this.fb.group({
