@@ -225,21 +225,23 @@ flowchart LR
     S --> CL[Clarify]
     CL --> P[Plan]
     P --> T[Tasks]
-    T --> A[Analyze]
+    T --> I[Issues]
+    I --> A[Analyze]
     A --> CK[Checklist]
-    CK --> I[Implement]
+    CK --> IM[Implement]
+    IM --> CL2[Close]
 
-    I --> REVIEW{Post-Implementation Review}
+    CL2 --> REVIEW{Post-Implementation Review}
     REVIEW --> AR[architect]
     REVIEW --> CR[code-reviewer]
     REVIEW --> SR[security-reviewer]
 
-    T -.->|issue-manager creates| ISSUES[GitHub Issues & Sub-Tasks]
-    I -.->|issue-manager syncs| SYNC[Task Lists & Dependencies]
-    REVIEW -.->|issue-manager closes| CLOSE[Close Issues & Update Epics]
+    I -.->|issue-manager creates| ISSUES[GitHub Issues & Sub-Tasks]
+    IM -.->|issue-manager syncs| SYNC[Task Lists & Dependencies]
+    CL2 -.->|issue-manager closes| CLOSE[Close Issues & Update Epics]
 
     style C fill:#8b5cf6,color:#fff
-    style I fill:#22c55e,color:#fff
+    style IM fill:#22c55e,color:#fff
     style AR fill:#8b5cf6,color:#fff
     style CR fill:#eab308,color:#fff
     style SR fill:#ef4444,color:#fff
