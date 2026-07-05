@@ -2,7 +2,6 @@ package com.aegis.identity.application.service;
 
 import com.aegis.identity.application.dto.RegisterUserCommand;
 import com.aegis.identity.application.dto.UserRegistrationResponse;
-import com.aegis.identity.application.mapper.UserMapper;
 import com.aegis.identity.domain.event.UserRegistered;
 import com.aegis.identity.domain.exception.DuplicateEmailException;
 import com.aegis.identity.domain.model.Email;

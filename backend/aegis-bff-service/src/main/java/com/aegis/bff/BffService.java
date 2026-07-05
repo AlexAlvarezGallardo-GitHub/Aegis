@@ -77,7 +77,9 @@ public class BffService {
                 .orElseThrow(() -> new RuntimeException("Not authenticated"));
 
         var parts = accessToken.split("\\.");
-        if (parts.length < 2) throw new RuntimeException("Invalid token");
+        if (parts.length < 2) {
+            throw new RuntimeException("Invalid token");
+        }
 
         try {
             String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
