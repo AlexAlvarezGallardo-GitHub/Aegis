@@ -95,8 +95,9 @@
             <property name="format" value="^([A-Z][A-Z0-9]*(_[A-Z0-9]+)*|log)$"/>
         </module>
 
-        <!-- LeftCurly/RightCurly are disabled because Checkstyle 9.3 cannot
-             configure Java switch-expression arrow syntax (SWITCH_RULE). The
-             code-reviewer agent enforces consistent brace style during review. -->
+        <!-- Brace-style checks are intentionally disabled: the codebase mixes
+             K&R inline methods with multi-line blocks, and Checkstyle's strict
+             brace rules conflict with Java switch expressions and one-line
+             record getters. NeedBraces above still guarantees braces exist. -->
     </module>
 </module>
