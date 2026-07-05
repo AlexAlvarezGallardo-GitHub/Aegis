@@ -1,0 +1,189 @@
+@use 'sass:map';
+
+// =============================================================================
+// Aegis Design Tokens — Colors
+// =============================================================================
+// CSS custom properties + SCSS maps for all color values.
+// Dark theme first (Aegis default). Light theme overrides follow.
+// =============================================================================
+
+// -- SCSS Maps (alternative consumption) ---------------------------------------
+
+$aegis-colors: (
+  gold: (
+    50: #FAF5E8,
+    100: #F4E8C1,
+    200: #E8D593,
+    300: #DCC265,
+    400: #D2B347,
+    500: #C89B3C,
+    600: #B88A32,
+    700: #9B7426,
+    800: #7E5E1E,
+    900: #362B00,
+  ),
+  neutral: (
+    50: #F8FAFC,
+    100: #F1F5F9,
+    200: #E2E8F0,
+    300: #CBD5E1,
+    400: #94A3B8,
+    500: #64748B,
+    600: #475569,
+    700: #334155,
+    800: #1E293B,
+    900: #0B1220,
+  ),
+  surface: (
+    default: #1B2538,
+    hover: #243146,
+    active: #2D3B52,
+  ),
+  background: (
+    default: #0B1220,
+    secondary: #121B2E,
+  ),
+  border: (
+    default: #2A3448,
+    secondary: #334155,
+  ),
+  text: (
+    primary: #F8FAFC,
+    secondary: #CBD5E1,
+    muted: #64748B,
+    disabled: #475569,
+  ),
+  semantic: (
+    success: #10B981,
+    success-bg: #064E3B,
+    warning: #F59E0B,
+    warning-bg: #78350F,
+    error: #EF4444,
+    error-bg: #7F1D1D,
+    info: #3B82F6,
+    info-bg: #1E3A5F,
+  ),
+);
+
+// -- CSS Custom Properties (:root) --------------------------------------------
+
+@mixin aegis-color-tokens {
+  /* Gold palette */
+  --aegis-gold-50: #{map.get(map.get($aegis-colors, gold), 50)};
+  --aegis-gold-100: #{map.get(map.get($aegis-colors, gold), 100)};
+  --aegis-gold-200: #{map.get(map.get($aegis-colors, gold), 200)};
+  --aegis-gold-300: #{map.get(map.get($aegis-colors, gold), 300)};
+  --aegis-gold-400: #{map.get(map.get($aegis-colors, gold), 400)};
+  --aegis-gold-500: #{map.get(map.get($aegis-colors, gold), 500)};
+  --aegis-gold-600: #{map.get(map.get($aegis-colors, gold), 600)};
+  --aegis-gold-700: #{map.get(map.get($aegis-colors, gold), 700)};
+  --aegis-gold-800: #{map.get(map.get($aegis-colors, gold), 800)};
+  --aegis-gold-900: #{map.get(map.get($aegis-colors, gold), 900)};
+
+  /* Neutral scale (50-900) */
+  --aegis-neutral-50: #{map.get(map.get($aegis-colors, neutral), 50)};
+  --aegis-neutral-100: #{map.get(map.get($aegis-colors, neutral), 100)};
+  --aegis-neutral-200: #{map.get(map.get($aegis-colors, neutral), 200)};
+  --aegis-neutral-300: #{map.get(map.get($aegis-colors, neutral), 300)};
+  --aegis-neutral-400: #{map.get(map.get($aegis-colors, neutral), 400)};
+  --aegis-neutral-500: #{map.get(map.get($aegis-colors, neutral), 500)};
+  --aegis-neutral-600: #{map.get(map.get($aegis-colors, neutral), 600)};
+  --aegis-neutral-700: #{map.get(map.get($aegis-colors, neutral), 700)};
+  --aegis-neutral-800: #{map.get(map.get($aegis-colors, neutral), 800)};
+  --aegis-neutral-900: #{map.get(map.get($aegis-colors, neutral), 900)};
+
+  /* Semantic aliases (dark theme) */
+  --aegis-color-primary: var(--aegis-gold-500);
+  --aegis-color-primary-light: var(--aegis-gold-400);
+  --aegis-color-primary-dark: var(--aegis-gold-700);
+  --aegis-color-primary-subtle: var(--aegis-gold-900);
+  --aegis-color-on-primary: var(--aegis-neutral-900);
+
+  --aegis-color-secondary: var(--aegis-neutral-300);
+  --aegis-color-on-secondary: var(--aegis-neutral-900);
+
+  --aegis-color-accent: var(--aegis-info);
+  --aegis-color-on-accent: #FFFFFF;
+
+  /* Background & Surface */
+  --aegis-color-bg: var(--aegis-neutral-900);
+  --aegis-color-bg-secondary: #121B2E;
+  --aegis-color-surface: #1B2538;
+  --aegis-color-surface-hover: #243146;
+  --aegis-color-surface-active: #2D3B52;
+  --aegis-color-surface-container-lowest: #060C18;
+  --aegis-color-surface-container-low: #0F1729;
+  --aegis-color-surface-container: #121B2E;
+  --aegis-color-surface-container-high: #1B2538;
+  --aegis-color-surface-container-highest: #243146;
+
+  /* Borders */
+  --aegis-color-border: #2A3448;
+  --aegis-color-border-secondary: #334155;
+  --aegis-color-border-focus: var(--aegis-gold-500);
+
+  /* Text */
+  --aegis-color-text: var(--aegis-neutral-50);
+  --aegis-color-text-secondary: var(--aegis-neutral-300);
+  --aegis-color-text-muted: var(--aegis-neutral-500);
+  --aegis-color-text-disabled: var(--aegis-neutral-600);
+  --aegis-color-text-on-primary: var(--aegis-neutral-900);
+  --aegis-color-text-on-surface: var(--aegis-neutral-50);
+
+  /* Semantic */
+  --aegis-color-success: #10B981;
+  --aegis-color-success-bg: #064E3B;
+  --aegis-color-success-text: #6EE7B7;
+  --aegis-color-warning: #F59E0B;
+  --aegis-color-warning-bg: #78350F;
+  --aegis-color-warning-text: #FCD34D;
+  --aegis-color-error: #EF4444;
+  --aegis-color-error-bg: #7F1D1D;
+  --aegis-color-error-text: #FCA5A5;
+  --aegis-color-info: #3B82F6;
+  --aegis-color-info-bg: #1E3A5F;
+  --aegis-color-info-text: #93C5FD;
+}
+
+// -- Light Theme Overrides ----------------------------------------------------
+
+@mixin aegis-color-tokens-light {
+  --aegis-color-primary: var(--aegis-gold-600);
+  --aegis-color-primary-light: var(--aegis-gold-500);
+  --aegis-color-primary-dark: var(--aegis-gold-700);
+  --aegis-color-primary-subtle: var(--aegis-gold-100);
+  --aegis-color-on-primary: #FFFFFF;
+
+  --aegis-color-secondary: var(--aegis-neutral-600);
+  --aegis-color-on-secondary: #FFFFFF;
+
+  --aegis-color-bg: var(--aegis-neutral-50);
+  --aegis-color-bg-secondary: #FFFFFF;
+  --aegis-color-surface: #FFFFFF;
+  --aegis-color-surface-hover: var(--aegis-neutral-100);
+  --aegis-color-surface-active: var(--aegis-neutral-200);
+  --aegis-color-surface-container-lowest: #FFFFFF;
+  --aegis-color-surface-container-low: var(--aegis-neutral-50);
+  --aegis-color-surface-container: #FFFFFF;
+  --aegis-color-surface-container-high: var(--aegis-neutral-100);
+  --aegis-color-surface-container-highest: var(--aegis-neutral-200);
+
+  --aegis-color-border: var(--aegis-neutral-200);
+  --aegis-color-border-secondary: var(--aegis-neutral-300);
+
+  --aegis-color-text: var(--aegis-neutral-900);
+  --aegis-color-text-secondary: var(--aegis-neutral-600);
+  --aegis-color-text-muted: var(--aegis-neutral-500);
+  --aegis-color-text-disabled: var(--aegis-neutral-400);
+  --aegis-color-text-on-primary: #FFFFFF;
+  --aegis-color-text-on-surface: var(--aegis-neutral-900);
+
+  --aegis-color-success-bg: #D1FAE5;
+  --aegis-color-success-text: #065F46;
+  --aegis-color-warning-bg: #FEF3C7;
+  --aegis-color-warning-text: #92400E;
+  --aegis-color-error-bg: #FEE2E2;
+  --aegis-color-error-text: #991B1B;
+  --aegis-color-info-bg: #DBEAFE;
+  --aegis-color-info-text: #1E40AF;
+}

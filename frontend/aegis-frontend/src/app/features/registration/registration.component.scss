@@ -1,16 +1,18 @@
+@use 'styles/tokens' as tokens;
+
 .registration-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 20px;
-  background-color: #f5f5f5;
+  padding: var(--aegis-space-5);
+  background-color: var(--aegis-color-bg);
 }
 
 .registration-card {
   max-width: 500px;
   width: 100%;
-  padding: 24px;
+  padding: var(--aegis-space-6);
 }
 
 .full-width {
@@ -19,7 +21,7 @@
 
 .name-fields {
   display: flex;
-  gap: 16px;
+  gap: var(--aegis-space-4);
 
   mat-form-field {
     flex: 1;
@@ -28,29 +30,29 @@
 
 .submit-button {
   width: 100%;
-  margin-top: 16px;
-  height: 48px;
-  font-size: 16px;
+  margin-top: var(--aegis-space-4);
+  height: var(--aegis-space-12);
+  font-size: var(--aegis-text-lg);
 }
 
 .success-message {
   text-align: center;
-  padding: 24px;
+  padding: var(--aegis-space-6);
 
   mat-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    color: #4caf50;
+    font-size: var(--aegis-space-16);
+    width: var(--aegis-space-16);
+    height: var(--aegis-space-16);
+    color: var(--aegis-color-success);
   }
 
   h3 {
-    margin: 16px 0 8px;
-    color: #4caf50;
+    margin: var(--aegis-space-4) 0 var(--aegis-space-2);
+    color: var(--aegis-color-success);
   }
 
   p {
-    margin: 8px 0;
-    color: #666;
+    margin: var(--aegis-space-2) 0;
+    color: var(--aegis-color-text-secondary);
   }
 }

@@ -1,0 +1,96 @@
+@use 'sass:map';
+
+// =============================================================================
+// Aegis Design Tokens — Typography
+// =============================================================================
+// Font families, size scale, weights, line heights, and letter spacing.
+// =============================================================================
+
+// -- SCSS Maps ----------------------------------------------------------------
+
+$aegis-font-families: (
+  brand: 'Inter, "Helvetica Neue", sans-serif',
+  mono: '"JetBrains Mono", "Fira Code", "Consolas", monospace',
+);
+
+$aegis-font-sizes: (
+  xs: 0.6875rem,    // 11px
+  sm: 0.75rem,      // 12px
+  base: 0.875rem,   // 14px (body default)
+  md: 0.9375rem,    // 15px
+  lg: 1rem,         // 16px
+  xl: 1.125rem,     // 18px
+  '2xl': 1.25rem,   // 20px
+  '3xl': 1.5rem,    // 24px
+  '4xl': 1.875rem,  // 30px
+  '5xl': 2.25rem,   // 36px
+);
+
+$aegis-font-weights: (
+  light: 300,
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+);
+
+$aegis-line-heights: (
+  none: 1,
+  tight: 1.25,
+  snug: 1.375,
+  normal: 1.5,
+  relaxed: 1.625,
+  loose: 2,
+);
+
+$aegis-letter-spacings: (
+  tighter: -0.05em,
+  tight: -0.025em,
+  normal: 0,
+  wide: 0.025em,
+  wider: 0.05em,
+  widest: 0.1em,
+);
+
+// -- CSS Custom Properties (:root) --------------------------------------------
+
+@mixin aegis-typography-tokens {
+  /* Font families */
+  --aegis-font-brand: #{map.get($aegis-font-families, brand)};
+  --aegis-font-mono: #{map.get($aegis-font-families, mono)};
+
+  /* Font sizes */
+  --aegis-text-xs: #{map.get($aegis-font-sizes, xs)};
+  --aegis-text-sm: #{map.get($aegis-font-sizes, sm)};
+  --aegis-text-base: #{map.get($aegis-font-sizes, base)};
+  --aegis-text-md: #{map.get($aegis-font-sizes, md)};
+  --aegis-text-lg: #{map.get($aegis-font-sizes, lg)};
+  --aegis-text-xl: #{map.get($aegis-font-sizes, xl)};
+  --aegis-text-2xl: #{map.get($aegis-font-sizes, '2xl')};
+  --aegis-text-3xl: #{map.get($aegis-font-sizes, '3xl')};
+  --aegis-text-4xl: #{map.get($aegis-font-sizes, '4xl')};
+  --aegis-text-5xl: #{map.get($aegis-font-sizes, '5xl')};
+
+  /* Font weights */
+  --aegis-font-weight-light: #{map.get($aegis-font-weights, light)};
+  --aegis-font-weight-normal: #{map.get($aegis-font-weights, normal)};
+  --aegis-font-weight-medium: #{map.get($aegis-font-weights, medium)};
+  --aegis-font-weight-semibold: #{map.get($aegis-font-weights, semibold)};
+  --aegis-font-weight-bold: #{map.get($aegis-font-weights, bold)};
+
+  /* Line heights */
+  --aegis-leading-none: #{map.get($aegis-line-heights, none)};
+  --aegis-leading-tight: #{map.get($aegis-line-heights, tight)};
+  --aegis-leading-snug: #{map.get($aegis-line-heights, snug)};
+  --aegis-leading-normal: #{map.get($aegis-line-heights, normal)};
+  --aegis-leading-relaxed: #{map.get($aegis-line-heights, relaxed)};
+  --aegis-leading-loose: #{map.get($aegis-line-heights, loose)};
+
+  /* Letter spacing */
+  --aegis-tracking-tighter: #{map.get($aegis-letter-spacings, tighter)};
+  --aegis-tracking-tight: #{map.get($aegis-letter-spacings, tight)};
+  --aegis-tracking-normal: #{map.get($aegis-letter-spacings, normal)};
+  --aegis-tracking-wide: #{map.get($aegis-letter-spacings, wide)};
+  --aegis-tracking-wider: #{map.get($aegis-letter-spacings, wider)};
+  --aegis-tracking-widest: #{map.get($aegis-letter-spacings, widest)};
+}

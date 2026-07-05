@@ -1,60 +1,59 @@
 @use 'theme' as *;
+@use 'styles/tokens' as tokens;
 
+// =============================================================================
+// Aegis Global Styles
+// =============================================================================
+
+// -- Design Tokens (CSS Custom Properties) ------------------------------------
 :root {
-  /* Brand */
-  --aegis-gold: #C89B3C;
-  --aegis-gold-light: #E2B859;
-  --aegis-gold-dark: #9B7426;
-  --aegis-gold-subtle: #362B00;
+  @include tokens.aegis-color-tokens;
+  @include tokens.aegis-typography-tokens;
+  @include tokens.aegis-spacing-tokens;
+  @include tokens.aegis-radius-tokens;
+  @include tokens.aegis-shadow-tokens;
+  @include tokens.aegis-transition-tokens;
 
-  /* Backgrounds */
-  --aegis-bg: #0B1220;
-  --aegis-bg-secondary: #121B2E;
-  --aegis-surface: #1B2538;
-  --aegis-surface-hover: #243146;
-
-  /* Borders */
-  --aegis-border: #2A3448;
-  --aegis-border-secondary: #334155;
-
-  /* Text */
-  --aegis-text: #F8FAFC;
-  --aegis-text-secondary: #CBD5E1;
-  --aegis-text-muted: #64748B;
-
-  /* Semantic */
-  --aegis-success: #10B981;
-  --aegis-warning: #F59E0B;
-  --aegis-error: #EF4444;
-  --aegis-info: #3B82F6;
-
-  /* Spacing (4px grid) */
-  --aegis-space-1: 4px;
-  --aegis-space-2: 8px;
-  --aegis-space-3: 12px;
-  --aegis-space-4: 16px;
-  --aegis-space-5: 20px;
-  --aegis-space-6: 24px;
-  --aegis-space-8: 32px;
-  --aegis-space-10: 40px;
-  --aegis-space-12: 48px;
-  --aegis-space-16: 64px;
-
-  /* Radius */
-  --aegis-radius-sm: 4px;
-  --aegis-radius-md: 6px;
-  --aegis-radius-lg: 8px;
-  --aegis-radius-xl: 12px;
-
-  /* Elevation */
-  --aegis-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --aegis-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-  --aegis-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
-  --aegis-shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.4);
-
-  /* Transition */
-  --aegis-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  // Legacy aliases (backward compatibility — will be removed after migration)
+  --aegis-gold: var(--aegis-color-primary);
+  --aegis-gold-light: var(--aegis-color-primary-light);
+  --aegis-gold-dark: var(--aegis-color-primary-dark);
+  --aegis-gold-subtle: var(--aegis-color-primary-subtle);
+  --aegis-bg: var(--aegis-color-bg);
+  --aegis-bg-secondary: var(--aegis-color-bg-secondary);
+  --aegis-surface: var(--aegis-color-surface);
+  --aegis-surface-hover: var(--aegis-color-surface-hover);
+  --aegis-border: var(--aegis-color-border);
+  --aegis-border-secondary: var(--aegis-color-border-secondary);
+  --aegis-text: var(--aegis-color-text);
+  --aegis-text-secondary: var(--aegis-color-text-secondary);
+  --aegis-text-muted: var(--aegis-color-text-muted);
+  --aegis-success: var(--aegis-color-success);
+  --aegis-warning: var(--aegis-color-warning);
+  --aegis-error: var(--aegis-color-error);
+  --aegis-info: var(--aegis-color-info);
+  --aegis-space-1: var(--aegis-space-1);
+  --aegis-space-2: var(--aegis-space-2);
+  --aegis-space-3: var(--aegis-space-3);
+  --aegis-space-4: var(--aegis-space-4);
+  --aegis-space-5: var(--aegis-space-5);
+  --aegis-space-6: var(--aegis-space-6);
+  --aegis-space-8: var(--aegis-space-8);
+  --aegis-space-10: var(--aegis-space-10);
+  --aegis-space-12: var(--aegis-space-12);
+  --aegis-space-16: var(--aegis-space-16);
+  --aegis-radius-sm: var(--aegis-radius-sm);
+  --aegis-radius-md: var(--aegis-radius-md);
+  --aegis-radius-lg: var(--aegis-radius-lg);
+  --aegis-radius-xl: var(--aegis-radius-xl);
+  --aegis-shadow-sm: var(--aegis-shadow-sm);
+  --aegis-shadow-md: var(--aegis-shadow-md);
+  --aegis-shadow-lg: var(--aegis-shadow-lg);
+  --aegis-shadow-xl: var(--aegis-shadow-xl);
+  --aegis-transition: var(--aegis-transition);
 }
+
+// -- Base Reset ----------------------------------------------------------------
 
 html, body {
   height: 100%;
@@ -63,49 +62,50 @@ html, body {
 }
 
 body {
-  font-family: Inter, "Helvetica Neue", sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background-color: var(--aegis-bg);
-  color: var(--aegis-text);
+  font-family: var(--aegis-font-brand);
+  font-size: var(--aegis-text-base);
+  line-height: var(--aegis-leading-normal);
+  background-color: var(--aegis-color-bg);
+  color: var(--aegis-color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 a {
-  color: var(--aegis-gold);
+  color: var(--aegis-color-primary);
   text-decoration: none;
   transition: color var(--aegis-transition);
 
   &:hover {
-    color: var(--aegis-gold-light);
+    color: var(--aegis-color-primary-light);
   }
 }
 
 ::selection {
-  background-color: var(--aegis-gold-subtle);
-  color: var(--aegis-gold-light);
+  background-color: var(--aegis-color-primary-subtle);
+  color: var(--aegis-color-primary-light);
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--aegis-space-2);
+  height: var(--aegis-space-2);
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--aegis-bg);
+  background: var(--aegis-color-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--aegis-border);
+  background: var(--aegis-color-border);
   border-radius: var(--aegis-radius-sm);
 
   &:hover {
-    background: var(--aegis-border-secondary);
+    background: var(--aegis-color-border-secondary);
   }
 }
 
-/* Utility Classes */
+// -- Utility Classes -----------------------------------------------------------
+
 .page-container {
   display: flex;
   flex-direction: column;
@@ -129,8 +129,8 @@ a {
 }
 
 .aegis-card {
-  background-color: var(--aegis-bg-secondary);
-  border: 1px solid var(--aegis-border);
+  background-color: var(--aegis-color-bg-secondary);
+  border: 1px solid var(--aegis-color-border);
   border-radius: var(--aegis-radius-lg);
   padding: var(--aegis-space-5);
   box-shadow: var(--aegis-shadow-md);
@@ -142,29 +142,29 @@ a {
 }
 
 .kpi-value {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--aegis-text);
+  font-size: var(--aegis-text-4xl);
+  font-weight: var(--aegis-font-weight-bold);
+  line-height: var(--aegis-leading-tight);
+  color: var(--aegis-color-text);
 }
 
 .kpi-label {
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--aegis-text-muted);
+  font-size: var(--aegis-text-sm);
+  font-weight: var(--aegis-font-weight-normal);
+  line-height: var(--aegis-leading-normal);
+  color: var(--aegis-color-text-muted);
 }
 
 .status-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 4px;
+  width: var(--aegis-space-2);
+  height: var(--aegis-space-2);
+  border-radius: var(--aegis-radius-full);
+  margin-right: var(--aegis-space-1);
 
-  &.success { background-color: var(--aegis-success); }
-  &.warning { background-color: var(--aegis-warning); }
-  &.error { background-color: var(--aegis-error); }
-  &.info { background-color: var(--aegis-info); }
-  &.neutral { background-color: var(--aegis-text-muted); }
+  &.success { background-color: var(--aegis-color-success); }
+  &.warning { background-color: var(--aegis-color-warning); }
+  &.error { background-color: var(--aegis-color-error); }
+  &.info { background-color: var(--aegis-color-info); }
+  &.neutral { background-color: var(--aegis-color-text-muted); }
 }

@@ -1,0 +1,63 @@
+@use 'sass:map';
+
+// =============================================================================
+// Aegis Design Tokens — Spacing
+// =============================================================================
+// 4px base unit scale for consistent spacing across the design system.
+// =============================================================================
+
+// -- SCSS Map -----------------------------------------------------------------
+
+$aegis-spacing: (
+  0: 0,
+  0.5: 2px,
+  1: 4px,
+  1.5: 6px,
+  2: 8px,
+  2.5: 10px,
+  3: 12px,
+  3.5: 14px,
+  4: 16px,
+  5: 20px,
+  6: 24px,
+  7: 28px,
+  8: 32px,
+  9: 36px,
+  10: 40px,
+  11: 44px,
+  12: 48px,
+  14: 56px,
+  16: 64px,
+  20: 80px,
+  24: 96px,
+  28: 112px,
+  32: 128px,
+);
+
+// -- CSS Custom Properties (:root) --------------------------------------------
+
+@mixin aegis-spacing-tokens {
+  --aegis-space-0: #{map.get($aegis-spacing, 0)};
+  --aegis-space-0_5: #{map.get($aegis-spacing, 0.5)};
+  --aegis-space-1: #{map.get($aegis-spacing, 1)};
+  --aegis-space-1_5: #{map.get($aegis-spacing, 1.5)};
+  --aegis-space-2: #{map.get($aegis-spacing, 2)};
+  --aegis-space-2_5: #{map.get($aegis-spacing, 2.5)};
+  --aegis-space-3: #{map.get($aegis-spacing, 3)};
+  --aegis-space-3_5: #{map.get($aegis-spacing, 3.5)};
+  --aegis-space-4: #{map.get($aegis-spacing, 4)};
+  --aegis-space-5: #{map.get($aegis-spacing, 5)};
+  --aegis-space-6: #{map.get($aegis-spacing, 6)};
+  --aegis-space-7: #{map.get($aegis-spacing, 7)};
+  --aegis-space-8: #{map.get($aegis-spacing, 8)};
+  --aegis-space-9: #{map.get($aegis-spacing, 9)};
+  --aegis-space-10: #{map.get($aegis-spacing, 10)};
+  --aegis-space-11: #{map.get($aegis-spacing, 11)};
+  --aegis-space-12: #{map.get($aegis-spacing, 12)};
+  --aegis-space-14: #{map.get($aegis-spacing, 14)};
+  --aegis-space-16: #{map.get($aegis-spacing, 16)};
+  --aegis-space-20: #{map.get($aegis-spacing, 20)};
+  --aegis-space-24: #{map.get($aegis-spacing, 24)};
+  --aegis-space-28: #{map.get($aegis-spacing, 28)};
+  --aegis-space-32: #{map.get($aegis-spacing, 32)};
+}

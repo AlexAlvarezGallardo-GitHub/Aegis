@@ -1,0 +1,33 @@
+// =============================================================================
+// Aegis Design Tokens — Barrel Import
+// =============================================================================
+// Import this file to get all token mixins and SCSS maps.
+// Usage: @use 'styles/tokens' as tokens;
+// =============================================================================
+
+@forward 'colors';
+@forward 'typography';
+@forward 'spacing';
+@forward 'radius';
+@forward 'shadows';
+@forward 'transitions';
+
+// Re-export all maps for direct SCSS consumption
+@use 'colors' as colors;
+@use 'typography' as typography;
+@use 'spacing' as spacing;
+@use 'radius' as radius;
+@use 'shadows' as shadows;
+@use 'transitions' as transitions;
+
+$aegis-colors: colors.$aegis-colors;
+$aegis-font-families: typography.$aegis-font-families;
+$aegis-font-sizes: typography.$aegis-font-sizes;
+$aegis-font-weights: typography.$aegis-font-weights;
+$aegis-line-heights: typography.$aegis-line-heights;
+$aegis-letter-spacings: typography.$aegis-letter-spacings;
+$aegis-spacing: spacing.$aegis-spacing;
+$aegis-radius: radius.$aegis-radius;
+$aegis-shadows: shadows.$aegis-shadows;
+$aegis-durations: transitions.$aegis-durations;
+$aegis-easings: transitions.$aegis-easings;
