@@ -46,57 +46,64 @@ Traditional development is linear: analyst → architect → developer → teste
 
 Aegis was built with a **different model**:
 
-```
-Business Requirement
-        │
-        ▼
-  ┌─ Specification Agent ──┐   Understands the domain, writes user stories,
-  │  (write-spec)           │   defines acceptance criteria, identifies edge cases
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Architecture Agent    │   Validates DDD boundaries, hexagonal compliance,
-  │  (architect)            │   enforces the constitution, checks consistency
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Planning Agent         │   Decomposes into tasks, estimates dependencies,
-  │  (plan)                 │   identifies parallel execution opportunities
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Service Builder Agent  │   Generates hexagonal Spring Boot services
-  │  (service-builder)      │   respecting domain isolation, ports & adapters
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Frontend Builder Agent │   Creates Angular components, Material themes,
-  │  (frontend-builder)     │   responsive layouts, accessible interfaces
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Test Engineer Agent   │   Generates unit, integration, E2E tests with
-  │  (test-engineer)        │   Testcontainers, Mockito, edge case coverage
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Infrastructure Agent   │   Produces Dockerfiles, Helm charts, K8s manifests,
-  │  (infra-engineer)       │   GitHub Actions pipelines
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Review Agents         │   Code review, security review, architecture review
-  │  (code-reviewer,        │   — multiple perspectives, automated quality gates
-  │   security-reviewer)    │
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Issue Manager Agent   │   Creates GitHub issues, tracks progress, syncs
-  │  (issue-manager)        │   task lists, reports status, closes epics
-  └────────┬────────────────┘
-           │
-           ▼
-    Production-Ready Service
+```mermaid
+flowchart TB
+    BR["Business Requirement"]
+    BR --> SA
+
+    SA["Specification Agent
+     (write-spec)"]
+    AR["Architecture Agent
+     (architect)"]
+    PL["Planning Agent
+     (plan)"]
+    SB["Service Builder Agent
+     (service-builder)"]
+    FB["Frontend Builder Agent
+     (frontend-builder)"]
+    TE["Test Engineer Agent
+     (test-engineer)"]
+    IE["Infrastructure Agent
+     (infra-engineer)"]
+    RV["Review Agents
+     (code-reviewer, security-reviewer)"]
+    IM["Issue Manager Agent
+     (issue-manager)"]
+    PROD["Production-Ready Service"]
+
+    SA --> AR --> PL
+    PL --> SB & FB & TE & IE
+    SB & FB & TE & IE --> RV
+    RV --> IM --> PROD
+
+    subgraph Phase1["Understanding"]
+        BR
+    end
+    subgraph Phase2["Specification"]
+        SA
+    end
+    subgraph Phase3["Architecture"]
+        AR
+    end
+    subgraph Phase4["Planning"]
+        PL
+    end
+    subgraph Phase5["Implementation"]
+        SB
+        FB
+    end
+    subgraph Phase6["Testing"]
+        TE
+    end
+    subgraph Phase7["Infrastructure"]
+        IE
+    end
+    subgraph Phase8["Review"]
+        RV
+    end
+    subgraph Phase9["Management"]
+        IM
+    end
 ```
 
 Each agent is a specialist. Each one has a defined role, skill set, and quality bar. Together they form a **virtual engineering team** that I direct, review, and integrate.
@@ -132,38 +139,66 @@ Each agent is a specialist. Each one has a defined role, skill set, and quality 
 
 ## Architectural Highlights
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                        API Gateway                           │
-└──────┬──────────────────────┬────────────────────┬───────────┘
-       │                      │                    │
-  ┌────▼────────┐      ┌─────▼────────┐     ┌─────▼────────┐
-  │  Identity   │      │   Wallet     │     │   Payment    │
-  │  Service    │      │   Service    │     │   Service    │
-  └─────┬───────┘      └─────┬────────┘     └─────┬────────┘
-       │                     │                     │
-       └─────────────────────┼─────────────────────┘
-                             │
-                    ┌────────▼────────┐
-                    │     Kafka       │
-                    │  (Event Bus)    │
-                    └────────┬────────┘
-                             │
-       ┌─────────────────────┼─────────────────────┐
-       │                     │                     │
-  ┌────▼────────┐      ┌─────▼────────┐     ┌─────▼────────┐
-  │   Fraud     │      │ Notification │     │    Audit     │
-  │   Service   │      │   Service    │     │   Service    │
-  └─────────────┘      └──────────────┘     └──────────────┘
+```mermaid
+flowchart TB
+    ANG["Angular 22 SPA"]
+    BFF["BFF Service
+     port 8082
+     Redis session store"]
+    GW["API Gateway"]
+    ID["Identity Service"]
+    WA["Wallet Service"]
+    PAY["Payment Service"]
+    KAFKA["Kafka
+     Event Bus"]
+    FR["Fraud Service"]
+    NO["Notification Service"]
+    AU["Audit Service"]
+
+    ANG -- HttpOnly cookie --> BFF
+    BFF --> GW
+    GW --> ID & WA & PAY
+    ID & WA & PAY --> KAFKA
+    KAFKA --> FR & NO & AU
 ```
 
 ### Hexagonal Architecture (Ports & Adapters)
 
 Every service enforces strict inward dependency direction — a design that keeps business logic pure, testable, and framework-agnostic:
 
-```
-Web ──→ Application ──→ Domain
-Infrastructure ──→ Application ──→ Domain
+```mermaid
+flowchart LR
+    subgraph Web["Web Layer"]
+        direction LR
+        REST["REST Controllers"]
+        ADV["Exception Handlers"]
+    end
+    subgraph APP["Application Layer"]
+        direction LR
+        SRV["Use Case Services"]
+        DTO["DTOs"]
+        MAP["Mappers"]
+    end
+    subgraph INF["Infrastructure Layer"]
+        direction LR
+        JPA["JPA Persistence"]
+        KAFKA_AD["Kafka Adapters"]
+        SEC["Security Config"]
+    end
+    subgraph DOM["Domain Layer"]
+        direction LR
+        ENT["Entities & Value Objects"]
+        EVT["Domain Events"]
+        PRT["Port Interfaces"]
+    end
+
+    REST --> SRV
+    ADV --> SRV
+    JPA -.->|implements| PRT
+    KAFKA_AD -.->|implements| PRT
+    SRV -.->|depends on| PRT
+    SRV --> MAP --> DTO
+    DOM -.->|zero framework deps| DOM
 ```
 
 - **Domain**: Pure Java 21 — zero framework annotations, zero imports from Spring/JPA. Entities, value objects (records), enums, domain events, and port interfaces. This layer is **completely framework-agnostic**.
@@ -199,6 +234,7 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 | **DB Migrations** | Flyway 10.21.0 | Version-controlled schema evolution, rollback support |
 | **Messaging** | Apache Kafka 7.5.0 | High-throughput, persistent, replayable event backbone |
 | **Security** | Spring Security + BCrypt (≥10) | Non-negotiable for financial systems |
+| **Session Store** | Redis 7 + Spring Session | Distributed HttpOnly cookie sessions for BFF |
 | **API Docs** | OpenAPI 3 (spec-first) | Contract-first, auto-generated, always current |
 | **Frontend** | Angular 22 + Material 22, TypeScript 6 | Enterprise-grade SPA framework, accessible by default |
 | **Build** | Maven multi-module + Checkstyle | Reproducible, quality-gated builds |
@@ -214,6 +250,7 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 | Service | Status | Description |
 |---------|--------|-------------|
 | **Identity Service** `aegis-identity-service` | ✅ **Built & tested** | User registration, authentication, RBAC — full hexagonal stack |
+| **BFF Service** `aegis-bff-service` | ✅ **Built & tested** | Backend for Frontend — HttpOnly session cookies, JWT proxy, CSRF protection |
 | **Common** `aegis-common` | ✅ **Built** | UUID v7 generator, shared base exceptions, utilities |
 | **Wallet Service** | 📋 Planned | Digital wallets, balance management, transactions |
 | **Payment Service** | 📋 Planned | Payment processing, reconciliation, 3DS |
@@ -254,43 +291,60 @@ aegis/
 ├── backend/
 │   ├── aegis-common/                  # Shared utilities
 │   │   └── src/main/java/com/aegis/common/
-│   └── aegis-identity-service/        # Full hexagonal service
-│       └── src/main/java/com/aegis/identity/
-│           ├── domain/                # Pure Java — zero framework deps
-│           │   ├── model/             # User, UserId, Email, PasswordHash...
-│           │   ├── event/             # UserRegistered domain event
-│           │   ├── exception/         # DuplicateEmail, WeakPassword...
-│           │   └── port/              # RegisterUserUseCase, UserRepository...
-│           ├── application/           # Use case implementations
-│           │   ├── service/           # RegisterUserService
-│           │   ├── dto/               # RegisterUserCommand, Response
-│           │   └── mapper/            # UserMapper (domain ↔ DTO)
-│           ├── infrastructure/        # Adapters for persistence & messaging
-│           │   ├── persistence/       # JPA entities, repositories, Outbox
-│           │   ├── messaging/         # KafkaEventPublisher
-│           │   ├── config/            # KafkaConfig, SecurityConfig
-│           │   └── security/          # BCryptPasswordHasher
-│           └── web/                   # REST layer
-│               ├── controller/        # RegistrationController
-│               ├── advice/            # RegistrationExceptionHandler
-│               └── dto/               # RegisterUserRequest
+│   ├── aegis-identity-service/        # Full hexagonal service
+│   │   └── src/main/java/com/aegis/identity/
+│   │       ├── domain/                # Pure Java — zero framework deps
+│   │       │   ├── model/             # User, UserId, Email, PasswordHash...
+│   │       │   ├── event/             # UserRegistered domain event
+│   │       │   ├── exception/         # DuplicateEmail, WeakPassword...
+│   │       │   └── port/              # RegisterUserUseCase, UserRepository...
+│   │       ├── application/           # Use case implementations
+│   │       │   ├── service/           # RegisterUserService
+│   │       │   ├── dto/               # RegisterUserCommand, Response
+│   │       │   └── mapper/            # UserMapper (domain ↔ DTO)
+│   │       ├── infrastructure/        # Adapters for persistence & messaging
+│   │       │   ├── persistence/       # JPA entities, repositories, Outbox
+│   │       │   ├── messaging/         # KafkaEventPublisher
+│   │       │   ├── config/            # KafkaConfig, SecurityConfig
+│   │       │   └── security/          # BCryptPasswordHasher
+│   │       └── web/                   # REST layer
+│   │           ├── controller/        # RegistrationController
+│   │           ├── advice/            # RegistrationExceptionHandler
+│   │           └── dto/               # RegisterUserRequest
+│   └── aegis-bff-service/             # Backend for Frontend
+│       └── src/main/java/com/aegis/bff/
+│           ├── BffApplication.java    # Spring Boot entry point
+│           ├── BffAuthController.java # /api/bff/auth/* endpoints
+│           ├── BffService.java        # Proxy logic (RestClient → Identity Service)
+│           ├── SessionJwtStore.java   # JWT storage in HttpSession
+│           └── SecurityConfig.java    # CSRF, HttpOnly cookies, stateless session
 ├── frontend/
 │   └── aegis-frontend/                # Angular 22 SPA
 │       └── src/app/
 │           ├── features/registration/ # Registration form component
-│           └── shared/models/         # Registration model
+│           ├── features/auth/         # Login component (via BFF)
+│           └── shared/models/         # Registration & auth models
 ├── infra/
-│   └── docker-compose.yml             # PostgreSQL 16, Kafka 7.5, ZooKeeper, Kafka UI
+│   └── docker-compose.yml             # PostgreSQL 16, Kafka 7.5, ZooKeeper, Kafka UI, Redis 7
 ├── specs/                             # Spec-driven development artifacts
-│   └── 001-user-registration/
-│       ├── spec.md                    # 508-line full specification
-│       ├── plan.md                    # 10-phase implementation plan
-│       ├── research.md                # Technical decisions with rationale
-│       ├── data-model.md              # Domain & persistence data model
-│       ├── tasks.md                   # 51 tasks with dependencies
-│       └── contracts/                 # OpenAPI 3 spec + JSON Schema event
-│           ├── registration-api.yaml
-│           └── user-registered-event.json
+│   ├── 001-user-registration/
+│   │   ├── spec.md                    # 508-line full specification
+│   │   ├── plan.md                    # 10-phase implementation plan
+│   │   ├── research.md                # Technical decisions with rationale
+│   │   ├── data-model.md              # Domain & persistence data model
+│   │   ├── tasks.md                   # 51 tasks with dependencies
+│   │   └── contracts/                 # OpenAPI 3 spec + JSON Schema event
+│   │       ├── registration-api.yaml
+│   │       └── user-registered-event.json
+│   └── 002-user-authentication/       # UC-002 specs (merged)
+│       ├── spec.md
+│       ├── plan.md
+│       ├── data-model.md
+│       ├── tasks.md
+│       └── contracts/
+│           ├── auth-api.yaml
+│           ├── user-authenticated-event.json
+│           └── user-account-locked-event.json
 └── docs/
     ├── design-system/                 # Brand, colors, typography, components
     └── AGENTS-README.md               # AI agent workflow documentation
@@ -301,21 +355,37 @@ aegis/
 ## Getting Started
 
 ```bash
-# 1. Start infrastructure (PostgreSQL, Kafka, ZooKeeper)
+# 1. Start infrastructure (PostgreSQL, Kafka, ZooKeeper, Redis)
 docker compose -f infra/docker-compose.yml up -d
 
-# 2. Build and run the Identity Service
+# 2. Build all backend modules
 cd backend
 mvn clean install -DskipTests
+
+# 3. Start Identity Service (terminal 1)
 mvn spring-boot:run -pl aegis-identity-service -Dspring-boot.run.profiles=dev
 
-# 3. Start the Angular frontend
+# 4. Start BFF Service (terminal 2)
+mvn spring-boot:run -pl aegis-bff-service -Dspring-boot.run.profiles=dev
+
+# 5. Start the Angular frontend (terminal 3)
 cd frontend/aegis-frontend
 npm install && npm run start
 
-# 4. Run the full test suite (requires Docker — Testcontainers spins up real infra)
+# 6. Run the full test suite (requires Docker — Testcontainers spins up real infra)
 cd backend && mvn clean verify
 ```
+
+### Access Points
+
+| Component | URL |
+|-----------|-----|
+| Angular Frontend | http://localhost:4200 |
+| BFF Service | http://localhost:8082 |
+| Identity Service | http://localhost:8081 |
+| PostgreSQL | localhost:5432 |
+| Kafka UI | http://localhost:8090 |
+| Redis | localhost:6379 |
 
 ---
 
