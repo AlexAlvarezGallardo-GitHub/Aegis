@@ -2,9 +2,12 @@ import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideRouter, Routes } from '@angular/router';
 import { WalletComponent } from './wallet.component';
 import { WalletService } from './wallet.service';
 import { By } from '@angular/platform-browser';
+
+const stubRoutes: Routes = [{ path: 'wallets', component: class {} }];
 
 describe('WalletComponent', () => {
   let component: WalletComponent;
@@ -19,7 +22,7 @@ describe('WalletComponent', () => {
         HttpClientTestingModule,
         NoopAnimationsModule
       ],
-      providers: [WalletService]
+      providers: [WalletService, provideRouter(stubRoutes)]
     }).compileComponents();
 
     fixture = TestBed.createComponent(WalletComponent);
@@ -48,6 +51,8 @@ describe('WalletComponent', () => {
 
   it('should disable submit button when form is invalid', fakeAsync(() => {
     fixture.detectChanges();
+    httpMock.expectOne('/api/bff/wallets').flush([]);
+    tick();
     expect(
       fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
     ).toBeTrue();
@@ -55,6 +60,9 @@ describe('WalletComponent', () => {
   }));
 
   it('should disable submit button while loading', fakeAsync(() => {
+    fixture.detectChanges();
+    httpMock.expectOne('/api/bff/wallets').flush([]);
+    tick();
     component.walletForm.patchValue({ currency: 'EUR' });
     component.isLoading = true;
     fixture.detectChanges();
@@ -65,6 +73,9 @@ describe('WalletComponent', () => {
   }));
 
   it('should enable submit button when form valid and not loading', fakeAsync(() => {
+    fixture.detectChanges();
+    httpMock.expectOne('/api/bff/wallets').flush([]);
+    tick();
     component.walletForm.patchValue({ currency: 'EUR' });
     component.isLoading = false;
     fixture.detectChanges();
