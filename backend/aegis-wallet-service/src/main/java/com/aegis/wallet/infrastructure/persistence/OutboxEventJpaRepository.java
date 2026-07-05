@@ -1,0 +1,15 @@
+package com.aegis.wallet.infrastructure.persistence;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Spring Data JPA repository for outbox event entities.
+ */
+public interface OutboxEventJpaRepository extends JpaRepository<OutboxEventJpaEntity, UUID> {
+
+    List<OutboxEventJpaEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
+}

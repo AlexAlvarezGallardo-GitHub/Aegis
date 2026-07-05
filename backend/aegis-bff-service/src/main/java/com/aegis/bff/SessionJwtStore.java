@@ -14,7 +14,7 @@ public class SessionJwtStore {
     private static final String REFRESH_TOKEN_KEY = "REFRESH_TOKEN";
 
     public void storeTokens(String accessToken, String refreshToken) {
-        HttpSession session = getSession();
+        HttpSession session = getOrCreateSession();
         session.setAttribute(ACCESS_TOKEN_KEY, accessToken);
         session.setAttribute(REFRESH_TOKEN_KEY, refreshToken);
     }
@@ -36,6 +36,18 @@ public class SessionJwtStore {
             session.removeAttribute(REFRESH_TOKEN_KEY);
             session.invalidate();
         }
+    }
+
+    private HttpSession getOrCreateSession() {
+        if (sessionOverride != null) {
+            return sessionOverride;
+        }
+        ServletRequestAttributes attrs = (ServletRequestAttributes)
+                RequestContextHolder.getRequestAttributes();
+        if (attrs == null || attrs.getRequest() == null) {
+            throw new IllegalStateException("No HTTP request context available");
+        }
+        return attrs.getRequest().getSession(true);
     }
 
     private HttpSession getSession() {

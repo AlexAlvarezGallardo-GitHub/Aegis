@@ -2,10 +2,12 @@ import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Routes } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { AuthComponent } from './auth.component';
 import { AuthService } from './auth.service';
+
+const stubRoutes: Routes = [{ path: 'wallets', component: class {} }];
 
 describe('AuthComponent', () => {
   let component: AuthComponent;
@@ -20,7 +22,7 @@ describe('AuthComponent', () => {
         HttpClientTestingModule,
         NoopAnimationsModule
       ],
-      providers: [AuthService, provideRouter([])]
+      providers: [AuthService, provideRouter(stubRoutes)]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuthComponent);

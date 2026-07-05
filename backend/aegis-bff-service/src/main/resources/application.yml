@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: aegis-bff
+  profiles:
+    active: dev
   session:
     store-type: redis
   data:
@@ -14,3 +16,5 @@ spring:
 aegis:
   identity-service:
     url: http://localhost:8081
+  wallet-service:
+    url: http://localhost:8083

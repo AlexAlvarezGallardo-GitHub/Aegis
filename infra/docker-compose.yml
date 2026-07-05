@@ -1,4 +1,5 @@
 services:
+  # ── Databases ──────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: aegis-postgres
@@ -18,26 +19,39 @@ services:
       timeout: 5s
       retries: 5
 
-  dbgate:
-    image: dbgate/dbgate:latest
-    container_name: aegis-dbgate
-    ports:
-      - "3000:3000"
+  postgres-wallet:
+    image: postgres:16-alpine
+    container_name: aegis-postgres-wallet
     environment:
-      CONNECTIONS: postgres
-      LABEL_postgres: Aegis PostgreSQL
-      SERVER_postgres: postgres
-      PORT_postgres: 5432
-      USER_postgres: aegis
-      PASSWORD_postgres: aegis_secret
-      DATABASE_postgres: aegis_identity
-      ENGINE_postgres: postgres@dbgate-plugin-postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: aegis_secret
+      POSTGRES_DB: aegis_wallet
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_wallet_data:/var/lib/postgresql/data
     networks:
       - aegis-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: aegis-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - aegis-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Kafka ──────────────────────────────────────────────
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: aegis-zookeeper
@@ -56,7 +70,6 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
-      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -89,18 +102,113 @@ services:
     networks:
       - aegis-network
 
-  redis:
-    image: redis:7-alpine
-    container_name: aegis-redis
+  # ── Microservices ──────────────────────────────────────
+  aegis-identity:
+    build:
+      context: ../backend
+      dockerfile: aegis-identity-service/Dockerfile
+    container_name: aegis-identity
     ports:
-      - "6379:6379"
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/aegis_identity
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - aegis-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+
+  aegis-wallet:
+    build:
+      context: ../backend
+      dockerfile: aegis-wallet-service/Dockerfile
+    container_name: aegis-wallet
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-wallet:5432/aegis_wallet
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres-wallet:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - aegis-network
+
+  aegis-bff:
+    build:
+      context: ../backend
+      dockerfile: aegis-bff-service/Dockerfile
+    container_name: aegis-bff
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      AEGIS_IDENTITY_SERVICE_URL: http://aegis-identity:8081
+      AEGIS_WALLET_SERVICE_URL: http://aegis-wallet:8083
+      SPRING_DATA_REDIS_HOST: redis
+    depends_on:
+      redis:
+        condition: service_healthy
+      aegis-identity:
+        condition: service_started
+      aegis-wallet:
+        condition: service_started
+    networks:
+      - aegis-network
+
+  # ── Frontend ────────────────────────────────────────────
+  aegis-frontend:
+    build:
+      context: ../frontend/aegis-frontend
+      dockerfile: Dockerfile
+    container_name: aegis-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - aegis-bff
+    networks:
+      - aegis-network
+
+  # ── Admin Tools ─────────────────────────────────────────
+  dbgate:
+    image: dbgate/dbgate:latest
+    container_name: aegis-dbgate
+    ports:
+      - "3000:3000"
+    environment:
+      CONNECTIONS: postgres
+      LABEL_postgres: Aegis Identity DB
+      SERVER_postgres: postgres
+      PORT_postgres: 5432
+      USER_postgres: aegis
+      PASSWORD_postgres: aegis_secret
+      DATABASE_postgres: aegis_identity
+      ENGINE_postgres: postgres@dbgate-plugin-postgres
+      LABEL_postgres_wallet: Aegis Wallet DB
+      SERVER_postgres_wallet: postgres-wallet
+      PORT_postgres_wallet: 5432
+      USER_postgres_wallet: aegis
+      PASSWORD_postgres_wallet: aegis_secret
+      DATABASE_postgres_wallet: aegis_wallet
+      ENGINE_postgres_wallet: postgres@dbgate-plugin-postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-wallet:
+        condition: service_healthy
+    networks:
+      - aegis-network
 
 networks:
   aegis-network:
@@ -108,3 +216,4 @@ networks:
 
 volumes:
   postgres_data:
+  postgres_wallet_data:

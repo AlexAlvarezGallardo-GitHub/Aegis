@@ -1,15 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -24,6 +26,7 @@ import { finalize } from 'rxjs/operators';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatDividerModule,
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],
@@ -34,10 +37,13 @@ export class AuthComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
   loginForm: FormGroup;
   isLoading = false;
   hidePassword = true;
+
+  readonly enableMockLogin = environment.enableMockLogin;
 
   constructor() {
     this.loginForm = this.fb.group({
@@ -62,12 +68,32 @@ export class AuthComponent {
       .subscribe({
         next: () => {
           this.snackBar.open('Login successful!', 'Close', {
-            duration: 3000
+            duration: 2000
           });
+          setTimeout(() => this.router.navigate(['/wallets']), 500);
         },
         error: (error) => {
           const errorMessage = error.error?.message || 'Login failed. Please try again.';
           this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000
+          });
+        }
+      });
+  }
+
+  mockLogin(): void {
+    this.isLoading = true;
+    this.authService.mockLogin()
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Mock login successful!', 'Close', {
+            duration: 2000
+          });
+          setTimeout(() => this.router.navigate(['/wallets']), 500);
+        },
+        error: () => {
+          this.snackBar.open('Mock login failed. Is the dev profile active?', 'Close', {
             duration: 5000
           });
         }

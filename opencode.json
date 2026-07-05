@@ -33,7 +33,8 @@
       "description": "GitHub issue manager - triages, creates, links sub-issues, syncs state, tracks dependencies, and generates status reports for the Aegis platform",
       "mode": "subagent",
       "model": "opencode/deepseek-v4-flash-free",
-      "color": "secondary"
+      "color": "secondary",
+      "prompt": "{file:./.opencode/prompts/issue-manager.txt}"
     },
     "security-reviewer": {
       "description": "Security specialist - reviews OAuth2/JWT flows, scans for secrets, validates OWASP compliance, checks secure API design",

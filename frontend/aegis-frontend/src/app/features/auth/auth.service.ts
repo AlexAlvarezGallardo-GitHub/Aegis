@@ -15,6 +15,10 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.baseUrl}/login`, request);
   }
 
+  mockLogin(): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.baseUrl}/mock-login`, {});
+  }
+
   logout(): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/logout`, {});
   }
