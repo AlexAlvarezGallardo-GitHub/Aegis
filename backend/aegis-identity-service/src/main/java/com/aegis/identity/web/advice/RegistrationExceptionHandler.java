@@ -4,6 +4,7 @@ import com.aegis.common.domain.exception.AegisException;
 import com.aegis.identity.domain.exception.DuplicateEmailException;
 import com.aegis.identity.domain.exception.InvalidEmailException;
 import com.aegis.identity.domain.exception.WeakPasswordException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,6 +22,12 @@ public class RegistrationExceptionHandler {
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateEmail(DuplicateEmailException ex) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
+                "A user with the given email already exists.", null);
     }
 
     @ExceptionHandler(InvalidEmailException.class)
