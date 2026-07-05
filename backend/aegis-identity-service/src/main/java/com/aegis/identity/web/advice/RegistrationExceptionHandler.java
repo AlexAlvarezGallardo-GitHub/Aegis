@@ -4,6 +4,8 @@ import com.aegis.common.domain.exception.AegisException;
 import com.aegis.identity.domain.exception.DuplicateEmailException;
 import com.aegis.identity.domain.exception.InvalidEmailException;
 import com.aegis.identity.domain.exception.WeakPasswordException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class RegistrationExceptionHandler {
 
