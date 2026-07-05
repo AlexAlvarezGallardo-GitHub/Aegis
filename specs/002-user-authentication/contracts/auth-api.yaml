@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: Aegis Identity Service - Authentication API
+  description: API for user authentication on the Aegis platform.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+
+servers:
+  - url: http://localhost:8081
+    description: Local development
+  - url: https://api.aegis.dev
+    description: Development environment
+
+paths:
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      summary: Authenticate a user with email and password
+      description: |
+        Validates user credentials and returns JWT access and refresh tokens.
+        Publishes a UserAuthenticated event (success or failure) to Kafka.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "john.doe@example.com"
+              password: "SecureP@ss1"
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                accessToken: "eyJhbGciOiJSUzI1NiIs..."
+                refreshToken: "eyJhbGciOiJSUzI1NiIs..."
+                tokenType: "Bearer"
+                expiresIn: 900
+                emailVerified: false
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "FIELD_REQUIRED"
+                message: "The field 'email' is required."
+                details:
+                  field: "email"
+                timestamp: "2026-07-03T14:30:00.000Z"
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidCredentials:
+                  summary: Invalid email or password
+                  value:
+                    code: "INVALID_CREDENTIALS"
+                    message: "Invalid email or password."
+                    details: null
+                    timestamp: "2026-07-03T14:30:00.000Z"
+                accountLocked:
+                  summary: Account is locked
+                  value:
+                    code: "ACCOUNT_LOCKED"
+                    message: "Account is locked due to too many failed login attempts. Please contact support."
+                    details: null
+                    timestamp: "2026-07-03T14:30:00.000Z"
+                accountSuspended:
+                  summary: Account is suspended
+                  value:
+                    code: "ACCOUNT_SUSPENDED"
+                    message: "Account has been suspended. Please contact support."
+                    details: null
+                    timestamp: "2026-07-03T14:30:00.000Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "INTERNAL_ERROR"
+                message: "An unexpected error occurred."
+                details: null
+                timestamp: "2026-07-03T14:30:00.000Z"
+
+  /api/v1/auth/refresh:
+    post:
+      operationId: refreshToken
+      summary: Refresh an access token
+      description: |
+        Accepts a valid refresh token and returns a new access token.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+            example:
+              refreshToken: "eyJhbGciOiJSUzI1NiIs..."
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+              example:
+                accessToken: "eyJhbGciOiJSUzI1NiIs..."
+                refreshToken: "eyJhbGciOiJSUzI1NiIs..."
+                tokenType: "Bearer"
+                expiresIn: 900
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "FIELD_REQUIRED"
+                message: "The field 'refreshToken' is required."
+                details:
+                  field: "refreshToken"
+                timestamp: "2026-07-03T14:30:00.000Z"
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "INVALID_REFRESH_TOKEN"
+                message: "The refresh token is invalid or expired."
+                details: null
+                timestamp: "2026-07-03T14:30:00.000Z"
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: User's email address
+          example: "john.doe@example.com"
+        password:
+          type: string
+          minLength: 1
+          description: User's password
+          example: "SecureP@ss1"
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJSUzI1NiIs..."
+        refreshToken:
+          type: string
+          description: JWT refresh token
+          example: "eyJhbGciOiJSUzI1NiIs..."
+        tokenType:
+          type: string
+          description: Token type
+          example: "Bearer"
+        expiresIn:
+          type: integer
+          description: Access token TTL in seconds
+          example: 900
+        emailVerified:
+          type: boolean
+          description: Whether the user's email has been verified
+          example: false
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Valid refresh token
+          example: "eyJhbGciOiJSUzI1NiIs..."
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: New JWT access token
+          example: "eyJhbGciOiJSUzI1NiIs..."
+        refreshToken:
+          type: string
+          description: Refresh token (same as provided or rotated)
+          example: "eyJhbGciOiJSUzI1NiIs..."
+        tokenType:
+          type: string
+          description: Token type
+          example: "Bearer"
+        expiresIn:
+          type: integer
+          description: Access token TTL in seconds
+          example: 900
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "INVALID_CREDENTIALS"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid email or password."
+        details:
+          type: object
+          nullable: true
+          description: Additional error context
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred (UTC)
+          example: "2026-07-03T14:30:00.000Z"

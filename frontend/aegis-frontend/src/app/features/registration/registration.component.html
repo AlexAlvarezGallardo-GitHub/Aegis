@@ -54,7 +54,7 @@
           </div>
 
           <button mat-raised-button color="primary" type="submit" class="submit-button"
-                  [disabled]="isLoading">
+                  [disabled]="isLoading || registrationForm.invalid">
             @if (isLoading) {
               <mat-spinner diameter="20"></mat-spinner>
             } @else {

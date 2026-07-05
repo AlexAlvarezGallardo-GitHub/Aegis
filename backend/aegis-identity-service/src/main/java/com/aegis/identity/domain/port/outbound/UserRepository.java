@@ -10,6 +10,8 @@ public interface UserRepository {
 
     User save(User user);
 
+    User saveAndFlush(User user);
+
     Optional<User> findByEmail(Email email);
 
     Optional<User> findById(UserId userId);

@@ -34,14 +34,11 @@ class OutboxRelaySchedulerTest {
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    @Mock
-    private ObjectMapper objectMapper;
-
     private OutboxRelayScheduler scheduler;
 
     @BeforeEach
     void setUp() {
-        scheduler = new OutboxRelayScheduler(outboxRepository, kafkaTemplate, objectMapper, 50);
+        scheduler = new OutboxRelayScheduler(outboxRepository, kafkaTemplate, 50);
     }
 
     @Nested
@@ -268,7 +265,7 @@ class OutboxRelaySchedulerTest {
         void shouldRespectConfiguredBatchSize() {
             // Arrange
             OutboxRelayScheduler customBatchScheduler = new OutboxRelayScheduler(
-                    outboxRepository, kafkaTemplate, objectMapper, 10);
+                    outboxRepository, kafkaTemplate, 10);
 
             when(outboxRepository.findByStatusOrderByCreatedAtAsc(eq("PENDING"), any(PageRequest.class)))
                     .thenReturn(Collections.emptyList());

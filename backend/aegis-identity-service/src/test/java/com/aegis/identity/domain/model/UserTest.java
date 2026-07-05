@@ -95,10 +95,12 @@ class UserTest {
         PasswordHash hash = PasswordHash.of("hash123");
 
         User user = User.rehydrate(userId, email, hash, "John", "Doe",
-                UserStatus.ACTIVE, java.time.Instant.now(), java.time.Instant.now(), 5L);
+                UserStatus.ACTIVE, 0, null,
+                java.time.Instant.now(), java.time.Instant.now(), 5L);
 
         assertEquals(userId, user.getUserId());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
+        assertEquals(0, user.getFailedLoginAttempts());
         assertEquals(5L, user.getVersion());
     }
 }

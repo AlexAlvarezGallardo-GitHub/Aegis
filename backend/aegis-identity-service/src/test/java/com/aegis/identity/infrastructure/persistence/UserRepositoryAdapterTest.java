@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -116,9 +115,9 @@ class UserRepositoryAdapterTest {
             UUID userId = UUID.randomUUID();
             UserJpaEntity entity = new UserJpaEntity(
                     userId, "find@example.com", "hashedPass", "Find", "Me",
-                    "PENDING_VERIFICATION", Instant.now(), Instant.now(), 0L);
+                    "PENDING_VERIFICATION", 0, null, Instant.now(), Instant.now(), 0L);
 
-            when(jpaRepository.findAll()).thenReturn(List.of(entity));
+            when(jpaRepository.findByEmail("find@example.com")).thenReturn(Optional.of(entity));
 
             // Act
             Optional<User> result = adapter.findByEmail(Email.of("find@example.com"));
@@ -135,9 +134,9 @@ class UserRepositoryAdapterTest {
             UUID userId = UUID.randomUUID();
             UserJpaEntity entity = new UserJpaEntity(
                     userId, "other@example.com", "hashedPass", "Other", "User",
-                    "PENDING_VERIFICATION", Instant.now(), Instant.now(), 0L);
+                    "PENDING_VERIFICATION", 0, null, Instant.now(), Instant.now(), 0L);
 
-            when(jpaRepository.findAll()).thenReturn(List.of(entity));
+            when(jpaRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
             // Act
             Optional<User> result = adapter.findByEmail(Email.of("notfound@example.com"));
@@ -147,38 +146,4 @@ class UserRepositoryAdapterTest {
         }
     }
 
-    @Nested
-    @DisplayName("Known issues and risks")
-    class KnownIssuesAndRisks {
-
-        @Test
-        @DisplayName("BUG: findByEmail uses findAll().stream().filter() - loads ALL users into memory")
-        void documentsFindByEmailPerformanceBug() {
-            // DOCUMENTATION TEST: This test documents a critical performance bug.
-            //
-            // In UserRepositoryAdapter.findByEmail():
-            //
-            //   public Optional<User> findByEmail(Email email) {
-            //       return jpaRepository.findAll()           // <-- Loads ALL users from DB!
-            //               .stream()
-            //               .filter(e -> e.getEmail().equals(email.value()))
-            //               .findFirst()
-            //               .map(this::toDomain);
-            //   }
-            //
-            // This loads ALL users from the database into memory, then filters in Java.
-            // For a production system with thousands/millions of users, this will:
-            // 1. Cause massive memory consumption
-            // 2. Cause slow query performance
-            // 3. Cause network overhead (transferring all rows)
-            //
-            // Fix: Add a findByEmail(String email) method to UserJpaRepository:
-            //   Optional<UserJpaEntity> findByEmail(String email);
-            //
-            // Then use it in the adapter:
-            //   return jpaRepository.findByEmail(email.value()).map(this::toDomain);
-
-            assertTrue(true, "Documented: findByEmail uses findAll() which loads ALL users into memory");
-        }
-    }
 }

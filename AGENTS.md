@@ -127,6 +127,30 @@ Epic
 - Priority cascades: critical epics require at least high-priority children.
 - Cross-service dependencies are explicitly tracked with `Depends on` / `Blocks`.
 
+## Frontend Testing Conventions
+
+When testing Angular components, the test-engineer MUST verify:
+
+### UI Interaction Patterns
+
+- **Submit button disabled state**: Test that the submit button has `[disabled]="isLoading || form.invalid"` and verify both conditions keep it disabled
+- **Validation feedback**: Test that submitting an invalid form shows a snackbar/toast (not just field-level errors)
+- **Loading spinner reset**: Test that `isLoading` resets via `finalize()` on success, error, AND if the observable never emits (timeout). Do NOT rely on `next`/`error` handlers alone for `isLoading` reset
+- **HTTP timeout**: Verify the service or component handles HTTP timeouts gracefully (no infinite spinner)
+
+### HTTP & API Patterns
+
+- **Relative URLs**: Services MUST use relative paths (`/api/v1/...`) through the Angular proxy, NOT absolute URLs (`http://localhost:8081/...`), unless a BFF or API gateway is configured
+- **Error handling**: Test both HTTP 4xx and 5xx error responses, and network errors (HttpErrorResponse without status)
+- **Proxy configuration**: Verify `proxy.conf.json` is properly configured and services route through it in dev
+
+### Test Structure
+
+- **Button disabled**: `expect(button.nativeElement.disabled).toBeTruthy()` when form invalid
+- **Snackbar on validation fail**: Spy on `MatSnackBar.open()` and verify it's called when submitting invalid form
+- **finalize guarantee**: Use a spy and verify `isLoading` transitions: `false → true → false` always completes
+- **HTTP mock**: Use `HttpTestingController` to flush/expect requests and verify loading states
+
 ## Authority
 
 All architectural principles, naming conventions, API design standards, security requirements, testing standards, and infrastructure constraints are defined in `.specify/memory/constitution.md`. That document supersedes all other development guidance.
