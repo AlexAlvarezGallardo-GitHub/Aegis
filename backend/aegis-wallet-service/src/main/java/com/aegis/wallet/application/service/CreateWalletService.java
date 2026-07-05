@@ -2,7 +2,6 @@ package com.aegis.wallet.application.service;
 
 import com.aegis.wallet.application.dto.CreateWalletCommand;
 import com.aegis.wallet.application.dto.WalletResponse;
-import com.aegis.wallet.application.mapper.WalletMapper;
 import com.aegis.wallet.domain.event.WalletCreated;
 import com.aegis.wallet.domain.exception.WalletLimitExceededException;
 import com.aegis.wallet.domain.model.Wallet;

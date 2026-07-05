@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Port for wallet persistence operations.
+ */
 public interface WalletRepository {
 
     Wallet save(Wallet wallet);

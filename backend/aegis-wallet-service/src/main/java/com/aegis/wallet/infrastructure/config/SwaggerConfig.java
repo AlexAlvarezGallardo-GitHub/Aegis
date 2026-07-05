@@ -20,7 +20,8 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Aegis Wallet Service API")
-                        .description("Wallet management API for the Aegis digital payment platform. Handles wallet creation, balance queries, and ledger tracking.")
+                        .description("Wallet management API for the Aegis digital payment platform. "
+                                + "Handles wallet creation, balance queries, and ledger tracking.")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("Aegis Platform Team")

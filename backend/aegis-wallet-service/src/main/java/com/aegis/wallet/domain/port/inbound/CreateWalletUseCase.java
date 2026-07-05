@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Use case for creating a new wallet for a user.
+ */
 public interface CreateWalletUseCase {
 
     Result execute(Command command);
