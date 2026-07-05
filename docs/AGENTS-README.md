@@ -20,7 +20,7 @@ Agents are tiered by cost to keep token usage low. The main session model and `s
 | `architect` | `opencode-go/qwen3.7-plus` | plus | Validates DDD boundaries, microservice decomposition, C4 models |
 | `security-reviewer` | `opencode-go/deepseek-v4-flash` | flash | Reviews OAuth2/JWT, scans secrets, OWASP compliance |
 | `code-reviewer` | `opencode-go/qwen3.7-plus` | plus | Enforces SOLID, Clean Code, hexagonal architecture |
-| `service-builder` | `opencode-go/qwen3.7-plus` | plus | Generates Spring Boot microservices, OpenAPI/Swagger documentation |
+| `service-builder` | `opencode-go/qwen3.7-plus` | plus | Generates Spring Boot microservices and YAML-first OpenAPI contracts |
 | `frontend-builder` | `opencode-go/qwen3.7-plus` | plus | Generates Angular components and services |
 | `test-engineer` | `opencode-go/qwen3.7-plus` | plus | Generates JUnit 5, Mockito, Testcontainers tests; Playwright only for real E2E |
 | `infra-engineer` | `opencode-go/qwen3.7-plus` | plus | Creates Docker, Kubernetes, Helm, GitHub Actions |
@@ -95,24 +95,28 @@ All development follows GitHub Flow with strict naming conventions.
 ```mermaid
 gitGraph
     commit id: "Initial commit"
-    branch feature/add-payment-validation
-    checkout feature/add-payment-validation
-    commit id: "feat(payment): add validation logic"
-    commit id: "test(payment): add validation tests"
+    branch feature/001-user-registration
+    checkout feature/001-user-registration
+    commit id: "feat(identity): add user registration endpoint"
+    commit id: "test(identity): add registration service tests"
     checkout main
-    merge feature/add-payment-validation id: "squash merge 1" tag: "v1.1.0"
-    branch fix/42-jwt-refresh
-    checkout fix/42-jwt-refresh
+    merge feature/001-user-registration id: "squash merge 1" tag: "v1.1.0"
+    branch fix/042-jwt-refresh
+    checkout fix/042-jwt-refresh
     commit id: "fix(identity): correct token rotation"
     checkout main
-    merge fix/42-jwt-refresh id: "squash merge 2" tag: "v1.1.1"
+    merge fix/042-jwt-refresh id: "squash merge 2" tag: "v1.1.1"
 ```
 
 ### Branch Naming
 
 ```
-<type>/<short-description>
+<type>/<number>-<short-description>
 ```
+
+- `<type>` follows GitHub Flow conventions.
+- `<number>` is the sequential feature number from `specs/<number>-<short-name>/`.
+- `<short-description>` is lowercase kebab-case.
 
 | Type | Purpose |
 |------|---------|
@@ -315,25 +319,24 @@ Ask the `git-guardian` agent to validate your work:
 
 ### OpenAPI / Swagger Documentation
 
-The `service-builder` agent is responsible for generating and maintaining OpenAPI 3 documentation for every REST endpoint using **springdoc-openapi**.
+Aegis follows a **spec-first, YAML-only** OpenAPI 3 workflow. The canonical API contract lives in `specs/<feature>/contracts/` and is never duplicated in controller code.
 
 **Rules:**
 
+- OpenAPI 3 specs MUST be defined in separate YAML files under `specs/<feature>/contracts/`.
+- Controllers MUST NOT contain swagger/OpenAPI annotations (`@Tag`, `@Operation`, `@ApiResponse`, `@Parameter`, `@Schema`, etc.). These duplicate the YAML contract and add complexity without gain.
+- The `api-design` skill generates the OpenAPI contract. The `service-builder` agent produces controllers with **zero swagger imports**.
 - Swagger UI is **only enabled in the `dev` profile** (`@Profile("dev")`). It MUST NOT be available in staging or production.
 - The `SwaggerConfig` class lives in `infrastructure/config/` and is annotated with `@Profile("dev")`.
 - Spring Security MUST permit Swagger paths (`/swagger-ui/**`, `/v3/api-docs/**`, `/webjars/**`) only when the `dev` profile is active.
-- Controllers MUST use `@Tag`, `@Operation`, and `@ApiResponses` annotations from `io.swagger.v3.oas.annotations`.
-- Request/response DTOs MUST use `@Schema` annotations with descriptions and examples.
-- Error responses MUST be documented with `@ExampleObject` entries for each error code.
 - The OpenAPI spec is served at `/v3/api-docs` and Swagger UI at `/swagger-ui.html` (dev profile only).
 
 **When creating a new endpoint, the service-builder agent MUST:**
 
-1. Add `@Tag` to the controller class with a name and description
-2. Add `@Operation` with summary and description to each endpoint method
-3. Add `@ApiResponses` with all possible response codes (2xx, 4xx, 5xx) and example payloads
-4. Add `@Schema` annotations to all request and response DTOs
-5. Add `@Parameter` annotations to path/query/header parameters
+1. Implement the endpoint according to the YAML contract in `specs/<feature>/contracts/`.
+2. Keep controllers free of swagger annotations.
+3. Use plain Java records for request/response DTOs.
+4. Document new or changed error scenarios in the YAML contract, not in code.
 
 **Access (dev profile only):**
 
@@ -348,14 +351,14 @@ The `service-builder` agent is responsible for generating and maintaining OpenAP
 # Enable git hooks
 git config core.hooksPath .githooks
 
-# Create a feature branch
-git checkout -b feature/add-payment-validation
+# Create a feature branch (example for feature 004)
+git checkout -b feature/004-add-payment-validation
 
 # Commit with conventional message
 git commit -m "feat(payment): add idempotency key to payment creation"
 
 # Push and open a PR
-git push -u origin feature/add-payment-validation
+git push -u origin feature/004-add-payment-validation
 ```
 
 ### PR Body Template

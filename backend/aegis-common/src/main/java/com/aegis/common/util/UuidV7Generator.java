@@ -3,6 +3,9 @@ package com.aegis.common.util;
 import java.security.SecureRandom;
 import java.util.UUID;
 
+/**
+ * Generates UUIDv7 values: time-ordered, database-friendly unique identifiers.
+ */
 public final class UuidV7Generator {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -10,6 +13,11 @@ public final class UuidV7Generator {
     private UuidV7Generator() {
     }
 
+    /**
+     * Generates a new UUIDv7 based on the current Unix timestamp and random bytes.
+     *
+     * @return a new UUIDv7 instance
+     */
     public static UUID generate() {
         long timestamp = System.currentTimeMillis();
         byte[] randomBytes = new byte[10];
