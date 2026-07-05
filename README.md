@@ -46,57 +46,64 @@ Traditional development is linear: analyst → architect → developer → teste
 
 Aegis was built with a **different model**:
 
-```
-Business Requirement
-        │
-        ▼
-  ┌─ Specification Agent ──┐   Understands the domain, writes user stories,
-  │  (write-spec)           │   defines acceptance criteria, identifies edge cases
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Architecture Agent    │   Validates DDD boundaries, hexagonal compliance,
-  │  (architect)            │   enforces the constitution, checks consistency
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Planning Agent         │   Decomposes into tasks, estimates dependencies,
-  │  (plan)                 │   identifies parallel execution opportunities
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Service Builder Agent  │   Generates hexagonal Spring Boot services
-  │  (service-builder)      │   respecting domain isolation, ports & adapters
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Frontend Builder Agent │   Creates Angular components, Material themes,
-  │  (frontend-builder)     │   responsive layouts, accessible interfaces
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Test Engineer Agent   │   Generates unit, integration, E2E tests with
-  │  (test-engineer)        │   Testcontainers, Mockito, edge case coverage
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │  Infrastructure Agent   │   Produces Dockerfiles, Helm charts, K8s manifests,
-  │  (infra-engineer)       │   GitHub Actions pipelines
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Review Agents         │   Code review, security review, architecture review
-  │  (code-reviewer,        │   — multiple perspectives, automated quality gates
-  │   security-reviewer)    │
-  └────────┬────────────────┘
-           │
-  ┌────────▼────────────────┐
-  │   Issue Manager Agent   │   Creates GitHub issues, tracks progress, syncs
-  │  (issue-manager)        │   task lists, reports status, closes epics
-  └────────┬────────────────┘
-           │
-           ▼
-    Production-Ready Service
+```mermaid
+flowchart TB
+    BR["Business Requirement"]
+    BR --> SA
+
+    SA["Specification Agent
+     (write-spec)"]
+    AR["Architecture Agent
+     (architect)"]
+    PL["Planning Agent
+     (plan)"]
+    SB["Service Builder Agent
+     (service-builder)"]
+    FB["Frontend Builder Agent
+     (frontend-builder)"]
+    TE["Test Engineer Agent
+     (test-engineer)"]
+    IE["Infrastructure Agent
+     (infra-engineer)"]
+    RV["Review Agents
+     (code-reviewer, security-reviewer)"]
+    IM["Issue Manager Agent
+     (issue-manager)"]
+    PROD["Production-Ready Service"]
+
+    SA --> AR --> PL
+    PL --> SB & FB & TE & IE
+    SB & FB & TE & IE --> RV
+    RV --> IM --> PROD
+
+    subgraph Phase1["Understanding"]
+        BR
+    end
+    subgraph Phase2["Specification"]
+        SA
+    end
+    subgraph Phase3["Architecture"]
+        AR
+    end
+    subgraph Phase4["Planning"]
+        PL
+    end
+    subgraph Phase5["Implementation"]
+        SB
+        FB
+    end
+    subgraph Phase6["Testing"]
+        TE
+    end
+    subgraph Phase7["Infrastructure"]
+        IE
+    end
+    subgraph Phase8["Review"]
+        RV
+    end
+    subgraph Phase9["Management"]
+        IM
+    end
 ```
 
 Each agent is a specialist. Each one has a defined role, skill set, and quality bar. Together they form a **virtual engineering team** that I direct, review, and integrate.
@@ -132,48 +139,66 @@ Each agent is a specialist. Each one has a defined role, skill set, and quality 
 
 ## Architectural Highlights
 
-```
-                                   ┌──────────────────┐
-                                   │   Angular 22 SPA │
-                                   └────────┬─────────┘
-                                            │ HttpOnly cookie
-                                   ┌────────▼─────────┐
-                                   │   BFF Service    │
-                                   │  (port 8082)     │
-                                   │  Redis session   │
-                                   └────────┬─────────┘
-                                            │
-┌───────────────────────────────────────────┼───────────────────────────────┐
-│                                  ┌────────▼────────┐                    │
-│                                  │   API Gateway   │                    │
-│                                  └──────┬──────────┘                    │
-│                                         │                               │
-│  ┌────▼────────┐      ┌─────▼────────┐  │  ┌─────▼────────┐            │
-│  │  Identity   │      │   Wallet     │  │  │   Payment   │            │
-│  │  Service    │      │   Service    │  │  │   Service   │            │
-│  └─────┬───────┘      └─────┬────────┘  │  └─────┬────────┘            │
-│        │                     │           │        │                     │
-│        └─────────────────────┼───────────┼────────┘                     │
-│                              │           │                              │
-│                     ┌────────▼───────────▼────────┐                    │
-│                     │          Kafka               │                    │
-│                     │       (Event Bus)            │                    │
-│                     └────────┬───────────┬────────┘                    │
-│                              │           │                              │
-│  ┌────▼────────┐      ┌─────▼────────┐  │  ┌─────▼────────┐            │
-│  │   Fraud     │      │ Notification │  │  │    Audit     │            │
-│  │   Service   │      │   Service    │  │  │   Service   │            │
-│  └─────────────┘      └──────────────┘  │  └──────────────┘            │
-└──────────────────────────────────────────┴──────────────────────────────┘
+```mermaid
+flowchart TB
+    ANG["Angular 22 SPA"]
+    BFF["BFF Service
+     port 8082
+     Redis session store"]
+    GW["API Gateway"]
+    ID["Identity Service"]
+    WA["Wallet Service"]
+    PAY["Payment Service"]
+    KAFKA["Kafka
+     Event Bus"]
+    FR["Fraud Service"]
+    NO["Notification Service"]
+    AU["Audit Service"]
+
+    ANG -- HttpOnly cookie --> BFF
+    BFF --> GW
+    GW --> ID & WA & PAY
+    ID & WA & PAY --> KAFKA
+    KAFKA --> FR & NO & AU
 ```
 
 ### Hexagonal Architecture (Ports & Adapters)
 
 Every service enforces strict inward dependency direction — a design that keeps business logic pure, testable, and framework-agnostic:
 
-```
-Web ──→ Application ──→ Domain
-Infrastructure ──→ Application ──→ Domain
+```mermaid
+flowchart LR
+    subgraph Web["Web Layer"]
+        direction LR
+        REST["REST Controllers"]
+        ADV["Exception Handlers"]
+    end
+    subgraph APP["Application Layer"]
+        direction LR
+        SRV["Use Case Services"]
+        DTO["DTOs"]
+        MAP["Mappers"]
+    end
+    subgraph INF["Infrastructure Layer"]
+        direction LR
+        JPA["JPA Persistence"]
+        KAFKA_AD["Kafka Adapters"]
+        SEC["Security Config"]
+    end
+    subgraph DOM["Domain Layer"]
+        direction LR
+        ENT["Entities & Value Objects"]
+        EVT["Domain Events"]
+        PRT["Port Interfaces"]
+    end
+
+    REST --> SRV
+    ADV --> SRV
+    JPA -.->|implements| PRT
+    KAFKA_AD -.->|implements| PRT
+    SRV -.->|depends on| PRT
+    SRV --> MAP --> DTO
+    DOM -.->|zero framework deps| DOM
 ```
 
 - **Domain**: Pure Java 21 — zero framework annotations, zero imports from Spring/JPA. Entities, value objects (records), enums, domain events, and port interfaces. This layer is **completely framework-agnostic**.
