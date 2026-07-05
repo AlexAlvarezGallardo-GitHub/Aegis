@@ -4,7 +4,6 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RegistrationComponent } from './registration.component';
 import { RegistrationService } from './registration.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { By } from '@angular/platform-browser';
 
 describe('RegistrationComponent', () => {
