@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -37,6 +37,7 @@ export class AuthComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
   loginForm: FormGroup;
   isLoading = false;
@@ -67,8 +68,9 @@ export class AuthComponent {
       .subscribe({
         next: () => {
           this.snackBar.open('Login successful!', 'Close', {
-            duration: 3000
+            duration: 2000
           });
+          setTimeout(() => this.router.navigate(['/wallets']), 500);
         },
         error: (error) => {
           const errorMessage = error.error?.message || 'Login failed. Please try again.';
@@ -85,9 +87,10 @@ export class AuthComponent {
       .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: () => {
-          this.snackBar.open('Mock login successful! Redirecting...', 'Close', {
-            duration: 3000
+          this.snackBar.open('Mock login successful!', 'Close', {
+            duration: 2000
           });
+          setTimeout(() => this.router.navigate(['/wallets']), 500);
         },
         error: () => {
           this.snackBar.open('Mock login failed. Is the dev profile active?', 'Close', {
