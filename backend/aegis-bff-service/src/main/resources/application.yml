@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: aegis-bff
+  profiles:
+    active: dev
   session:
     store-type: redis
   data:
