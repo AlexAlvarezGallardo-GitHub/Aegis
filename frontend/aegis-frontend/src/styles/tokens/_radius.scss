@@ -1,0 +1,35 @@
+@use 'sass:map';
+
+// =============================================================================
+// Aegis Design Tokens — Border Radius
+// =============================================================================
+// Consistent corner rounding across all components.
+// =============================================================================
+
+// -- SCSS Map -----------------------------------------------------------------
+
+$aegis-radius: (
+  none: 0,
+  xs: 2px,
+  sm: 4px,
+  md: 6px,
+  lg: 8px,
+  xl: 12px,
+  '2xl': 16px,
+  '3xl': 24px,
+  full: 9999px,
+);
+
+// -- CSS Custom Properties (:root) --------------------------------------------
+
+@mixin aegis-radius-tokens {
+  --aegis-radius-none: #{map.get($aegis-radius, none)};
+  --aegis-radius-xs: #{map.get($aegis-radius, xs)};
+  --aegis-radius-sm: #{map.get($aegis-radius, sm)};
+  --aegis-radius-md: #{map.get($aegis-radius, md)};
+  --aegis-radius-lg: #{map.get($aegis-radius, lg)};
+  --aegis-radius-xl: #{map.get($aegis-radius, xl)};
+  --aegis-radius-2xl: #{map.get($aegis-radius, '2xl')};
+  --aegis-radius-3xl: #{map.get($aegis-radius, '3xl')};
+  --aegis-radius-full: #{map.get($aegis-radius, full)};
+}

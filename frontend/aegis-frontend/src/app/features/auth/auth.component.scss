@@ -1,24 +1,26 @@
+@use 'styles/tokens' as tokens;
+
 .auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 64px);
-  padding: 2rem;
-  background-color: #f5f5f5;
+  min-height: calc(100vh - var(--aegis-space-16));
+  padding: var(--aegis-space-8);
+  background-color: var(--aegis-color-bg);
 }
 
 .auth-card {
   max-width: 420px;
   width: 100%;
-  padding: 2rem;
+  padding: var(--aegis-space-8);
 
   mat-card-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--aegis-space-6);
     text-align: center;
 
     mat-card-title {
-      font-size: 1.5rem;
-      margin-bottom: 0.25rem;
+      font-size: var(--aegis-text-3xl);
+      margin-bottom: var(--aegis-space-1);
     }
   }
 
@@ -26,7 +28,7 @@
     form {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: var(--aegis-space-4);
     }
   }
 }
@@ -37,9 +39,9 @@
 
 .submit-button {
   width: 100%;
-  height: 48px;
-  font-size: 1rem;
-  margin-top: 0.5rem;
+  height: var(--aegis-space-12);
+  font-size: var(--aegis-text-lg);
+  margin-top: var(--aegis-space-2);
 
   mat-spinner {
     margin: 0 auto;
@@ -48,7 +50,7 @@
 
 .auth-links {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: var(--aegis-space-4);
 
   a {
     text-decoration: none;
@@ -56,15 +58,15 @@
 }
 
 .mock-login-section {
-  margin-top: 1.5rem;
+  margin-top: var(--aegis-space-6);
   text-align: center;
 
   .mock-label {
-    font-size: 0.75rem;
-    color: #999;
+    font-size: var(--aegis-text-sm);
+    color: var(--aegis-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 1rem 0 0.5rem;
+    letter-spacing: var(--aegis-tracking-wider);
+    margin: var(--aegis-space-4) 0 var(--aegis-space-2);
   }
 
   .mock-button {

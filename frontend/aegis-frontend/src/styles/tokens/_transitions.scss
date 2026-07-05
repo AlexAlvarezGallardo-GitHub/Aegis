@@ -1,0 +1,46 @@
+@use 'sass:map';
+
+// =============================================================================
+// Aegis Design Tokens — Transitions & Durations
+// =============================================================================
+// Consistent animation timing and easing functions.
+// =============================================================================
+
+// -- SCSS Maps ----------------------------------------------------------------
+
+$aegis-durations: (
+  fastest: 75ms,
+  fast: 150ms,
+  normal: 200ms,
+  slow: 300ms,
+  slower: 500ms,
+);
+
+$aegis-easings: (
+  ease-out: cubic-bezier(0, 0, 0.2, 1),
+  ease-in: cubic-bezier(0.4, 0, 1, 1),
+  ease-in-out: cubic-bezier(0.4, 0, 0.2, 1),
+  linear: linear,
+);
+
+// -- CSS Custom Properties (:root) --------------------------------------------
+
+@mixin aegis-transition-tokens {
+  /* Durations */
+  --aegis-duration-fastest: #{map.get($aegis-durations, fastest)};
+  --aegis-duration-fast: #{map.get($aegis-durations, fast)};
+  --aegis-duration-normal: #{map.get($aegis-durations, normal)};
+  --aegis-duration-slow: #{map.get($aegis-durations, slow)};
+  --aegis-duration-slower: #{map.get($aegis-durations, slower)};
+
+  /* Easing functions */
+  --aegis-ease-out: #{map.get($aegis-easings, ease-out)};
+  --aegis-ease-in: #{map.get($aegis-easings, ease-in)};
+  --aegis-ease-in-out: #{map.get($aegis-easings, ease-in-out)};
+  --aegis-ease-linear: #{map.get($aegis-easings, linear)};
+
+  /* Shorthand transitions */
+  --aegis-transition: var(--aegis-duration-normal) var(--aegis-ease-in-out);
+  --aegis-transition-fast: var(--aegis-duration-fast) var(--aegis-ease-out);
+  --aegis-transition-slow: var(--aegis-duration-slow) var(--aegis-ease-in-out);
+}
