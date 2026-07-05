@@ -59,9 +59,10 @@ com.aegis.<service>/
 ### Branching
 - `main` is the only long-lived branch and must always be deployable.
 - Create feature branches from `main`, merge back via pull requests.
-- Branch naming: `<type>/<short-description>` (lowercase kebab-case).
+- Branch naming: `<type>/<number>-<short-description>` (lowercase kebab-case).
 - Types: `feature/`, `fix/`, `chore/`, `refactor/`, `docs/`, `test/`, `ci/`, `security/`
-- Example: `feature/add-payment-validation`, `fix/42-jwt-refresh-rotation`
+- `<number>` is the sequential feature number from `specs/<number>-<short-name>/`.
+- Example: `feature/001-user-registration`, `fix/042-jwt-refresh-rotation`
 
 ### Commit Messages
 Format: `<type>(<scope>): <description>`
@@ -80,10 +81,23 @@ Format: `<type>(<scope>): <description>`
 - All CI checks must pass. At least one approval required.
 
 ### Pre-Commit Validation
-Git hooks in `.githooks/` enforce commit message format locally. Enable with:
+Git hooks in `.githooks/` enforce branch naming convention locally and block commits from non-main branches that do not match `<type>/<number>-<short-description>`. Enable with:
 ```
 git config core.hooksPath .githooks
 ```
+
+## OpenCode Plugins
+
+Plugins in `.opencode/plugins/` run automatically during agent sessions to enforce Aegis conventions:
+
+| Plugin | Trigger | Purpose |
+|--------|---------|---------|
+| `pre-edit-guard.ts` | Before `edit`/`write` on `.java`/`.kt` files | Blocks forbidden imports in domain and controller layers (hexagonal architecture enforcement) |
+| `pre-commit-guard.ts` | Before `git commit` bash calls | Warns when commit messages do not follow `<type>(<scope>): <description>` and when staged changes contain potential secrets |
+| `post-edit-security.ts` | After `edit`/`write` on source/config files | Warns about hardcoded secrets, insecure URLs, sensitive log data, `System.out`, and `printStackTrace` |
+| `post-scaffold.ts` | After `write`/`edit` of service `pom.xml` | Suggests follow-up skills/agents (ADR, api-design, event-design, test-engineer, infra-engineer, security-reviewer, architect) |
+
+Plugins emit warnings; blocking behavior for architecture violations is handled by Checkstyle in CI and by the `pre-commit` git hook locally.
 
 ## Issue Management
 

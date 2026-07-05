@@ -12,22 +12,21 @@ if [ "$BRANCH" = "main" ] || [ -z "$BRANCH" ]; then
 fi
 
 TYPES="feature|fix|chore|refactor|docs|test|ci|security"
-PATTERN="^($TYPES)/[a-z0-9][a-z0-9-]*$"
+PATTERN="^($TYPES)/[0-9]+-[a-z0-9-]+$"
 
 if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
   echo ""
-  echo "WARNING: Branch name '$BRANCH' does not follow convention."
+  echo "ERROR: Branch name '$BRANCH' does not follow convention."
   echo ""
-  echo "  Expected: <type>/<short-description>"
+  echo "  Expected: <type>/<number>-<short-description>"
   echo "  Types:    $TYPES"
   echo "  Rules:    lowercase kebab-case, no spaces or underscores"
   echo ""
   echo "  Examples:"
-  echo "    feature/add-payment-validation"
-  echo "    fix/42-jwt-refresh-rotation"
-  echo "    chore/upgrade-spring-boot"
+  echo "    feature/001-user-registration"
+  echo "    fix/042-jwt-refresh-rotation"
   echo ""
   echo "  Rename with: git branch -m <new-name>"
   echo ""
-  # Warning only, do not block commit
+  exit 1
 fi
