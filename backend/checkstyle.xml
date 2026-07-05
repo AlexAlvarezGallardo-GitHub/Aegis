@@ -87,8 +87,13 @@
             <property name="max" value="3"/>
         </module>
 
-        <!-- Javadoc rules are intentionally disabled until the codebase is fully documented.
-             The code-reviewer agent enforces Javadoc on public domain port methods. -->
+        <!-- Javadoc required for public interfaces (domain ports and API contracts).
+             Method-level Javadoc on classes is enforced by the code-reviewer agent
+             to avoid a massive initial cleanup. -->
+        <module name="MissingJavadocType">
+            <property name="scope" value="public"/>
+            <property name="tokens" value="INTERFACE_DEF"/>
+        </module>
 
         <!-- Allow SLF4J 'log' logger naming convention -->
         <module name="ConstantName">
