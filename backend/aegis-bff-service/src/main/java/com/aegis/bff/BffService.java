@@ -4,15 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
 @Service
 public class BffService {
 
-    private final WebClient webClient;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final SessionJwtStore sessionJwtStore;
 
@@ -20,53 +19,53 @@ public class BffService {
             @Value("${aegis.identity-service.url}") String identityServiceUrl,
             ObjectMapper objectMapper,
             SessionJwtStore sessionJwtStore) {
-        this.webClient = WebClient.builder()
-                .baseUrl(identityServiceUrl)
-                .build();
+        this(RestClient.builder().baseUrl(identityServiceUrl).build(), objectMapper, sessionJwtStore);
+    }
+
+    BffService(RestClient restClient, ObjectMapper objectMapper, SessionJwtStore sessionJwtStore) {
+        this.restClient = restClient;
         this.objectMapper = objectMapper;
         this.sessionJwtStore = sessionJwtStore;
     }
 
-    public Mono<Map<String, Object>> login(String email, String password, String correlationId) {
-        return webClient.post()
+    public Map<String, Object> login(String email, String password, String correlationId) {
+        JsonNode response = restClient.post()
                 .uri("/api/v1/auth/login")
                 .header("X-Correlation-Id", correlationId)
-                .bodyValue(Map.of("email", email, "password", password))
+                .body(Map.of("email", email, "password", password))
                 .retrieve()
-                .bodyToMono(JsonNode.class)
-                .map(response -> {
-                    String accessToken = response.get("accessToken").asText();
-                    String refreshToken = response.get("refreshToken").asText();
-                    sessionJwtStore.storeTokens(accessToken, refreshToken);
+                .body(JsonNode.class);
 
-                    return Map.<String, Object>of(
-                            "tokenType", "Bearer",
-                            "expiresIn", response.get("expiresIn").asLong(),
-                            "emailVerified", response.get("emailVerified").asBoolean()
-                    );
-                });
+        String accessToken = response.get("accessToken").asText();
+        String refreshToken = response.get("refreshToken").asText();
+        sessionJwtStore.storeTokens(accessToken, refreshToken);
+
+        return Map.of(
+                "tokenType", "Bearer",
+                "expiresIn", response.get("expiresIn").asLong(),
+                "emailVerified", response.get("emailVerified").asBoolean()
+        );
     }
 
-    public Mono<Map<String, Object>> refresh(String correlationId) {
+    public Map<String, Object> refresh(String correlationId) {
         String refreshToken = sessionJwtStore.getRefreshToken()
                 .orElseThrow(() -> new RuntimeException("No refresh token in session"));
 
-        return webClient.post()
+        JsonNode response = restClient.post()
                 .uri("/api/v1/auth/refresh")
                 .header("X-Correlation-Id", correlationId)
-                .bodyValue(Map.of("refreshToken", refreshToken))
+                .body(Map.of("refreshToken", refreshToken))
                 .retrieve()
-                .bodyToMono(JsonNode.class)
-                .map(response -> {
-                    String newAccessToken = response.get("accessToken").asText();
-                    String newRefreshToken = response.get("refreshToken").asText();
-                    sessionJwtStore.storeTokens(newAccessToken, newRefreshToken);
+                .body(JsonNode.class);
 
-                    return Map.<String, Object>of(
-                            "tokenType", "Bearer",
-                            "expiresIn", response.get("expiresIn").asLong()
-                    );
-                });
+        String newAccessToken = response.get("accessToken").asText();
+        String newRefreshToken = response.get("refreshToken").asText();
+        sessionJwtStore.storeTokens(newAccessToken, newRefreshToken);
+
+        return Map.of(
+                "tokenType", "Bearer",
+                "expiresIn", response.get("expiresIn").asLong()
+        );
     }
 
     public void logout() {

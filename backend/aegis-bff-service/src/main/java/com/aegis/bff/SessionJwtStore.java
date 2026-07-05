@@ -39,9 +39,16 @@ public class SessionJwtStore {
     }
 
     private HttpSession getSession() {
+        if (sessionOverride != null) return sessionOverride;
         ServletRequestAttributes attrs = (ServletRequestAttributes)
                 RequestContextHolder.getRequestAttributes();
-        if (attrs == null) return null;
+        if (attrs == null || attrs.getRequest() == null) return null;
         return attrs.getRequest().getSession(false);
+    }
+
+    private HttpSession sessionOverride;
+
+    void injectSession(HttpSession session) {
+        this.sessionOverride = session;
     }
 }

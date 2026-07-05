@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.UUID;
@@ -23,24 +22,22 @@ public class BffAuthController {
     }
 
     @PostMapping("/login")
-    public Mono<ResponseEntity<Map<String, Object>>> login(
+    public ResponseEntity<Map<String, Object>> login(
             @RequestBody Map<String, String> body,
             @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
 
         String effectiveCorrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
 
-        return bffService.login(body.get("email"), body.get("password"), effectiveCorrId)
-                .map(ResponseEntity::ok);
+        return ResponseEntity.ok(bffService.login(body.get("email"), body.get("password"), effectiveCorrId));
     }
 
     @PostMapping("/refresh")
-    public Mono<ResponseEntity<Map<String, Object>>> refresh(
+    public ResponseEntity<Map<String, Object>> refresh(
             @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
 
         String effectiveCorrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
 
-        return bffService.refresh(effectiveCorrId)
-                .map(ResponseEntity::ok);
+        return ResponseEntity.ok(bffService.refresh(effectiveCorrId));
     }
 
     @PostMapping("/logout")
