@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -30,6 +31,7 @@ import { finalize } from 'rxjs/operators';
     MatSnackBarModule,
     MatTableModule
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './wallet.component.html',
   styleUrl: './wallet.component.scss'
 })
@@ -37,6 +39,7 @@ export class WalletComponent implements OnInit {
   private fb = inject(FormBuilder);
   private walletService = inject(WalletService);
   private snackBar = inject(MatSnackBar);
+  private destroyRef = inject(DestroyRef);
 
   walletForm: FormGroup;
   isLoading = false;
@@ -57,7 +60,10 @@ export class WalletComponent implements OnInit {
   loadWallets(): void {
     this.isLoadingList = true;
     this.walletService.getWallets()
-      .pipe(finalize(() => this.isLoadingList = false))
+      .pipe(
+        finalize(() => this.isLoadingList = false),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (wallets) => {
           this.wallets = wallets;
@@ -82,7 +88,10 @@ export class WalletComponent implements OnInit {
     this.walletService.createWallet({
       currency: this.walletForm.value.currency.toUpperCase()
     })
-      .pipe(finalize(() => this.isLoading = false))
+      .pipe(
+        finalize(() => this.isLoading = false),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (wallet) => {
           this.wallets = [wallet, ...this.wallets];

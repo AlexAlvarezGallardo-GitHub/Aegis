@@ -8,7 +8,7 @@
     <mat-card-content>
       @if (successResponse) {
         <div class="success-message">
-          <mat-icon>check_circle</mat-icon>
+          <mat-icon aria-hidden="true">check_circle</mat-icon>
           <h3>Registration Successful!</h3>
           <p>Your account has been created with ID: {{ successResponse.userId }}</p>
           <p>Status: {{ successResponse.status }}</p>
@@ -27,7 +27,13 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Password</mat-label>
             <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
-            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="hidePassword = !hidePassword"
+              [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
+            >
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
             @if (registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched) {

@@ -1,0 +1,57 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../tokens/colors' as colors;
+
+// =============================================================================
+// Aegis Theme — Dark Mode
+// =============================================================================
+
+$aegis-dark-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$yellow-palette,
+    tertiary: mat.$blue-palette,
+  ),
+  typography: (
+    brand-family: 'Inter, "Helvetica Neue", sans-serif',
+    plain-family: 'Inter, "Helvetica Neue", sans-serif',
+  ),
+  density: (scale: -1),
+));
+
+@mixin aegis-dark-theme-overrides {
+  @include mat.all-component-themes($aegis-dark-theme);
+
+  $gold: map.get(colors.$aegis-colors, gold);
+  $neutral: map.get(colors.$aegis-colors, neutral);
+
+  --mat-sys-primary: #{map.get($gold, 500)};
+  --mat-sys-on-primary: #{map.get($neutral, 900)};
+  --mat-sys-primary-container: #{map.get($gold, 900)};
+  --mat-sys-on-primary-container: #{map.get($gold, 300)};
+  --mat-sys-secondary: #{map.get($neutral, 300)};
+  --mat-sys-on-secondary: #{map.get($neutral, 900)};
+  --mat-sys-secondary-container: #{map.get($neutral, 800)};
+  --mat-sys-on-secondary-container: #{map.get($neutral, 200)};
+  --mat-sys-tertiary: #3B82F6;
+  --mat-sys-on-tertiary: #FFFFFF;
+  --mat-sys-background: #{map.get($neutral, 900)};
+  --mat-sys-on-background: #{map.get($neutral, 50)};
+  --mat-sys-surface: #121B2E;
+  --mat-sys-on-surface: #{map.get($neutral, 50)};
+  --mat-sys-surface-variant: #{map.get($neutral, 800)};
+  --mat-sys-on-surface-variant: #{map.get($neutral, 300)};
+  --mat-sys-outline: #2A3448;
+  --mat-sys-outline-variant: #{map.get($neutral, 700)};
+  --mat-sys-error: #EF4444;
+  --mat-sys-on-error: #FFFFFF;
+  --mat-sys-surface-container-lowest: #060C18;
+  --mat-sys-surface-container-low: #0F1729;
+  --mat-sys-surface-container: #121B2E;
+  --mat-sys-surface-container-high: #{map.get($neutral, 800)};
+  --mat-sys-surface-container-highest: #{map.get($neutral, 700)};
+  --mat-sys-surface-bright: #{map.get($neutral, 700)};
+  --mat-sys-inverse-surface: #{map.get($neutral, 200)};
+  --mat-sys-inverse-on-surface: #{map.get($neutral, 900)};
+  --mat-sys-inverse-primary: #{map.get($gold, 700)};
+}
