@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -30,6 +31,7 @@ import { finalize } from 'rxjs/operators';
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
@@ -38,6 +40,7 @@ export class AuthComponent {
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   loginForm: FormGroup;
   isLoading = false;
@@ -64,7 +67,10 @@ export class AuthComponent {
     this.isLoading = true;
 
     this.authService.login(this.loginForm.value)
-      .pipe(finalize(() => this.isLoading = false))
+      .pipe(
+        finalize(() => this.isLoading = false),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: () => {
           this.snackBar.open('Login successful!', 'Close', {
@@ -84,7 +90,10 @@ export class AuthComponent {
   mockLogin(): void {
     this.isLoading = true;
     this.authService.mockLogin()
-      .pipe(finalize(() => this.isLoading = false))
+      .pipe(
+        finalize(() => this.isLoading = false),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: () => {
           this.snackBar.open('Mock login successful!', 'Close', {

@@ -12,9 +12,4 @@ export interface RegisterUserResponse {
   registeredAt: string;
 }
 
-export interface ErrorResponse {
-  code: string;
-  message: string;
-  details: Record<string, string> | null;
-  timestamp: string;
-}
+export type { ErrorResponse } from './error.model';

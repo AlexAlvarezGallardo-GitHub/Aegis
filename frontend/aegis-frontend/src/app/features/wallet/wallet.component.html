@@ -9,7 +9,7 @@
       <form [formGroup]="walletForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Currency</mat-label>
-          <input matInput formControlName="currency" placeholder="EUR" maxlength="3" style="text-transform: uppercase">
+          <input matInput formControlName="currency" placeholder="EUR" maxlength="3" class="uppercase-input">
           @if (walletForm.get('currency')?.invalid && walletForm.get('currency')?.touched) {
             <mat-error>{{ getErrorMessage('currency') }}</mat-error>
           }

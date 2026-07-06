@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -26,6 +27,7 @@ import { finalize } from 'rxjs/operators';
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.scss'
 })
@@ -33,6 +35,7 @@ export class RegistrationComponent {
   private fb = inject(FormBuilder);
   private registrationService = inject(RegistrationService);
   private snackBar = inject(MatSnackBar);
+  private destroyRef = inject(DestroyRef);
 
   registrationForm: FormGroup;
   isLoading = false;
@@ -61,7 +64,10 @@ export class RegistrationComponent {
     this.successResponse = null;
 
     this.registrationService.register(this.registrationForm.value)
-      .pipe(finalize(() => this.isLoading = false))
+      .pipe(
+        finalize(() => this.isLoading = false),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (response) => {
           this.successResponse = response;

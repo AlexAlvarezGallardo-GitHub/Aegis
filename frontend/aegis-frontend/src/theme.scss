@@ -1,48 +1,18 @@
-@use '@angular/material' as mat;
+@use 'styles/themes' as themes;
 
-$theme: mat.define-theme((
-  color: (
-    theme-type: dark,
-    primary: mat.$yellow-palette,
-    tertiary: mat.$blue-palette,
-  ),
-  typography: (
-    brand-family: 'Inter, "Helvetica Neue", sans-serif',
-    plain-family: 'Inter, "Helvetica Neue", sans-serif',
-  ),
-  density: (scale: -1),
-));
+// =============================================================================
+// Aegis Material Theme — Applied via data-theme attribute
+// =============================================================================
 
-html {
-  @include mat.all-component-themes($theme);
+html[data-theme='dark'] {
+  @include themes.aegis-dark-theme-overrides;
+}
 
-  --mat-sys-primary: #C89B3C;
-  --mat-sys-on-primary: #0B1220;
-  --mat-sys-primary-container: #362B00;
-  --mat-sys-on-primary-container: #F4D161;
-  --mat-sys-secondary: #CBD5E1;
-  --mat-sys-on-secondary: #0B1220;
-  --mat-sys-secondary-container: #243146;
-  --mat-sys-on-secondary-container: #E2E8F0;
-  --mat-sys-tertiary: #3B82F6;
-  --mat-sys-on-tertiary: #FFFFFF;
-  --mat-sys-background: #0B1220;
-  --mat-sys-on-background: #F8FAFC;
-  --mat-sys-surface: #121B2E;
-  --mat-sys-on-surface: #F8FAFC;
-  --mat-sys-surface-variant: #1B2538;
-  --mat-sys-on-surface-variant: #CBD5E1;
-  --mat-sys-outline: #2A3448;
-  --mat-sys-outline-variant: #334155;
-  --mat-sys-error: #EF4444;
-  --mat-sys-on-error: #FFFFFF;
-  --mat-sys-surface-container-lowest: #060C18;
-  --mat-sys-surface-container-low: #0F1729;
-  --mat-sys-surface-container: #121B2E;
-  --mat-sys-surface-container-high: #1B2538;
-  --mat-sys-surface-container-highest: #243146;
-  --mat-sys-surface-bright: #334155;
-  --mat-sys-inverse-surface: #E2E8F0;
-  --mat-sys-inverse-on-surface: #0B1220;
-  --mat-sys-inverse-primary: #695600;
+html[data-theme='light'] {
+  @include themes.aegis-light-theme-overrides;
+}
+
+// Default: dark theme (no attribute)
+html:not([data-theme]) {
+  @include themes.aegis-dark-theme-overrides;
 }
