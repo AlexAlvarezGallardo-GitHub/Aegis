@@ -2,7 +2,7 @@
   @if (illustrationTemplate) {
     <ng-container [ngTemplateOutlet]="illustrationTemplate" />
   } @else {
-    <mat-icon class="empty-state-icon">{{ icon() }}</mat-icon>
+    <mat-icon class="empty-state-icon" aria-hidden="true">{{ icon() }}</mat-icon>
   }
 
   <h3 class="empty-state-title">{{ title() }}</h3>

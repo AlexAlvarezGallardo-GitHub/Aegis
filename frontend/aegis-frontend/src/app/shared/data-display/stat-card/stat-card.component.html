@@ -1,14 +1,14 @@
 <div class="stat-card">
   <div class="stat-header">
     <span class="stat-label">{{ label() }}</span>
-    <mat-icon class="stat-icon">{{ icon() }}</mat-icon>
+    <mat-icon class="stat-icon" aria-hidden="true">{{ icon() }}</mat-icon>
   </div>
 
   <div class="stat-value">{{ value() }}</div>
 
   @if (trend()) {
     <div class="stat-trend" [class]="trend()">
-      <mat-icon class="trend-icon">{{ trendIcon() }}</mat-icon>
+      <mat-icon class="trend-icon" aria-hidden="true">{{ trendIcon() }}</mat-icon>
       @if (trendValue()) {
         <span class="trend-value">{{ trendValue() }}</span>
       }

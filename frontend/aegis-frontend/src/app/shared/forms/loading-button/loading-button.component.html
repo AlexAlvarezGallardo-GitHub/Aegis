@@ -6,9 +6,9 @@
   [class.full-width]="fullWidth()"
   [class]="variant()"
 >
-  @if (loading()) {
-    <mat-spinner [diameter]="spinnerDiameter()"></mat-spinner>
-  } @else {
+    @if (loading()) {
+      <mat-spinner [diameter]="spinnerDiameter()" aria-label="Loading"></mat-spinner>
+    } @else {
     {{ label() }}
   }
 </button>
