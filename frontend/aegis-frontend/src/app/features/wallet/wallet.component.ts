@@ -13,6 +13,9 @@ import { MatTableModule } from '@angular/material/table';
 import { WalletService } from './wallet.service';
 import { WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
+import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
+import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
+import { markFormGroupTouched } from '../../shared/utils/validation.utils';
 
 @Component({
   selector: 'app-wallet',
@@ -27,11 +30,13 @@ import { finalize } from 'rxjs/operators';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatTableModule
+    MatTableModule,
+    LoadingButtonComponent,
+    FormFieldErrorComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './wallet.component.html',
-  styleUrl: './wallet.component.scss'
+  styleUrl: './wallet.component.scss',
 })
 export class WalletComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -45,9 +50,13 @@ export class WalletComponent implements OnInit {
   wallets: WalletResponse[] = [];
   displayedColumns: string[] = ['currency', 'balance', 'status', 'createdAt', 'walletId'];
 
+  readonly fieldLabels: Record<string, string> = {
+    currency: 'Currency',
+  };
+
   constructor() {
     this.walletForm = this.fb.group({
-      currency: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]]
+      currency: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
     });
   }
 
@@ -60,7 +69,7 @@ export class WalletComponent implements OnInit {
     this.walletService.getWallets()
       .pipe(
         finalize(() => this.isLoadingList = false),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (wallets) => {
@@ -68,15 +77,15 @@ export class WalletComponent implements OnInit {
         },
         error: () => {
           this.snackBar.open('Failed to load wallets.', 'Close', { duration: 4000 });
-        }
+        },
       });
   }
 
   onSubmit(): void {
     if (this.walletForm.invalid) {
-      this.walletForm.markAllAsTouched();
+      markFormGroupTouched(this.walletForm);
       this.snackBar.open('Please fix the form errors before submitting.', 'Close', {
-        duration: 4000
+        duration: 4000,
       });
       return;
     }
@@ -84,36 +93,25 @@ export class WalletComponent implements OnInit {
     this.isLoading = true;
 
     this.walletService.createWallet({
-      currency: this.walletForm.value.currency.toUpperCase()
+      currency: this.walletForm.value.currency.toUpperCase(),
     })
       .pipe(
         finalize(() => this.isLoading = false),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (wallet) => {
           this.wallets = [wallet, ...this.wallets];
           this.walletForm.reset();
           this.snackBar.open(`Wallet created! ID: ${wallet.walletId.slice(0, 8)}...`, 'Close', {
-            duration: 5000
+            duration: 5000,
           });
         },
         error: (error) => {
           const errorMessage = error.error?.message || 'Failed to create wallet.';
           this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-        }
+        },
       });
-  }
-
-  getErrorMessage(controlName: string): string {
-    const control = this.walletForm.get(controlName);
-    if (control?.hasError('required')) {
-      return 'Currency is required';
-    }
-    if (control?.hasError('minlength') || control?.hasError('maxlength')) {
-      return 'Currency must be a 3-letter code (e.g. EUR, USD)';
-    }
-    return '';
   }
 
   shortId(id: string): string {

@@ -1,0 +1,44 @@
+@use 'styles/tokens' as tokens;
+
+:host {
+  display: inline-block;
+}
+
+button {
+  height: var(--aegis-space-12);
+  font-size: var(--aegis-text-lg);
+  transition: all var(--aegis-transition);
+
+  &.full-width {
+    width: 100%;
+  }
+
+  mat-spinner {
+    margin: 0 auto;
+  }
+
+  &.outline {
+    border: 1px solid var(--aegis-color-border);
+    background-color: transparent;
+    color: var(--aegis-color-text);
+
+    &:hover:not([disabled]) {
+      background-color: var(--aegis-color-surface-hover);
+    }
+  }
+
+  &.ghost {
+    background-color: transparent;
+    color: var(--aegis-color-text-secondary);
+
+    &:hover:not([disabled]) {
+      background-color: var(--aegis-color-surface-hover);
+      color: var(--aegis-color-text);
+    }
+  }
+
+  &.danger {
+    --mdc-protected-button-container-color: var(--aegis-color-error);
+    --mdc-protected-button-label-text-color: #FFFFFF;
+  }
+}

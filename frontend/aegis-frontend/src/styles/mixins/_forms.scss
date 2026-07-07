@@ -1,15 +1,10 @@
 @use 'styles/tokens' as tokens;
 
-.wallet-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--aegis-space-8);
-  max-width: 900px;
-  margin: 0 auto;
-}
+// =============================================================================
+// Aegis SCSS Mixins — Form Patterns
+// =============================================================================
 
-.wallet-card {
+@mixin aegis-form-card {
   width: 100%;
   max-width: 500px;
 
@@ -26,34 +21,29 @@
   }
 }
 
-.wallet-list-card {
+@mixin aegis-submit-button {
   width: 100%;
+  height: var(--aegis-space-12);
+  font-size: var(--aegis-text-lg);
+  margin-top: var(--aegis-space-2);
 
-  mat-card-header {
-    margin-bottom: var(--aegis-space-4);
+  mat-spinner {
+    margin: 0 auto;
   }
 }
 
-.full-width {
+@mixin aegis-full-width {
   width: 100%;
 }
 
-.wallet-table {
-  width: 100%;
-}
-
-.loading-container {
+@mixin aegis-loading-container {
   display: flex;
   justify-content: center;
   padding: var(--aegis-space-8);
 }
 
-.no-wallets {
+@mixin aegis-empty-state {
   text-align: center;
   color: var(--aegis-color-text-secondary);
   padding: var(--aegis-space-8);
-}
-
-.uppercase-input {
-  text-transform: uppercase;
 }

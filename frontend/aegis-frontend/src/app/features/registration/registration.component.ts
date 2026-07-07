@@ -7,11 +7,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RegistrationService } from './registration.service';
 import { RegisterUserResponse } from '../../shared/models/registration.model';
 import { finalize } from 'rxjs/operators';
+import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
+import { PasswordInputComponent } from '../../shared/forms/password-input/password-input.component';
+import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
+import { markFormGroupTouched } from '../../shared/utils/validation.utils';
 
 @Component({
   selector: 'app-registration',
@@ -24,12 +27,14 @@ import { finalize } from 'rxjs/operators';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    LoadingButtonComponent,
+    PasswordInputComponent,
+    FormFieldErrorComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './registration.component.html',
-  styleUrl: './registration.component.scss'
+  styleUrl: './registration.component.scss',
 })
 export class RegistrationComponent {
   private fb = inject(FormBuilder);
@@ -39,23 +44,29 @@ export class RegistrationComponent {
 
   registrationForm: FormGroup;
   isLoading = false;
-  hidePassword = true;
   successResponse: RegisterUserResponse | null = null;
+
+  readonly fieldLabels: Record<string, string> = {
+    email: 'Email',
+    password: 'Password',
+    firstName: 'First name',
+    lastName: 'Last name',
+  };
 
   constructor() {
     this.registrationForm = this.fb.group({
       email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
       password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
       firstName: ['', [Validators.required, Validators.maxLength(100)]],
-      lastName: ['', [Validators.required, Validators.maxLength(100)]]
+      lastName: ['', [Validators.required, Validators.maxLength(100)]],
     });
   }
 
   onSubmit(): void {
     if (this.registrationForm.invalid) {
-      this.registrationForm.markAllAsTouched();
+      markFormGroupTouched(this.registrationForm);
       this.snackBar.open('Please fix the form errors before submitting.', 'Close', {
-        duration: 4000
+        duration: 4000,
       });
       return;
     }
@@ -66,48 +77,19 @@ export class RegistrationComponent {
     this.registrationService.register(this.registrationForm.value)
       .pipe(
         finalize(() => this.isLoading = false),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (response) => {
           this.successResponse = response;
           this.snackBar.open('Registration successful! Please check your email.', 'Close', {
-            duration: 5000
+            duration: 5000,
           });
         },
         error: (error) => {
           const errorMessage = error.error?.message || 'Registration failed. Please try again.';
-          this.snackBar.open(errorMessage, 'Close', {
-            duration: 5000
-          });
-        }
+          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+        },
       });
-  }
-
-  getErrorMessage(controlName: string): string {
-    const control = this.registrationForm.get(controlName);
-    if (control?.hasError('required')) {
-      return `${this.getFieldLabel(controlName)} is required`;
-    }
-    if (control?.hasError('email')) {
-      return 'Please enter a valid email address';
-    }
-    if (control?.hasError('minlength')) {
-      return `Minimum ${control.errors?.['minlength'].requiredLength} characters required`;
-    }
-    if (control?.hasError('maxlength')) {
-      return `Maximum ${control.errors?.['maxlength'].requiredLength} characters allowed`;
-    }
-    return '';
-  }
-
-  private getFieldLabel(controlName: string): string {
-    const labels: Record<string, string> = {
-      email: 'Email',
-      password: 'Password',
-      firstName: 'First name',
-      lastName: 'Last name'
-    };
-    return labels[controlName] || controlName;
   }
 }
