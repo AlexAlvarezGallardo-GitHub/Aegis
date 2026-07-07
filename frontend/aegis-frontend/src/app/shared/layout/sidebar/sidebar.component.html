@@ -1,0 +1,55 @@
+<div class="sidebar" [class.collapsed]="collapsed()">
+  <div class="sidebar-header">
+    <div class="brand" [class.collapsed]="collapsed()">
+      <mat-icon class="brand-icon">shield</mat-icon>
+      @if (!collapsed()) {
+        <span class="brand-text">AEGIS</span>
+      }
+    </div>
+    <button
+      mat-icon-button
+      class="collapse-btn"
+      (click)="toggle()"
+      [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+    >
+      <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (section of sections; track section.label) {
+      @if (section.label) {
+        <div class="nav-section-label" [class.collapsed]="collapsed()">
+          @if (!collapsed()) {
+            <span>{{ section.label }}</span>
+          } @else {
+            <span class="separator"></span>
+          }
+        </div>
+      }
+      @for (item of section.items; track item.route) {
+        <button
+          mat-list-item
+          class="nav-item"
+          [class.active]="isActive(item.route)"
+          [class.collapsed]="collapsed()"
+          (click)="navigate(item.route)"
+          [matTooltip]="collapsed() ? item.label : ''"
+          matTooltipPosition="right"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>{{ item.label }}</span>
+          }
+          @if (item.badge && !collapsed()) {
+            <span matListItemMeta class="badge">{{ item.badge }}</span>
+          }
+        </button>
+      }
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <app-theme-toggle></app-theme-toggle>
+  </div>
+</div>

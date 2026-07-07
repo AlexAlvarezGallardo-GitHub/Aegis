@@ -1,0 +1,39 @@
+.shell-container {
+  height: 100vh;
+  background-color: var(--aegis-color-bg);
+}
+
+.shell-sidenav {
+  width: 260px;
+  border-right: none;
+  background-color: transparent;
+
+  ::ng-deep .mat-drawer-inner-container {
+    overflow: hidden;
+  }
+}
+
+.shell-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.shell-main {
+  flex: 1;
+  padding: var(--aegis-space-6);
+  overflow-y: auto;
+}
+
+.mobile-menu-btn {
+  position: absolute;
+  top: var(--aegis-space-2);
+  left: var(--aegis-space-2);
+  z-index: 200;
+  background-color: var(--aegis-color-surface);
+  color: var(--aegis-color-text);
+
+  &:hover {
+    background-color: var(--aegis-color-surface-hover);
+  }
+}
