@@ -1,0 +1,36 @@
+@use 'styles/tokens' as tokens;
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--aegis-space-12) var(--aegis-space-8);
+  gap: var(--aegis-space-4);
+}
+
+.empty-state-icon {
+  font-size: var(--aegis-space-16);
+  width: var(--aegis-space-16);
+  height: var(--aegis-space-16);
+  color: var(--aegis-color-text-muted);
+}
+
+.empty-state-title {
+  font-size: var(--aegis-text-xl);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text-secondary);
+  margin: 0;
+}
+
+.empty-state-description {
+  font-size: var(--aegis-text-base);
+  color: var(--aegis-color-text-muted);
+  margin: 0;
+  max-width: 400px;
+}
+
+.empty-state-action {
+  margin-top: var(--aegis-space-2);
+}

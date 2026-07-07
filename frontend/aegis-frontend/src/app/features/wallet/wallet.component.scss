@@ -42,16 +42,11 @@
   width: 100%;
 }
 
-.loading-container {
+.skeleton-container {
   display: flex;
-  justify-content: center;
-  padding: var(--aegis-space-8);
-}
-
-.no-wallets {
-  text-align: center;
-  color: var(--aegis-color-text-secondary);
-  padding: var(--aegis-space-8);
+  flex-direction: column;
+  gap: var(--aegis-space-4);
+  padding: var(--aegis-space-4) 0;
 }
 
 .uppercase-input {
