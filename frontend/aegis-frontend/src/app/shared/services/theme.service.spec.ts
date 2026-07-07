@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { ThemeService } from './theme.service';
 
 describe('ThemeService', () => {
@@ -46,11 +46,11 @@ describe('ThemeService', () => {
     expect(localStorage.getItem('aegis-theme')).toBe('dark');
   });
 
-  it('should set data-theme attribute on document', fakeAsync(() => {
+  it('should set data-theme attribute on document', () => {
     service.setPreference('dark');
-    flushMicrotasks();
+    TestBed.flushEffects();
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-  }));
+  });
 
   it('should restore preference from localStorage on init', () => {
     localStorage.setItem('aegis-theme', 'dark');
