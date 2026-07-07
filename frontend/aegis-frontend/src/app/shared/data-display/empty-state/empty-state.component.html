@@ -1,0 +1,19 @@
+<div class="empty-state">
+  @if (illustrationTemplate) {
+    <ng-container [ngTemplateOutlet]="illustrationTemplate" />
+  } @else {
+    <mat-icon class="empty-state-icon">{{ icon() }}</mat-icon>
+  }
+
+  <h3 class="empty-state-title">{{ title() }}</h3>
+
+  @if (description()) {
+    <p class="empty-state-description">{{ description() }}</p>
+  }
+
+  @if (actionLabel()) {
+    <button mat-raised-button color="primary" class="empty-state-action" (click)="onAction()">
+      {{ actionLabel() }}
+    </button>
+  }
+</div>

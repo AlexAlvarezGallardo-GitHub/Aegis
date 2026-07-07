@@ -1,0 +1,9 @@
+@for (i of [].constructor(count()); track i) {
+  <div
+    class="skeleton"
+    [class]="variant()"
+    [style.width]="width()"
+    [style.height]="variant() === 'circle' ? height() : height()"
+    [style.border-radius]="variant() === 'circle' ? '50%' : borderRadius()"
+  ></div>
+}

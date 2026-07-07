@@ -16,6 +16,9 @@ import { finalize } from 'rxjs/operators';
 import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
 import { markFormGroupTouched } from '../../shared/utils/validation.utils';
+import { StatusChipComponent, ChipVariant } from '../../shared/data-display/status-chip/status-chip.component';
+import { EmptyStateComponent } from '../../shared/data-display/empty-state/empty-state.component';
+import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skeleton/loading-skeleton.component';
 
 @Component({
   selector: 'app-wallet',
@@ -33,6 +36,9 @@ import { markFormGroupTouched } from '../../shared/utils/validation.utils';
     MatTableModule,
     LoadingButtonComponent,
     FormFieldErrorComponent,
+    StatusChipComponent,
+    EmptyStateComponent,
+    LoadingSkeletonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './wallet.component.html',
@@ -116,5 +122,15 @@ export class WalletComponent implements OnInit {
 
   shortId(id: string): string {
     return id.slice(0, 8) + '...';
+  }
+
+  getStatusVariant(status: string): ChipVariant {
+    const map: Record<string, ChipVariant> = {
+      active: 'success',
+      suspended: 'warning',
+      closed: 'error',
+      pending: 'info',
+    };
+    return map[status.toLowerCase()] || 'neutral';
   }
 }
