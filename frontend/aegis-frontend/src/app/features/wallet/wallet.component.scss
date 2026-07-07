@@ -1,28 +1,18 @@
-@use 'styles/tokens' as tokens;
-
 .wallet-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--aegis-space-8);
-  padding: var(--aegis-space-8);
-  min-height: calc(100vh - var(--aegis-space-16));
-  background-color: var(--aegis-color-bg);
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .wallet-card {
-  max-width: 500px;
   width: 100%;
-  padding: var(--aegis-space-8);
+  max-width: 500px;
 
   mat-card-header {
-    margin-bottom: var(--aegis-space-6);
-    text-align: center;
-
-    mat-card-title {
-      font-size: var(--aegis-text-3xl);
-      margin-bottom: var(--aegis-space-1);
-    }
+    margin-bottom: var(--aegis-space-4);
   }
 
   mat-card-content {
@@ -35,12 +25,10 @@
 }
 
 .wallet-list-card {
-  max-width: 800px;
   width: 100%;
-  padding: var(--aegis-space-8);
 
   mat-card-header {
-    margin-bottom: var(--aegis-space-6);
+    margin-bottom: var(--aegis-space-4);
   }
 }
 

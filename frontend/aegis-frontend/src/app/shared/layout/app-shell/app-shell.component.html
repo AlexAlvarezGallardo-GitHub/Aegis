@@ -1,0 +1,34 @@
+@if (showShell()) {
+  <mat-sidenav-container class="shell-container">
+    <mat-sidenav
+      #sidenav
+      class="shell-sidenav"
+      [mode]="isMobile() ? 'over' : 'side'"
+      [opened]="!isMobile()"
+      [fixedInViewport]="isMobile()"
+    >
+      <app-sidebar></app-sidebar>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="shell-content">
+      @if (isMobile()) {
+        <button
+          mat-icon-button
+          class="mobile-menu-btn"
+          (click)="sidenav.toggle()"
+          aria-label="Toggle menu"
+        >
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+
+      <app-header></app-header>
+
+      <main class="shell-main">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+} @else {
+  <router-outlet></router-outlet>
+}

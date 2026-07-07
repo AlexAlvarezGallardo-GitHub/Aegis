@@ -1,0 +1,51 @@
+<mat-toolbar class="header">
+  <div class="header-left">
+    <span class="header-title">Aegis</span>
+  </div>
+
+  <div class="header-center">
+    <span class="header-page">{{ currentPage }}</span>
+  </div>
+
+  <div class="header-right">
+    <app-theme-toggle></app-theme-toggle>
+
+    <button
+      mat-icon-button
+      [matBadge]="notificationCount() || undefined"
+      matBadgeColor="warn"
+      matBadgeSize="small"
+      aria-label="Notifications"
+    >
+      <mat-icon>notifications</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      [matMenuTriggerFor]="userMenu"
+      aria-label="User menu"
+      (menuOpened)="menuOpen.set(true)"
+      (menuClosed)="menuOpen.set(false)"
+    >
+      <mat-icon>account_circle</mat-icon>
+    </button>
+
+    <mat-menu #userMenu="matMenu" xPosition="before">
+      @if (userEmail()) {
+        <div class="menu-user-info">
+          <mat-icon>email</mat-icon>
+          <span>{{ userEmail() }}</span>
+        </div>
+        <mat-divider></mat-divider>
+      }
+      <button mat-menu-item (click)="navigateTo('/settings')">
+        <mat-icon>settings</mat-icon>
+        <span>Settings</span>
+      </button>
+      <button mat-menu-item (click)="onLogout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>
