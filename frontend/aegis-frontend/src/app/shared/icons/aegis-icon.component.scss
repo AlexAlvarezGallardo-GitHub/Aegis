@@ -1,0 +1,35 @@
+@use 'styles/tokens' as tokens;
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+mat-icon {
+  color: inherit;
+
+  &.icon-sm {
+    font-size: var(--aegis-text-sm);
+    width: var(--aegis-text-sm);
+    height: var(--aegis-text-sm);
+  }
+
+  &.icon-md {
+    font-size: var(--aegis-text-lg);
+    width: var(--aegis-text-lg);
+    height: var(--aegis-text-lg);
+  }
+
+  &.icon-lg {
+    font-size: var(--aegis-text-3xl);
+    width: var(--aegis-text-3xl);
+    height: var(--aegis-text-3xl);
+  }
+
+  &.icon-xl {
+    font-size: var(--aegis-text-5xl);
+    width: var(--aegis-text-5xl);
+    height: var(--aegis-text-5xl);
+  }
+}
