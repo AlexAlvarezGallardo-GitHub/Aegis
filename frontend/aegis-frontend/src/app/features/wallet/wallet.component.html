@@ -10,19 +10,15 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Currency</mat-label>
           <input matInput formControlName="currency" placeholder="EUR" maxlength="3" class="uppercase-input">
-          @if (walletForm.get('currency')?.invalid && walletForm.get('currency')?.touched) {
-            <mat-error>{{ getErrorMessage('currency') }}</mat-error>
-          }
+          <app-aegis-form-field-error [form]="walletForm" controlName="currency" [labels]="fieldLabels" />
         </mat-form-field>
 
-        <button mat-raised-button color="primary" type="submit" class="submit-button"
-                [disabled]="isLoading || walletForm.invalid">
-          @if (isLoading) {
-            <mat-spinner diameter="20"></mat-spinner>
-          } @else {
-            Create Wallet
-          }
-        </button>
+        <app-aegis-loading-button
+          label="Create Wallet"
+          [loading]="isLoading"
+          [disabled]="walletForm.invalid"
+          [fullWidth]="true"
+        />
       </form>
     </mat-card-content>
   </mat-card>

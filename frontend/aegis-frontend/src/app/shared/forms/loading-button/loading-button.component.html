@@ -1,0 +1,14 @@
+<button
+  mat-raised-button
+  [color]="variantColor()"
+  [type]="type()"
+  [disabled]="disabled() || loading()"
+  [class.full-width]="fullWidth()"
+  [class]="variant()"
+>
+  @if (loading()) {
+    <mat-spinner [diameter]="spinnerDiameter()"></mat-spinner>
+  } @else {
+    {{ label() }}
+  }
+</button>

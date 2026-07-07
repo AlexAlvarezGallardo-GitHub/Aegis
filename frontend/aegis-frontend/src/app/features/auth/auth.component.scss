@@ -37,17 +37,6 @@
   width: 100%;
 }
 
-.submit-button {
-  width: 100%;
-  height: var(--aegis-space-12);
-  font-size: var(--aegis-text-lg);
-  margin-top: var(--aegis-space-2);
-
-  mat-spinner {
-    margin: 0 auto;
-  }
-}
-
 .auth-links {
   text-align: center;
   margin-top: var(--aegis-space-4);
@@ -67,9 +56,5 @@
     text-transform: uppercase;
     letter-spacing: var(--aegis-tracking-wider);
     margin: var(--aegis-space-4) 0 var(--aegis-space-2);
-  }
-
-  .mock-button {
-    width: 100%;
   }
 }

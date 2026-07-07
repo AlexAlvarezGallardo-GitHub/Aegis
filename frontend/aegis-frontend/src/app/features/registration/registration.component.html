@@ -19,54 +19,36 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Email</mat-label>
             <input matInput formControlName="email" type="email" placeholder="john@example.com">
-            @if (registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched) {
-              <mat-error>{{ getErrorMessage('email') }}</mat-error>
-            }
+            <app-aegis-form-field-error [form]="registrationForm" controlName="email" [labels]="fieldLabels" />
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
-            <button
-              mat-icon-button
-              matSuffix
-              type="button"
-              (click)="hidePassword = !hidePassword"
-              [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
-            >
-              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            @if (registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched) {
-              <mat-error>{{ getErrorMessage('password') }}</mat-error>
-            }
-          </mat-form-field>
+          <app-aegis-password-input
+            label="Password"
+            placeholder="Create a strong password"
+            [fullWidth]="true"
+            formControlName="password"
+          />
 
           <div class="name-fields">
             <mat-form-field appearance="outline">
               <mat-label>First Name</mat-label>
               <input matInput formControlName="firstName" placeholder="John">
-              @if (registrationForm.get('firstName')?.invalid && registrationForm.get('firstName')?.touched) {
-                <mat-error>{{ getErrorMessage('firstName') }}</mat-error>
-              }
+              <app-aegis-form-field-error [form]="registrationForm" controlName="firstName" [labels]="fieldLabels" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Last Name</mat-label>
               <input matInput formControlName="lastName" placeholder="Doe">
-              @if (registrationForm.get('lastName')?.invalid && registrationForm.get('lastName')?.touched) {
-                <mat-error>{{ getErrorMessage('lastName') }}</mat-error>
-              }
+              <app-aegis-form-field-error [form]="registrationForm" controlName="lastName" [labels]="fieldLabels" />
             </mat-form-field>
           </div>
 
-          <button mat-raised-button color="primary" type="submit" class="submit-button"
-                  [disabled]="isLoading || registrationForm.invalid">
-            @if (isLoading) {
-              <mat-spinner diameter="20"></mat-spinner>
-            } @else {
-              Create Account
-            }
-          </button>
+          <app-aegis-loading-button
+            label="Create Account"
+            [loading]="isLoading"
+            [disabled]="registrationForm.invalid"
+            [fullWidth]="true"
+          />
         </form>
       }
     </mat-card-content>

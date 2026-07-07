@@ -10,36 +10,22 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
           <input matInput formControlName="email" type="email" placeholder="john@example.com">
-          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
-            <mat-error>{{ getErrorMessage('email') }}</mat-error>
-          }
+          <app-aegis-form-field-error [form]="loginForm" controlName="email" [labels]="fieldLabels" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'">
-          <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="hidePassword = !hidePassword"
-            [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
-          >
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
-            <mat-error>{{ getErrorMessage('password') }}</mat-error>
-          }
-        </mat-form-field>
+        <app-aegis-password-input
+          label="Password"
+          placeholder="Enter your password"
+          [fullWidth]="true"
+          formControlName="password"
+        />
 
-        <button mat-raised-button color="primary" type="submit" class="submit-button"
-                [disabled]="isLoading || loginForm.invalid">
-          @if (isLoading) {
-            <mat-spinner diameter="20"></mat-spinner>
-          } @else {
-            Sign In
-          }
-        </button>
+        <app-aegis-loading-button
+          label="Sign In"
+          [loading]="isLoading"
+          [disabled]="loginForm.invalid"
+          [fullWidth]="true"
+        />
       </form>
 
       <div class="auth-links">
@@ -50,10 +36,14 @@
         <div class="mock-login-section">
           <mat-divider></mat-divider>
           <p class="mock-label">Development Mode</p>
-          <button mat-stroked-button color="warn" type="button" class="mock-button"
-                  (click)="mockLogin()" [disabled]="isLoading">
-            Mock Login (skip auth)
-          </button>
+          <app-aegis-loading-button
+            label="Mock Login (skip auth)"
+            [loading]="isLoading"
+            [fullWidth]="true"
+            variant="danger"
+            type="button"
+            (click)="mockLogin()"
+          />
         </div>
       }
     </mat-card-content>
