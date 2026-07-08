@@ -85,10 +85,7 @@ export class AuthComponent {
           this.snackBar.open('Login successful!', 'Close', { duration: 2000 });
           setTimeout(() => this.router.navigate(['/wallets']), 500);
         },
-        error: (error) => {
-          const errorMessage = error.error?.message || 'Login failed. Please try again.';
-          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-        },
+        error: () => { /* handled by HttpErrorInterceptor */ },
       });
   }
 
@@ -104,9 +101,7 @@ export class AuthComponent {
           this.snackBar.open('Mock login successful!', 'Close', { duration: 2000 });
           setTimeout(() => this.router.navigate(['/wallets']), 500);
         },
-        error: () => {
-          this.snackBar.open('Mock login failed. Is the dev profile active?', 'Close', { duration: 5000 });
-        },
+        error: () => { /* handled by HttpErrorInterceptor */ },
       });
   }
 }

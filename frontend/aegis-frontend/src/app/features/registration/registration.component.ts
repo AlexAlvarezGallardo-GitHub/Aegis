@@ -86,10 +86,7 @@ export class RegistrationComponent {
             duration: 5000,
           });
         },
-        error: (error) => {
-          const errorMessage = error.error?.message || 'Registration failed. Please try again.';
-          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-        },
+        error: () => { /* handled by HttpErrorInterceptor */ },
       });
   }
 }

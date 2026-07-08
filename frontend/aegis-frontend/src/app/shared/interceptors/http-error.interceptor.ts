@@ -1,0 +1,63 @@
+import { inject } from '@angular/core';
+import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { AuthService } from '../../features/auth/auth.service';
+
+export const httpErrorInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn,
+): Observable<HttpEvent<unknown>> => {
+  const snackBar = inject(MatSnackBar);
+  const router = inject(Router);
+  const authService = inject(AuthService);
+
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      let message = 'An unexpected error occurred.';
+
+      if (error.error instanceof ErrorEvent) {
+        message = 'Network error. Please check your connection.';
+      } else {
+        switch (error.status) {
+          case 0:
+            message = 'Unable to connect to the server.';
+            break;
+          case 400:
+            message = error.error?.message || 'Invalid request.';
+            break;
+          case 401:
+            message = 'Session expired. Please log in again.';
+            authService.clearTokens();
+            router.navigate(['/login'], {
+              queryParams: { returnUrl: router.url },
+            });
+            break;
+          case 403:
+            message = 'You do not have permission to perform this action.';
+            break;
+          case 404:
+            message = 'The requested resource was not found.';
+            break;
+          case 409:
+            message = error.error?.message || 'A conflict occurred.';
+            break;
+          case 422:
+            message = error.error?.message || 'Validation failed.';
+            break;
+          case 500:
+            message = 'Server error. Please try again later.';
+            break;
+          default:
+            message = error.error?.message || `Error ${error.status}.`;
+        }
+      }
+
+      snackBar.open(message, 'Close', { duration: 5000 });
+
+      return throwError(() => error);
+    }),
+  );
+};
