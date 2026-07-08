@@ -4,7 +4,18 @@
     <mat-icon class="stat-icon" aria-hidden="true">{{ icon() }}</mat-icon>
   </div>
 
-  <div class="stat-value">{{ value() }}</div>
+  @if (animate()) {
+    <div
+      class="stat-value"
+      [appAegisCountUp]="countUpValue()"
+      [duration]="countUpDuration()"
+      [prefix]="countUpPrefix()"
+      [suffix]="countUpSuffix()"
+      [decimals]="countUpDecimals()"
+    >0</div>
+  } @else {
+    <div class="stat-value">{{ value() }}</div>
+  }
 
   @if (trend()) {
     <div class="stat-trend" [class]="trend()">

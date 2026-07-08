@@ -2,15 +2,15 @@ import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
+import { ToastService } from '../services/toast.service';
 
 export const httpErrorInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> => {
-  const snackBar = inject(MatSnackBar);
+  const toastService = inject(ToastService);
   const router = inject(Router);
   const authService = inject(AuthService);
 
@@ -55,7 +55,7 @@ export const httpErrorInterceptor: HttpInterceptorFn = (
         }
       }
 
-      snackBar.open(message, 'Close', { duration: 5000 });
+      toastService.error(message);
 
       return throwError(() => error);
     }),

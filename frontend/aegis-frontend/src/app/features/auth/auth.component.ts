@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { finalize } from 'rxjs/operators';
@@ -17,6 +16,7 @@ import { LoadingButtonComponent } from '../../shared/forms/loading-button/loadin
 import { PasswordInputComponent } from '../../shared/forms/password-input/password-input.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
 import { markFormGroupTouched } from '../../shared/utils/validation.utils';
+import { ToastService } from '../../shared/services/toast.service';
 
 @Component({
   selector: 'app-auth',
@@ -31,7 +31,6 @@ import { markFormGroupTouched } from '../../shared/utils/validation.utils';
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
-    MatSnackBarModule,
     LoadingButtonComponent,
     PasswordInputComponent,
     FormFieldErrorComponent,
@@ -43,7 +42,7 @@ import { markFormGroupTouched } from '../../shared/utils/validation.utils';
 export class AuthComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
+  private toastService = inject(ToastService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
@@ -67,9 +66,7 @@ export class AuthComponent {
   onSubmit(): void {
     if (this.loginForm.invalid) {
       markFormGroupTouched(this.loginForm);
-      this.snackBar.open('Please fix the form errors before submitting.', 'Close', {
-        duration: 4000,
-      });
+      this.toastService.warning('Please fix the form errors before submitting.');
       return;
     }
 
@@ -82,8 +79,8 @@ export class AuthComponent {
       )
       .subscribe({
         next: () => {
-          this.snackBar.open('Login successful!', 'Close', { duration: 2000 });
-          setTimeout(() => this.router.navigate(['/wallets']), 500);
+          this.toastService.success('Welcome back, Architect. Loading your financial workspace...', 4000);
+          setTimeout(() => this.router.navigate(['/wallets']), 800);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
@@ -98,8 +95,8 @@ export class AuthComponent {
       )
       .subscribe({
         next: () => {
-          this.snackBar.open('Mock login successful!', 'Close', { duration: 2000 });
-          setTimeout(() => this.router.navigate(['/wallets']), 500);
+          this.toastService.success('Welcome back, Architect. Loading your financial workspace...', 4000);
+          setTimeout(() => this.router.navigate(['/wallets']), 800);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });

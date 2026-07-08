@@ -1,0 +1,31 @@
+<div class="dialog-overlay" (click)="cancel()" (keydown.escape)="cancel()" role="presentation" tabindex="-1">
+  <div class="dialog-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" role="alertdialog" aria-labelledby="dialog-title" aria-describedby="dialog-message">
+    <div class="dialog-header">
+      @if (data.destructive) {
+        <mat-icon class="dialog-warning-icon" aria-hidden="true">warning_amber</mat-icon>
+      }
+      <h2 id="dialog-title" class="dialog-title">{{ data.title }}</h2>
+    </div>
+
+    <div class="dialog-body">
+      <p id="dialog-message" class="dialog-message">{{ data.message }}</p>
+    </div>
+
+    <div class="dialog-actions">
+      <button mat-stroked-button class="dialog-cancel" (click)="cancel()" type="button">
+        {{ data.cancelText }}
+      </button>
+      <button
+        mat-raised-button
+        [color]="data.destructive ? 'warn' : 'primary'"
+        class="dialog-confirm"
+        [class.destructive]="data.destructive"
+        (click)="confirm()"
+        type="button"
+        cdkFocusInitial
+      >
+        {{ data.confirmText }}
+      </button>
+    </div>
+  </div>
+</div>

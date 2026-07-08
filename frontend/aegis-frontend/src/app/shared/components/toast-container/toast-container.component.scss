@@ -1,0 +1,107 @@
+@use 'styles/tokens' as tokens;
+
+.toast-arena {
+  position: fixed;
+  top: var(--aegis-space-4);
+  right: var(--aegis-space-4);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-3);
+  max-width: 420px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--aegis-space-3);
+  padding: var(--aegis-space-3) var(--aegis-space-4);
+  border-radius: var(--aegis-radius-md);
+  border: 1px solid transparent;
+  box-shadow: var(--aegis-shadow-lg);
+  pointer-events: auto;
+  cursor: pointer;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: toast-slide-in var(--aegis-duration-normal) var(--aegis-ease-out);
+  }
+
+  &.toast-success {
+    background-color: var(--aegis-color-success-bg);
+    border-color: var(--aegis-color-success);
+    color: var(--aegis-color-success-text);
+
+    .toast-icon { color: var(--aegis-color-success); }
+  }
+
+  &.toast-error {
+    background-color: var(--aegis-color-error-bg);
+    border-color: var(--aegis-color-error);
+    color: var(--aegis-color-error-text);
+
+    .toast-icon { color: var(--aegis-color-error); }
+  }
+
+  &.toast-warning {
+    background-color: var(--aegis-color-warning-bg);
+    border-color: var(--aegis-color-warning);
+    color: var(--aegis-color-warning-text);
+
+    .toast-icon { color: var(--aegis-color-warning); }
+  }
+
+  &.toast-info {
+    background-color: var(--aegis-color-info-bg);
+    border-color: var(--aegis-color-info);
+    color: var(--aegis-color-info-text);
+
+    .toast-icon { color: var(--aegis-color-info); }
+  }
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  font-size: var(--aegis-space-5);
+  width: var(--aegis-space-5);
+  height: var(--aegis-space-5);
+}
+
+.toast-message {
+  flex: 1;
+  font-size: var(--aegis-text-sm);
+  line-height: var(--aegis-leading-normal);
+}
+
+.toast-action {
+  flex-shrink: 0;
+  font-size: var(--aegis-text-sm);
+  font-weight: var(--aegis-font-weight-semibold);
+  min-width: auto;
+  line-height: 1;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  width: var(--aegis-space-6);
+  height: var(--aegis-space-6);
+  line-height: var(--aegis-space-6);
+
+  .mat-icon {
+    font-size: var(--aegis-space-4);
+    width: var(--aegis-space-4);
+    height: var(--aegis-space-4);
+  }
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,65 @@
+@use 'styles/tokens' as tokens;
+
+@mixin aegis-hover-glow($color: var(--aegis-color-primary)) {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: box-shadow var(--aegis-duration-fast) var(--aegis-ease-out),
+                transform var(--aegis-duration-fast) var(--aegis-ease-out);
+
+    &:hover:not([disabled]) {
+      box-shadow: 0 0 16px 2px $color;
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 3px $color;
+      outline: none;
+    }
+  }
+}
+
+@mixin aegis-hover-lift($distance: -2px, $shadow: var(--aegis-shadow-lg)) {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: transform var(--aegis-duration-fast) var(--aegis-ease-out),
+                box-shadow var(--aegis-duration-fast) var(--aegis-ease-out);
+
+    &:hover:not([disabled]) {
+      transform: translateY($distance);
+      box-shadow: $shadow;
+    }
+  }
+}
+
+@mixin aegis-hover-brighten($amount: 10%) {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: filter var(--aegis-duration-fast) var(--aegis-ease-out);
+
+    &:hover:not([disabled]) {
+      filter: brightness(1 + $amount / 100);
+    }
+  }
+}
+
+@mixin aegis-input-focus-glow($color: var(--aegis-color-border-focus)) {
+  transition: border-color var(--aegis-duration-fast) var(--aegis-ease-out),
+              box-shadow var(--aegis-duration-fast) var(--aegis-ease-out);
+
+  &:focus {
+    border-color: $color;
+    box-shadow: 0 0 0 3px rgba($color, 0.25);
+    outline: none;
+  }
+}
+
+@mixin aegis-pulse($color: var(--aegis-color-success)) {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: aegis-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes aegis-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba($color, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba($color, 0);
+    }
+  }
+}

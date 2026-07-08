@@ -25,10 +25,14 @@
       <app-header></app-header>
 
       <main class="shell-main">
-        <router-outlet></router-outlet>
+        <router-outlet [@routeAnimation]="getRouteAnimation()"></router-outlet>
       </main>
     </mat-sidenav-content>
   </mat-sidenav-container>
 } @else {
-  <router-outlet></router-outlet>
+  <router-outlet [@routeAnimation]="getRouteAnimation()"></router-outlet>
 }
+
+<app-toast-container></app-toast-container>
+<app-keyboard-shortcut-cheat-sheet></app-keyboard-shortcut-cheat-sheet>
+<app-command-palette></app-command-palette>
