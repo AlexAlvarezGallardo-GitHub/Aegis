@@ -81,9 +81,7 @@ export class WalletComponent implements OnInit {
         next: (wallets) => {
           this.wallets = wallets;
         },
-        error: () => {
-          this.snackBar.open('Failed to load wallets.', 'Close', { duration: 4000 });
-        },
+        error: () => { /* handled by HttpErrorInterceptor */ },
       });
   }
 
@@ -113,10 +111,7 @@ export class WalletComponent implements OnInit {
             duration: 5000,
           });
         },
-        error: (error) => {
-          const errorMessage = error.error?.message || 'Failed to create wallet.';
-          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-        },
+        error: () => { /* handled by HttpErrorInterceptor */ },
       });
   }
 

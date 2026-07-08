@@ -60,7 +60,7 @@ export class AuthService {
     localStorage.setItem(REFRESH_KEY, refreshToken);
   }
 
-  private clearTokens(): void {
+  clearTokens(): void {
     if (typeof localStorage === 'undefined') return;
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
