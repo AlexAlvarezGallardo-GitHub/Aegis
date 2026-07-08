@@ -8,7 +8,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { WalletService } from './wallet.service';
 import { WalletResponse } from '../../shared/models/wallet.model';
@@ -16,6 +15,7 @@ import { finalize } from 'rxjs/operators';
 import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
 import { markFormGroupTouched } from '../../shared/utils/validation.utils';
+import { ToastService } from '../../shared/services/toast.service';
 import { StatusChipComponent, ChipVariant } from '../../shared/data-display/status-chip/status-chip.component';
 import { EmptyStateComponent } from '../../shared/data-display/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skeleton/loading-skeleton.component';
@@ -32,7 +32,6 @@ import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skel
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     MatTableModule,
     LoadingButtonComponent,
     FormFieldErrorComponent,
@@ -47,7 +46,7 @@ import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skel
 export class WalletComponent implements OnInit {
   private fb = inject(FormBuilder);
   private walletService = inject(WalletService);
-  private snackBar = inject(MatSnackBar);
+  private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
 
   walletForm: FormGroup;
@@ -88,9 +87,7 @@ export class WalletComponent implements OnInit {
   onSubmit(): void {
     if (this.walletForm.invalid) {
       markFormGroupTouched(this.walletForm);
-      this.snackBar.open('Please fix the form errors before submitting.', 'Close', {
-        duration: 4000,
-      });
+      this.toastService.warning('Please fix the form errors before submitting.');
       return;
     }
 
@@ -107,9 +104,7 @@ export class WalletComponent implements OnInit {
         next: (wallet) => {
           this.wallets = [wallet, ...this.wallets];
           this.walletForm.reset();
-          this.snackBar.open(`Wallet created! ID: ${wallet.walletId.slice(0, 8)}...`, 'Close', {
-            duration: 5000,
-          });
+          this.toastService.success(`Wallet created! ID: ${wallet.walletId.slice(0, 8)}...`, 5000);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });

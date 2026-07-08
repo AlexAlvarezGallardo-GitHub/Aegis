@@ -7,7 +7,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RegistrationService } from './registration.service';
 import { RegisterUserResponse } from '../../shared/models/registration.model';
 import { finalize } from 'rxjs/operators';
@@ -15,6 +14,7 @@ import { LoadingButtonComponent } from '../../shared/forms/loading-button/loadin
 import { PasswordInputComponent } from '../../shared/forms/password-input/password-input.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
 import { markFormGroupTouched } from '../../shared/utils/validation.utils';
+import { ToastService } from '../../shared/services/toast.service';
 
 @Component({
   selector: 'app-registration',
@@ -27,7 +27,6 @@ import { markFormGroupTouched } from '../../shared/utils/validation.utils';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule,
     LoadingButtonComponent,
     PasswordInputComponent,
     FormFieldErrorComponent,
@@ -39,7 +38,7 @@ import { markFormGroupTouched } from '../../shared/utils/validation.utils';
 export class RegistrationComponent {
   private fb = inject(FormBuilder);
   private registrationService = inject(RegistrationService);
-  private snackBar = inject(MatSnackBar);
+  private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
 
   registrationForm: FormGroup;
@@ -65,9 +64,7 @@ export class RegistrationComponent {
   onSubmit(): void {
     if (this.registrationForm.invalid) {
       markFormGroupTouched(this.registrationForm);
-      this.snackBar.open('Please fix the form errors before submitting.', 'Close', {
-        duration: 4000,
-      });
+      this.toastService.warning('Please fix the form errors before submitting.');
       return;
     }
 
@@ -82,9 +79,7 @@ export class RegistrationComponent {
       .subscribe({
         next: (response) => {
           this.successResponse = response;
-          this.snackBar.open('Registration successful! Please check your email.', 'Close', {
-            duration: 5000,
-          });
+          this.toastService.success('Registration successful! Please check your email.', 5000);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });

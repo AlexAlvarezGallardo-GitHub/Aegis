@@ -1,0 +1,108 @@
+@use 'styles/tokens' as tokens;
+
+.cheat-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1200;
+  padding: var(--aegis-space-4);
+}
+
+.cheat-sheet-panel {
+  background-color: var(--aegis-color-surface-container-high);
+  border: 1px solid var(--aegis-color-border);
+  border-radius: var(--aegis-radius-xl);
+  box-shadow: var(--aegis-shadow-xl);
+  max-width: 520px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: cheat-sheet-enter var(--aegis-duration-normal) var(--aegis-ease-out);
+  }
+}
+
+@keyframes cheat-sheet-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cheat-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--aegis-space-5) var(--aegis-space-6);
+  border-bottom: 1px solid var(--aegis-color-border);
+}
+
+.cheat-sheet-title {
+  font-size: var(--aegis-text-xl);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text);
+  margin: 0;
+}
+
+.cheat-sheet-body {
+  padding: var(--aegis-space-4) var(--aegis-space-6) var(--aegis-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-6);
+}
+
+.shortcut-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-2);
+}
+
+.shortcut-group-title {
+  font-size: var(--aegis-text-sm);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--aegis-tracking-wider);
+  margin: 0;
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-1);
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--aegis-space-2) 0;
+}
+
+.shortcut-description {
+  font-size: var(--aegis-text-base);
+  color: var(--aegis-color-text-secondary);
+}
+
+.shortcut-keys {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--aegis-space-1) var(--aegis-space-2);
+  background-color: var(--aegis-color-surface);
+  border: 1px solid var(--aegis-color-border);
+  border-radius: var(--aegis-radius-sm);
+  font-family: var(--aegis-font-mono);
+  font-size: var(--aegis-text-xs);
+  color: var(--aegis-color-text);
+  white-space: nowrap;
+}

@@ -1,4 +1,5 @@
 @use 'styles/tokens' as tokens;
+@use 'styles/mixins/interactions' as interactions;
 
 .stat-card {
   background-color: var(--aegis-color-surface);
@@ -8,11 +9,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--aegis-space-3);
-  transition: box-shadow var(--aegis-transition);
 
-  &:hover {
-    box-shadow: var(--aegis-shadow-lg);
-  }
+  @include interactions.aegis-hover-lift;
 }
 
 .stat-header {

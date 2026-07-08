@@ -1,0 +1,45 @@
+<div class="toast-arena" aria-live="polite">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div
+      class="toast"
+      [class]="'toast-' + toast.type"
+      role="alert"
+      tabindex="0"
+      (click)="toastService.dismiss(toast.id)"
+      (keydown.enter)="toastService.dismiss(toast.id)"
+      (keydown.space)="toastService.dismiss(toast.id); $event.preventDefault()"
+    >
+      <mat-icon class="toast-icon" aria-hidden="true">
+        @switch (toast.type) {
+          @case ('success') { check_circle }
+          @case ('error') { error }
+          @case ('warning') { warning }
+          @case ('info') { info }
+        }
+      </mat-icon>
+
+      <span class="toast-message">{{ toast.message }}</span>
+
+      @if (toast.action) {
+        <button
+          mat-button
+          class="toast-action"
+          (click)="$event.stopPropagation(); toast.action!.callback(); toastService.dismiss(toast.id)"
+          type="button"
+        >
+          {{ toast.action.label }}
+        </button>
+      }
+
+      <button
+        mat-icon-button
+        class="toast-close"
+        (click)="$event.stopPropagation(); toastService.dismiss(toast.id)"
+        aria-label="Dismiss"
+        type="button"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+</div>

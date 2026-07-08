@@ -1,0 +1,56 @@
+@if (paletteService.isOpen()) {
+  <div class="palette-overlay" (click)="close()" (keydown.escape)="close()" role="dialog" aria-modal="true" aria-label="Command palette" tabindex="-1">
+    <div class="palette-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="-1">
+      <div class="palette-input-wrapper">
+        <mat-icon class="palette-search-icon" aria-hidden="true">search</mat-icon>
+        <input
+          #searchInput
+          class="palette-input"
+          type="text"
+          placeholder="Search pages and actions..."
+          [value]="query()"
+          (input)="onInput($event)"
+          (keydown)="onKeydown($event)"
+          aria-label="Search commands"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="palette-results">
+        @if (results().length === 0 && query()) {
+          <div class="palette-empty">
+            <mat-icon class="palette-empty-icon" aria-hidden="true">search_off</mat-icon>
+            <span>No results found for "{{ query() }}"</span>
+            <span class="palette-empty-hint">Try a different search term</span>
+          </div>
+        } @else if (results().length === 0) {
+          <div class="palette-empty">
+            <mat-icon class="palette-empty-icon" aria-hidden="true">keyboard</mat-icon>
+            <span>Type to search pages and actions</span>
+          </div>
+        }
+
+        @if (results().length > 0) {
+          <div class="palette-section-label">Results</div>
+          @for (result of results(); track result.item.id; let i = $index) {
+            <div
+              class="palette-item"
+              [class.selected]="i === selectedIndex()"
+              (click)="selectItem(result.item)"
+              (keydown.enter)="selectItem(result.item)"
+              (mouseenter)="selectedIndex.set(i)"
+              tabindex="0"
+            >
+              @if (result.item.icon) {
+                <mat-icon class="palette-item-icon" aria-hidden="true">{{ result.item.icon }}</mat-icon>
+              }
+              <span class="palette-item-label">{{ result.item.label }}</span>
+              <span class="palette-item-section">{{ result.item.section }}</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}
