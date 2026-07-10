@@ -10,52 +10,97 @@
   white-space: nowrap;
 
   &.sm {
-    padding: var(--aegis-space-0_5) var(--aegis-space-2);
+    padding: 2px 8px;
     font-size: var(--aegis-text-xs);
   }
 
   &.md {
-    padding: var(--aegis-space-1) var(--aegis-space-3);
+    padding: 4px 10px;
     font-size: var(--aegis-text-sm);
   }
 
   &.lg {
-    padding: var(--aegis-space-1_5) var(--aegis-space-4);
+    padding: 6px 12px;
     font-size: var(--aegis-text-base);
   }
 
   &.pulse {
-    @include interactions.aegis-pulse(var(--aegis-color-success));
+    .chip-dot {
+      animation: chip-pulse 2s ease-in-out infinite;
+    }
   }
 }
 
-.chip-icon {
-  font-size: var(--aegis-text-sm);
-  width: var(--aegis-text-sm);
-  height: var(--aegis-text-sm);
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--aegis-radius-full);
+  flex-shrink: 0;
 }
 
+.chip-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.chip-label {
+  line-height: 1.2;
+}
+
+// ── Variants ─────────────────────────────────────────────────────────────────
+
 .neutral {
-  background-color: var(--aegis-neutral-700);
-  color: var(--aegis-neutral-200);
+  background-color: rgba(100, 116, 139, 0.12);
+  color: var(--aegis-neutral-300);
+
+  .chip-dot { background-color: var(--aegis-neutral-400); }
 }
 
 .success {
   background-color: var(--aegis-color-success-bg);
   color: var(--aegis-color-success-text);
+
+  .chip-dot { background-color: var(--aegis-color-success); }
 }
 
 .warning {
   background-color: var(--aegis-color-warning-bg);
   color: var(--aegis-color-warning-text);
+
+  .chip-dot { background-color: var(--aegis-color-warning); }
 }
 
 .error {
   background-color: var(--aegis-color-error-bg);
   color: var(--aegis-color-error-text);
+
+  .chip-dot { background-color: var(--aegis-color-error); }
 }
 
 .info {
   background-color: var(--aegis-color-info-bg);
   color: var(--aegis-color-info-text);
+
+  .chip-dot { background-color: var(--aegis-color-info); }
+}
+
+.gold {
+  background-color: var(--aegis-gold-50);
+  color: var(--aegis-gold-400);
+
+  .chip-dot { background-color: var(--aegis-gold-500); }
+}
+
+// ── Pulse Animation ──────────────────────────────────────────────────────────
+
+@keyframes chip-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.4);
+  }
 }

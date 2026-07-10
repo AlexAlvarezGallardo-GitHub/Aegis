@@ -1,8 +1,7 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject, DestroyRef, HostListener, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, DestroyRef, HostListener } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd, ChildrenOutletContexts } from '@angular/router';
-import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { filter } from 'rxjs/operators';
@@ -21,8 +20,8 @@ const isMotionReduced = (): boolean =>
 const reducedMotionTransition = isMotionReduced()
   ? []
   : [
-      style({ opacity: 0, transform: 'translateX(20px)' }),
-      animate('200ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
+      style({ opacity: 0, transform: 'translateY(8px)' }),
+      animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
     ];
 
 export const routeAnimation = trigger('routeAnimation', [
@@ -37,7 +36,7 @@ const MOBILE_BREAKPOINT = 768;
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, MatSidenavModule, MatButtonModule, MatIconModule, RouterOutlet, SidebarComponent, HeaderComponent, ToastContainerComponent, KeyboardShortcutCheatSheetComponent, CommandPaletteComponent],
+  imports: [CommonModule, MatButtonModule, MatIconModule, RouterOutlet, SidebarComponent, HeaderComponent, ToastContainerComponent, KeyboardShortcutCheatSheetComponent, CommandPaletteComponent],
   animations: [routeAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-shell.component.html',
@@ -50,9 +49,8 @@ export class AppShellComponent {
   private commandPaletteService = inject(CommandPaletteService);
   private contexts = inject(ChildrenOutletContexts);
 
-  @ViewChild('sidenav') sidenav!: MatSidenav;
-
   readonly isMobile = signal<boolean>(this.checkMobile());
+  readonly sidebarCollapsed = signal<boolean>(false);
 
   readonly showShell = computed<boolean>(() => {
     const url = this.router.url;
@@ -64,7 +62,7 @@ export class AppShellComponent {
       .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (this.isMobile()) {
-          this.sidenav?.close();
+          this.sidebarCollapsed.set(true);
         }
       });
 
@@ -138,7 +136,11 @@ export class AppShellComponent {
     return this.contexts.getContext('primary')?.route?.snapshot?.data?.['animation'] ?? '';
   }
 
-  toggleSidenav(): void {
-    this.sidenav?.toggle();
+  toggleSidebar(): void {
+    this.sidebarCollapsed.set(!this.sidebarCollapsed());
+  }
+
+  onSidebarCollapsedChange(collapsed: boolean): void {
+    this.sidebarCollapsed.set(collapsed);
   }
 }

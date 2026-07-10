@@ -30,7 +30,7 @@ export const httpErrorInterceptor: HttpInterceptorFn = (
             break;
           case 401:
             message = 'Session expired. Please log in again.';
-            authService.clearTokens();
+            authService.setUnauthenticated();
             router.navigate(['/login'], {
               queryParams: { returnUrl: router.url },
             });

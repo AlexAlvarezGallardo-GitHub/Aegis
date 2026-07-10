@@ -1,27 +1,24 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
-import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 import { AuthService } from '../../../features/auth/auth.service';
+import { CommandPaletteService } from '../../services/command-palette.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     CommonModule,
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
     MatBadgeModule,
     MatDividerModule,
-    ThemeToggleComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './header.component.html',
@@ -30,9 +27,12 @@ import { AuthService } from '../../../features/auth/auth.service';
 export class HeaderComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private commandPaletteService = inject(CommandPaletteService);
+
+  readonly menuToggle = output<void>();
 
   readonly userEmail = signal<string>('');
-  readonly notificationCount = signal<number>(0);
+  readonly notificationCount = signal<number>(3);
   readonly menuOpen = signal<boolean>(false);
 
   constructor() {
@@ -44,6 +44,25 @@ export class HeaderComponent {
     const segments = url.split('/').filter(Boolean);
     if (segments.length === 0) return 'Dashboard';
     return segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
+  }
+
+  get userInitials(): string {
+    const email = this.userEmail();
+    if (!email) return 'AU';
+    return email.substring(0, 2).toUpperCase();
+  }
+
+  readonly environment = 'PROD';
+
+  get environmentClass(): string {
+    const env = this.environment;
+    if (env === 'PROD') return 'env-prod';
+    if (env === 'STAGING') return 'env-staging';
+    return 'env-dev';
+  }
+
+  openSearch(): void {
+    this.commandPaletteService.toggle();
   }
 
   onLogout(): void {

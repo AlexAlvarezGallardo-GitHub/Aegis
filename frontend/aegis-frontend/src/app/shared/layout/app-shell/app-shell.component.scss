@@ -1,39 +1,27 @@
-.shell-container {
+.aegis-shell {
+  display: flex;
   height: 100vh;
+  overflow: hidden;
   background-color: var(--aegis-color-bg);
 }
 
-.shell-sidenav {
-  width: 260px;
-  border-right: none;
-  background-color: transparent;
-
-  ::ng-deep .mat-drawer-inner-container {
-    overflow: hidden;
-  }
-}
-
-.shell-content {
+.aegis-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.shell-main {
+.aegis-content {
   flex: 1;
-  padding: var(--aegis-space-6);
+  padding: var(--aegis-space-8);
   overflow-y: auto;
-}
+  overflow-x: hidden;
+  background-color: var(--aegis-color-bg);
 
-.mobile-menu-btn {
-  position: absolute;
-  top: var(--aegis-space-2);
-  left: var(--aegis-space-2);
-  z-index: 200;
-  background-color: var(--aegis-color-surface);
-  color: var(--aegis-color-text);
-
-  &:hover {
-    background-color: var(--aegis-color-surface-hover);
-  }
+  // Subtle background pattern
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(212, 168, 67, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.015) 0%, transparent 50%);
 }

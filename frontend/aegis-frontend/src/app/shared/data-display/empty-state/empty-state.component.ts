@@ -23,7 +23,6 @@ export class EmptyStateComponent {
   onAction(): void {
     const route = this.actionRoute();
     if (route) {
-      // Navigation handled by parent via routerLink or custom handler
       window.location.hash = route;
     }
   }

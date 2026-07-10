@@ -2,7 +2,9 @@
   @if (illustrationTemplate) {
     <ng-container [ngTemplateOutlet]="illustrationTemplate" />
   } @else {
-    <mat-icon class="empty-state-icon" aria-hidden="true">{{ icon() }}</mat-icon>
+    <div class="empty-state-icon-wrap">
+      <mat-icon class="empty-state-icon" aria-hidden="true">{{ icon() }}</mat-icon>
+    </div>
   }
 
   <h3 class="empty-state-title">{{ title() }}</h3>
@@ -12,7 +14,7 @@
   }
 
   @if (actionLabel()) {
-    <button mat-raised-button color="primary" class="empty-state-action" (click)="onAction()">
+    <button mat-stroked-button color="primary" class="empty-state-action" (click)="onAction()">
       {{ actionLabel() }}
     </button>
   }

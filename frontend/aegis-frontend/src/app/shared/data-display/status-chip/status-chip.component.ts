@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 
-export type ChipVariant = 'neutral' | 'success' | 'warning' | 'error' | 'info';
+export type ChipVariant = 'neutral' | 'success' | 'warning' | 'error' | 'info' | 'gold';
 export type ChipSize = 'sm' | 'md' | 'lg';
 
 @Component({
@@ -18,4 +18,5 @@ export class StatusChipComponent {
   readonly variant = input<ChipVariant>('neutral');
   readonly size = input<ChipSize>('md');
   readonly icon = input<string>();
+  readonly pulse = input<boolean>(false);
 }

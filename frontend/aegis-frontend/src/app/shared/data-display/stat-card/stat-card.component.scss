@@ -2,15 +2,42 @@
 @use 'styles/mixins/interactions' as interactions;
 
 .stat-card {
-  background-color: var(--aegis-color-surface);
-  border: 1px solid var(--aegis-color-border);
+  background-color: var(--aegis-surface-card);
+  border: 1px solid var(--aegis-border-default);
   border-radius: var(--aegis-radius-lg);
   padding: var(--aegis-space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--aegis-space-3);
+  gap: var(--aegis-space-2);
+  position: relative;
+  overflow: hidden;
 
-  @include interactions.aegis-hover-lift;
+  @include interactions.aegis-card-hover;
+
+  // Variant accent borders
+  &.variant-gold {
+    border-left: 3px solid var(--aegis-color-primary);
+    background: linear-gradient(135deg, rgba(212, 168, 67, 0.04), transparent 60%);
+  }
+
+  &.variant-success {
+    border-left: 3px solid var(--aegis-color-success);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.04), transparent 60%);
+  }
+
+  &.variant-warning {
+    border-left: 3px solid var(--aegis-color-warning);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.04), transparent 60%);
+  }
+
+  &.variant-error {
+    border-left: 3px solid var(--aegis-color-error);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.04), transparent 60%);
+  }
+
+  &.variant-default {
+    border-left: 3px solid var(--aegis-border-default);
+  }
 }
 
 .stat-header {
@@ -20,25 +47,31 @@
 }
 
 .stat-label {
-  font-size: var(--aegis-text-sm);
-  font-weight: var(--aegis-font-weight-medium);
+  font-size: var(--aegis-text-xs);
+  font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text-muted);
   text-transform: uppercase;
-  letter-spacing: var(--aegis-tracking-wide);
+  letter-spacing: 0.06em;
 }
 
 .stat-icon {
-  font-size: var(--aegis-text-xl);
-  width: var(--aegis-text-xl);
-  height: var(--aegis-text-xl);
-  color: var(--aegis-color-primary);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--aegis-color-text-muted);
+}
+
+.stat-subtitle {
+  font-size: var(--aegis-text-sm);
+  color: var(--aegis-color-text-muted);
 }
 
 .stat-value {
-  font-size: var(--aegis-text-4xl);
-  font-weight: var(--aegis-font-weight-bold);
+  font-size: var(--aegis-text-3xl);
+  font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text);
   line-height: var(--aegis-leading-tight);
+  font-family: var(--aegis-font-brand);
 }
 
 .stat-trend {
@@ -62,7 +95,28 @@
 }
 
 .trend-icon {
-  font-size: var(--aegis-text-base);
-  width: var(--aegis-text-base);
-  height: var(--aegis-text-base);
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+// ── Skeleton ─────────────────────────────────────────────────────────────────
+
+.stat-card.skeleton {
+  gap: var(--aegis-space-3);
+}
+
+.skeleton-line {
+  border-radius: var(--aegis-radius-sm);
+  @include interactions.aegis-shimmer;
+
+  &.short {
+    width: 60%;
+    height: 12px;
+  }
+
+  &.long {
+    width: 40%;
+    height: 28px;
+  }
 }

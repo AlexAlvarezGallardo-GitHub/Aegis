@@ -1,15 +1,133 @@
-<div class="wallet-container">
-  <mat-card class="wallet-card" role="region" aria-labelledby="wallet-create-title">
-    <mat-card-header>
-      <mat-card-title id="wallet-create-title">Create Wallet</mat-card-title>
-      <mat-card-subtitle>Create a new digital wallet to manage funds</mat-card-subtitle>
-    </mat-card-header>
+<div class="wallet-page aegis-page-enter">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Wallets</h1>
+      <p class="page-subtitle">Manage your digital wallets and balances</p>
+    </div>
+    <button class="create-btn" (click)="openCreatePanel()">
+      <mat-icon>add</mat-icon>
+      <span>Create Wallet</span>
+    </button>
+  </div>
 
-    <mat-card-content>
+  <!-- Overview KPIs -->
+  <div class="overview-grid">
+    <app-stat-card
+      label="Total Wallets"
+      [value]="wallets().length.toString()"
+      icon="account_balance_wallet"
+      variant="default"
+    />
+    <app-stat-card
+      label="Total Balance"
+      [value]="totalBalance"
+      icon="payments"
+      variant="gold"
+    />
+    <app-stat-card
+      label="Active Wallets"
+      [value]="activeCount.toString()"
+      icon="check_circle"
+      variant="success"
+    />
+    <app-stat-card
+      label="Currencies"
+      [value]="getCurrenciesCount().toString()"
+      icon="currency_exchange"
+      variant="default"
+    />
+  </div>
+
+  <!-- Actions Bar -->
+  <div class="actions-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search wallets..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <!-- Wallet Cards Grid -->
+  @if (isLoadingList) {
+    <div class="wallet-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="wallet-card skeleton-card">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line long"></div>
+          <div class="skeleton-line medium"></div>
+        </div>
+      }
+    </div>
+  } @else if (filteredWallets.length === 0) {
+    <app-empty-state
+      icon="account_balance_wallet"
+      title="No wallets yet"
+      description="Create your first wallet to start managing funds."
+      actionLabel="Create Wallet"
+    />
+  } @else {
+    <div class="wallet-grid">
+      @for (wallet of filteredWallets; track wallet.walletId) {
+        <div class="wallet-card" [class.active-wallet]="wallet.status.toLowerCase() === 'active'">
+          <div class="wallet-card-header">
+            <div class="wallet-currency">{{ wallet.currency }}</div>
+            <app-status-chip
+              [label]="wallet.status"
+              [variant]="getStatusVariant(wallet.status)"
+              size="sm"
+              [pulse]="wallet.status.toLowerCase() === 'active'"
+            />
+          </div>
+
+          <div class="wallet-balance mono">{{ formatBalance(wallet.balance) }}</div>
+
+          <div class="wallet-meta">
+            <span class="wallet-id mono">{{ shortId(wallet.walletId) }}</span>
+            <span class="wallet-date">{{ wallet.createdAt | date:'MMM d, y' }}</span>
+          </div>
+
+          <div class="wallet-actions">
+            <button class="action-btn" aria-label="View wallet">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button class="action-btn" aria-label="Transfer funds">
+              <mat-icon>swap_horiz</mat-icon>
+            </button>
+            <button class="action-btn" aria-label="Deposit">
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
+            <button class="action-btn" aria-label="Withdraw">
+              <mat-icon>arrow_upward</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Create Wallet Slide-Over Panel -->
+@if (showCreatePanel()) {
+  <div class="panel-overlay" (click)="closeCreatePanel()" (keyup.enter)="closeCreatePanel()" tabindex="0" role="button" aria-label="Close panel"></div>
+  <div class="slide-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Create Wallet</h2>
+      <button class="panel-close" (click)="closeCreatePanel()" aria-label="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body">
       <form [formGroup]="walletForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Currency</mat-label>
-          <input matInput formControlName="currency" placeholder="EUR" maxlength="3" class="uppercase-input">
+          <mat-label>Currency Code</mat-label>
+          <input matInput formControlName="currency" placeholder="USD" maxlength="3" class="uppercase-input">
           <app-aegis-form-field-error [form]="walletForm" controlName="currency" [labels]="fieldLabels" />
         </mat-form-field>
 
@@ -20,62 +138,6 @@
           [fullWidth]="true"
         />
       </form>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="wallet-list-card" role="region" aria-labelledby="wallet-list-title">
-    <mat-card-header>
-      <mat-card-title id="wallet-list-title">Your Wallets</mat-card-title>
-      <mat-card-subtitle>Manage your digital wallets</mat-card-subtitle>
-    </mat-card-header>
-
-    <mat-card-content>
-      @if (isLoadingList) {
-        <div class="skeleton-container">
-          <app-loading-skeleton variant="card" [count]="3" />
-        </div>
-      } @else if (wallets.length === 0) {
-        <app-empty-state
-          icon="account_balance_wallet"
-          title="No wallets yet"
-          description="Create your first wallet to start managing funds."
-        />
-      } @else {
-        <table mat-table [dataSource]="wallets" class="wallet-table">
-          <ng-container matColumnDef="currency">
-            <th mat-header-cell *matHeaderCellDef>Currency</th>
-            <td mat-cell *matCellDef="let wallet">{{ wallet.currency }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="balance">
-            <th mat-header-cell *matHeaderCellDef>Balance</th>
-            <td mat-cell *matCellDef="let wallet">{{ wallet.balance | number:'1.2-2' }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let wallet">
-              <app-status-chip
-                [label]="wallet.status"
-                [variant]="getStatusVariant(wallet.status)"
-              />
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef>Created</th>
-            <td mat-cell *matCellDef="let wallet">{{ wallet.createdAt | date:'short' }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="walletId">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let wallet">{{ shortId(wallet.walletId) }}</td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      }
-    </mat-card-content>
-  </mat-card>
-</div>
+    </div>
+  </div>
+}

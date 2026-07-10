@@ -5,6 +5,9 @@
 // =============================================================================
 // Aegis Theme — Dark Mode
 // =============================================================================
+// Premium enterprise fintech dark navy theme with gold accents.
+// All Material component surfaces overridden to match navy palette.
+// =============================================================================
 
 $aegis-dark-theme: mat.define-theme((
   color: (
@@ -16,42 +19,147 @@ $aegis-dark-theme: mat.define-theme((
     brand-family: 'Inter, "Helvetica Neue", sans-serif',
     plain-family: 'Inter, "Helvetica Neue", sans-serif',
   ),
-  density: (scale: -1),
+  density: (scale: -2),
 ));
 
 @mixin aegis-dark-theme-overrides {
   @include mat.all-component-themes($aegis-dark-theme);
 
-  $gold: map.get(colors.$aegis-colors, gold);
-  $neutral: map.get(colors.$aegis-colors, neutral);
+  $navy: (
+    900: #0a0e1a,
+    800: #0f1525,
+    700: #141b2d,
+    600: #1a2237,
+    500: #212a41,
+    400: #2a3550,
+    300: #3d4a6b,
+    200: #5c6b8f,
+    100: #8895b7,
+    50:  #b8c3db,
+  );
+  $gold: (
+    400: #e0b85c,
+    500: #d4a843,
+    600: #c49a35,
+    700: #a8842a,
+    900: #362B00,
+  );
 
+  /* ── M3 System Overrides ─────────────────────────────────────────────── */
   --mat-sys-primary: #{map.get($gold, 500)};
-  --mat-sys-on-primary: #{map.get($neutral, 900)};
+  --mat-sys-on-primary: #{map.get($navy, 900)};
   --mat-sys-primary-container: #{map.get($gold, 900)};
-  --mat-sys-on-primary-container: #{map.get($gold, 300)};
-  --mat-sys-secondary: #{map.get($neutral, 300)};
-  --mat-sys-on-secondary: #{map.get($neutral, 900)};
-  --mat-sys-secondary-container: #{map.get($neutral, 800)};
-  --mat-sys-on-secondary-container: #{map.get($neutral, 200)};
+  --mat-sys-on-primary-container: #{map.get($gold, 400)};
+  --mat-sys-secondary: #{map.get($navy, 100)};
+  --mat-sys-on-secondary: #{map.get($navy, 900)};
+  --mat-sys-secondary-container: #{map.get($navy, 700)};
+  --mat-sys-on-secondary-container: #{map.get($navy, 50)};
   --mat-sys-tertiary: #3B82F6;
   --mat-sys-on-tertiary: #FFFFFF;
-  --mat-sys-background: #{map.get($neutral, 900)};
-  --mat-sys-on-background: #{map.get($neutral, 50)};
-  --mat-sys-surface: #121B2E;
-  --mat-sys-on-surface: #{map.get($neutral, 50)};
-  --mat-sys-surface-variant: #{map.get($neutral, 800)};
-  --mat-sys-on-surface-variant: #{map.get($neutral, 300)};
-  --mat-sys-outline: #2A3448;
-  --mat-sys-outline-variant: #{map.get($neutral, 700)};
+  --mat-sys-background: #{map.get($navy, 900)};
+  --mat-sys-on-background: #e8ecf4;
+  --mat-sys-surface: #{map.get($navy, 800)};
+  --mat-sys-on-surface: #e8ecf4;
+  --mat-sys-surface-variant: #{map.get($navy, 700)};
+  --mat-sys-on-surface-variant: #{map.get($navy, 100)};
+  --mat-sys-outline: #{map.get($navy, 500)};
+  --mat-sys-outline-variant: #{map.get($navy, 600)};
   --mat-sys-error: #EF4444;
   --mat-sys-on-error: #FFFFFF;
-  --mat-sys-surface-container-lowest: #060C18;
-  --mat-sys-surface-container-low: #0F1729;
-  --mat-sys-surface-container: #121B2E;
-  --mat-sys-surface-container-high: #{map.get($neutral, 800)};
-  --mat-sys-surface-container-highest: #{map.get($neutral, 700)};
-  --mat-sys-surface-bright: #{map.get($neutral, 700)};
-  --mat-sys-inverse-surface: #{map.get($neutral, 200)};
-  --mat-sys-inverse-on-surface: #{map.get($neutral, 900)};
+  --mat-sys-surface-container-lowest: #{map.get($navy, 900)};
+  --mat-sys-surface-container-low: #{map.get($navy, 800)};
+  --mat-sys-surface-container: #{map.get($navy, 700)};
+  --mat-sys-surface-container-high: #{map.get($navy, 600)};
+  --mat-sys-surface-container-highest: #{map.get($navy, 500)};
+  --mat-sys-surface-bright: #{map.get($navy, 500)};
+  --mat-sys-inverse-surface: #{map.get($navy, 100)};
+  --mat-sys-inverse-on-surface: #{map.get($navy, 900)};
   --mat-sys-inverse-primary: #{map.get($gold, 700)};
+
+  /* ── Corner Radius ───────────────────────────────────────────────────── */
+  --mat-sys-corner-extra-small: 4px;
+  --mat-sys-corner-small: 8px;
+  --mat-sys-corner-medium: 12px;
+  --mat-sys-corner-large: 12px;
+  --mat-sys-corner-extra-large: 16px;
+
+  /* ── Card overrides ──────────────────────────────────────────────────── */
+  --mat-card-container-background-color: #{map.get($navy, 800)};
+  --mat-card-container-color: #e8ecf4;
+
+  /* ── Form field overrides ────────────────────────────────────────────── */
+  --mat-form-field-container-text-color: #e8ecf4;
+  --mat-form-field-subscript-text-color: #{map.get($navy, 100)};
+  --mat-form-field-outline-color: #{map.get($navy, 500)};
+  --mat-form-field-hover-outline-color: #{map.get($navy, 400)};
+  --mat-form-field-focus-outline-color: #{map.get($gold, 500)};
+  --mat-form-field-container-text-font: Inter, "Helvetica Neue", sans-serif;
+
+  /* ── Button overrides ────────────────────────────────────────────────── */
+  --mat-filled-button-container-color: #{map.get($gold, 500)};
+  --mat-filled-button-label-text-color: #{map.get($navy, 900)};
+  --mat-filled-button-hover-state-layer-color: #{map.get($gold, 400)};
+  --mat-text-button-label-text-color: #{map.get($gold, 500)};
+  --mat-outlined-button-outline-color: #{map.get($navy, 500)};
+  --mat-outlined-button-label-text-color: #{map.get($gold, 500)};
+
+  /* ── Table overrides ─────────────────────────────────────────────────── */
+  --mat-table-background-color: #{map.get($navy, 800)};
+  --mat-table-row-item-container-background-color: #{map.get($navy, 800)};
+  --mat-table-header-headline-color: #{map.get($navy, 100)};
+  --mat-table-row-item-label-text-color: #e8ecf4;
+
+  /* ── Dialog overrides ────────────────────────────────────────────────── */
+  --mat-dialog-container-color: #{map.get($navy, 800)};
+  --mat-dialog-subhead-color: #e8ecf4;
+  --mat-dialog-supporting-text-color: #{map.get($navy, 100)};
+
+  /* ── Snackbar / Toast overrides ──────────────────────────────────────── */
+  --mat-snack-bar-button-color: #{map.get($gold, 500)};
+
+  /* ── Menu overrides ──────────────────────────────────────────────────── */
+  --mat-menu-container-color: #{map.get($navy, 700)};
+  --mat-menu-item-label-text-color: #e8ecf4;
+  --mat-menu-item-hover-state-layer-color: #{map.get($navy, 600)};
+
+  /* ── Tooltip overrides ───────────────────────────────────────────────── */
+  --mat-tooltip-container-color: #{map.get($navy, 600)};
+  --mat-tooltip-supporting-text-color: #e8ecf4;
+
+  /* ── Sidenav overrides ───────────────────────────────────────────────── */
+  --mat-sidenav-container-background-color: #{map.get($navy, 900)};
+  --mat-sidenav-content-background-color: transparent;
+
+  /* ── Toolbar overrides ───────────────────────────────────────────────── */
+  --mat-toolbar-container-background-color: rgba(10, 14, 26, 0.85);
+  --mat-toolbar-container-text-color: #e8ecf4;
+
+  /* ── List overrides ──────────────────────────────────────────────────── */
+  --mat-list-active-indicator-color: rgba(212, 168, 67, 0.08);
+  --mat-list-list-item-label-text-color: #{map.get($navy, 100)};
+  --mat-list-list-item-leading-icon-color: #{map.get($navy, 200)};
+
+  /* ── Tab overrides ───────────────────────────────────────────────────── */
+  --mat-tab-header-active-label-text-color: #{map.get($gold, 500)};
+  --mat-tab-header-label-text-color: #{map.get($navy, 200)};
+  --mat-tab-header-active-indicator-color: #{map.get($gold, 500)};
+
+  /* ── Checkbox overrides ──────────────────────────────────────────────── */
+  --md-checkbox-selected-icon-color: #{map.get($gold, 500)};
+  --md-checkbox-selected-checkmark-color: #{map.get($navy, 900)};
+
+  /* ── Progress spinner ────────────────────────────────────────────────── */
+  --mat-progress-spinner-active-indicator-color: #{map.get($gold, 500)};
+
+  /* ── Paginator overrides ─────────────────────────────────────────────── */
+  --mat-paginator-container-background-color: #{map.get($navy, 800)};
+  --mat-paginator-container-text-color: #{map.get($navy, 100)};
+
+  /* ── Select overrides ────────────────────────────────────────────────── */
+  --mat-select-panel-background-color: #{map.get($navy, 700)};
+  --mat-select-placeholder-text-color: #{map.get($navy, 300)};
+
+  /* ── Badge overrides ─────────────────────────────────────────────────── */
+  --mat-badge-background-color: #{map.get($gold, 500)};
+  --mat-badge-text-color: #{map.get($navy, 900)};
 }

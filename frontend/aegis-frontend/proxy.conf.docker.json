@@ -1,31 +1,31 @@
 {
   "/api/bff/auth": {
-    "target": "http://localhost:8082",
+    "target": "http://aegis-bff:8082",
     "secure": false,
     "changeOrigin": true
   },
   "/api/bff/wallets": {
-    "target": "http://localhost:8082",
+    "target": "http://aegis-bff:8082",
     "secure": false,
     "changeOrigin": true
   },
   "/swagger-ui.html": {
-    "target": "http://localhost:8082",
+    "target": "http://aegis-bff:8082",
     "secure": false,
     "changeOrigin": true
   },
   "/swagger-ui": {
-    "target": "http://localhost:8082",
+    "target": "http://aegis-bff:8082",
     "secure": false,
     "changeOrigin": true
   },
   "/v3/api-docs": {
-    "target": "http://localhost:8082",
+    "target": "http://aegis-bff:8082",
     "secure": false,
     "changeOrigin": true
   },
   "/api": {
-    "target": "http://localhost:8081",
+    "target": "http://aegis-identity:8081",
     "secure": false,
     "changeOrigin": true
   }

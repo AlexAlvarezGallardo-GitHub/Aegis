@@ -23,12 +23,12 @@ public class BffAuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(
-            @RequestBody Map<String, String> body,
+            @RequestBody LoginRequest request,
             @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
 
         String effectiveCorrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
 
-        return ResponseEntity.ok(bffService.login(body.get("email"), body.get("password"), effectiveCorrId));
+        return ResponseEntity.ok(bffService.login(request.email(), request.password(), effectiveCorrId));
     }
 
     @PostMapping("/refresh")

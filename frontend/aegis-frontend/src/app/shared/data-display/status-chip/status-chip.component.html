@@ -1,4 +1,5 @@
-<span class="chip" [class]="variant()" [class]="size()" role="status" [attr.aria-label]="label()">
+<span class="chip" [class]="variant()" [class]="size()" [class.pulse]="pulse()" role="status" [attr.aria-label]="label()">
+  <span class="chip-dot"></span>
   @if (icon()) {
     <mat-icon class="chip-icon" aria-hidden="true">{{ icon() }}</mat-icon>
   }

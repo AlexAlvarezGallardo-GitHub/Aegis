@@ -1,0 +1,110 @@
+# Development overlay for docker-compose.yml
+# Enables hot-reload on code changes without rebuilding images.
+#
+# Usage:
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
+#
+# Infrastructure (postgres, redis, kafka, etc.) comes from the base file.
+# App services below replace the production build with hot-reload versions.
+
+services:
+  # ── Frontend (ng serve with hot reload) ────────────────
+  aegis-frontend:
+    build:
+      context: ../frontend/aegis-frontend
+      dockerfile: Dockerfile.dev
+    container_name: aegis-frontend-dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../frontend/aegis-frontend/src:/app/src
+    networks:
+      - aegis-network
+    depends_on:
+      aegis-bff:
+        condition: service_started
+
+  # ── Identity Service (Maven + DevTools) ────────────────
+  aegis-identity:
+    image: maven:3.9-eclipse-temurin-21-alpine
+    container_name: aegis-identity-dev
+    entrypoint: ["sh", "-c", "mvn install -pl aegis-common -am -q -DskipTests -f /workspace/pom.xml && mvn spring-boot:run"]
+    working_dir: /workspace/aegis-identity-service
+    volumes:
+      - ../backend:/workspace
+      - m2_cache:/root/.m2
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_POLL_INTERVAL: 2s
+      SPRING_DEVTOOLS_RESTART_QUIET_PERIOD: 1s
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-identity:5432/aegis_identity
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - aegis-network
+    depends_on:
+      postgres-identity:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # ── Wallet Service (Maven + DevTools) ──────────────────
+  aegis-wallet:
+    image: maven:3.9-eclipse-temurin-21-alpine
+    container_name: aegis-wallet-dev
+    entrypoint: ["sh", "-c", "mvn install -pl aegis-common -am -q -DskipTests -f /workspace/pom.xml && mvn spring-boot:run"]
+    working_dir: /workspace/aegis-wallet-service
+    volumes:
+      - ../backend:/workspace
+      - m2_cache:/root/.m2
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_POLL_INTERVAL: 2s
+      SPRING_DEVTOOLS_RESTART_QUIET_PERIOD: 1s
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-wallet:5432/aegis_wallet
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - aegis-network
+    depends_on:
+      postgres-wallet:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # ── BFF Service (Maven + DevTools) ─────────────────────
+  aegis-bff:
+    image: maven:3.9-eclipse-temurin-21-alpine
+    container_name: aegis-bff-dev
+    entrypoint: ["sh", "-c", "mvn install -pl aegis-common -am -q -DskipTests -f /workspace/pom.xml && mvn spring-boot:run"]
+    working_dir: /workspace/aegis-bff-service
+    volumes:
+      - ../backend:/workspace
+      - m2_cache:/root/.m2
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_POLL_INTERVAL: 2s
+      SPRING_DEVTOOLS_RESTART_QUIET_PERIOD: 1s
+      AEGIS_IDENTITY_SERVICE_URL: http://aegis-identity:8081
+      AEGIS_WALLET_SERVICE_URL: http://aegis-wallet:8083
+      SPRING_DATA_REDIS_HOST: redis
+    networks:
+      - aegis-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      aegis-identity:
+        condition: service_started
+      aegis-wallet:
+        condition: service_started
+
+volumes:
+  m2_cache:

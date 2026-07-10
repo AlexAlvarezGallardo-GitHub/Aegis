@@ -1,0 +1,196 @@
+<div class="dashboard aegis-page-enter">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Enterprise payment operations overview</p>
+    </div>
+    <div class="page-actions">
+      <span class="last-updated">
+        <mat-icon class="update-icon">schedule</mat-icon>
+        Updated just now
+      </span>
+    </div>
+  </div>
+
+  <!-- KPI Cards Row -->
+  <div class="kpi-grid">
+    @for (kpi of kpis; track kpi.label) {
+      <app-stat-card
+        [label]="kpi.label"
+        [value]="kpi.value"
+        [icon]="kpi.icon"
+        [trend]="kpi.trend"
+        [trendValue]="kpi.trendValue"
+        [variant]="kpi.variant"
+        [animate]="kpi.animate"
+        [countUpValue]="kpi.countUpValue"
+        [countUpPrefix]="kpi.countUpPrefix || ''"
+        [countUpDecimals]="kpi.countUpDecimals || 0"
+        [countUpDuration]="800"
+      />
+    }
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-grid">
+    <!-- Payment Volume Chart -->
+    <div class="card chart-card chart-card-wide">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Payment Volume</h3>
+          <p class="card-subtitle">Last 30 days</p>
+        </div>
+        <div class="card-value">$1.2M</div>
+      </div>
+      <div class="chart-container">
+        <div class="area-chart">
+          @for (val of chartData(); track $index) {
+            <div class="chart-bar" [style.height.%]="(val / 120) * 100" [style.animation-delay]="$index * 20 + 'ms'"></div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet Growth Chart -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Wallet Growth</h3>
+          <p class="card-subtitle">Last 12 months</p>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="bar-chart">
+          @for (val of barData(); track $index) {
+            <div class="bar-col">
+              <div class="bar" [style.height.%]="(val / 95) * 100" [style.animation-delay]="$index * 40 + 'ms'"></div>
+              <span class="bar-label">{{ ['J','F','M','A','M','J','J','A','S','O','N','D'][$index] }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle Section -->
+  <div class="middle-grid">
+    <!-- Transactions per minute -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Transactions / min</h3>
+          <p class="card-subtitle">Real-time</p>
+        </div>
+        <div class="card-value accent">42</div>
+      </div>
+      <div class="chart-container">
+        <div class="line-chart">
+          <svg viewBox="0 0 200 60" preserveAspectRatio="none" class="line-svg">
+            <defs>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--aegis-color-info)" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="var(--aegis-color-info)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path [attr.d]="getLinePath()" fill="url(#lineGrad)" class="line-area"/>
+            <path [attr.d]="getLinePath()" fill="none" stroke="var(--aegis-color-info)" stroke-width="1.5" class="line-stroke"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">System Status</h3>
+        <app-status-chip label="All Systems" variant="success" size="sm" />
+      </div>
+      <div class="system-list">
+        @for (sys of systemStatuses; track sys.name) {
+          <div class="system-row">
+            <span class="status-dot" [class]="getStatusClass(sys.status)" [class.pulse]="sys.status === 'healthy'"></span>
+            <span class="system-name">{{ sys.name }}</span>
+            <span class="system-latency mono">{{ sys.latency }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Recent Activity</h3>
+      </div>
+      <div class="activity-list">
+        @for (event of recentActivity; track $index) {
+          <div class="activity-row">
+            <mat-icon class="activity-icon" [style.color]="getActivityColor(event.type)">{{ getActivityIcon(event.type) }}</mat-icon>
+            <div class="activity-content">
+              <span class="activity-message">{{ event.message }}</span>
+              <span class="activity-time">{{ event.time }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Section: Recent Transactions -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Recent Transactions</h3>
+      <button class="view-all-btn">View all</button>
+    </div>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Amount</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">txn_8f3a2b1c</td>
+            <td class="mono">$12,400.00</td>
+            <td>USD</td>
+            <td><app-status-chip label="Completed" variant="success" size="sm" /></td>
+            <td class="mono">2026-07-09 14:32:01</td>
+          </tr>
+          <tr>
+            <td class="mono">txn_7e4d9c2a</td>
+            <td class="mono">$3,200.00</td>
+            <td>EUR</td>
+            <td><app-status-chip label="Completed" variant="success" size="sm" /></td>
+            <td class="mono">2026-07-09 14:28:45</td>
+          </tr>
+          <tr>
+            <td class="mono">txn_6b5e8d3f</td>
+            <td class="mono">$8,750.00</td>
+            <td>GBP</td>
+            <td><app-status-chip label="Pending" variant="warning" size="sm" [pulse]="true" /></td>
+            <td class="mono">2026-07-09 14:25:12</td>
+          </tr>
+          <tr>
+            <td class="mono">txn_5c2f1a4e</td>
+            <td class="mono">$1,100.00</td>
+            <td>USD</td>
+            <td><app-status-chip label="Completed" variant="success" size="sm" /></td>
+            <td class="mono">2026-07-09 14:20:33</td>
+          </tr>
+          <tr>
+            <td class="mono">txn_4d6a3b7c</td>
+            <td class="mono">$25,000.00</td>
+            <td>USD</td>
+            <td><app-status-chip label="Flagged" variant="error" size="sm" /></td>
+            <td class="mono">2026-07-09 14:15:07</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

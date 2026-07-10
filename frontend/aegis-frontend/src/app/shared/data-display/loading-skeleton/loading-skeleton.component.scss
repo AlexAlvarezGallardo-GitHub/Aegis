@@ -1,14 +1,8 @@
 @use 'styles/tokens' as tokens;
+@use 'styles/mixins/interactions' as interactions;
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--aegis-color-surface) 25%,
-    var(--aegis-color-surface-hover) 50%,
-    var(--aegis-color-surface) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  @include interactions.aegis-shimmer;
   border-radius: var(--aegis-radius-md);
 
   &.circle {
@@ -18,14 +12,5 @@
   &.card {
     border-radius: var(--aegis-radius-lg);
     min-height: 120px;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
   }
 }
