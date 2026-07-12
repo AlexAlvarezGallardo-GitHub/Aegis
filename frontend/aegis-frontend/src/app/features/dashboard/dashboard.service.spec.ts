@@ -131,7 +131,7 @@ describe('DashboardService', () => {
     expect(lastUpdated).toBeGreaterThanOrEqual(before - 1000);
   });
 
-  it('should handle HTTP errors gracefully and return fallback data', fakeAsync(() => {
+  it('should handle HTTP errors gracefully and return generated fake data', fakeAsync(() => {
     const req = httpMock.expectOne(isDashboardRequest);
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
     tick();
@@ -139,22 +139,22 @@ describe('DashboardService', () => {
     const state = service.state();
     expect(state.data).toBeTruthy();
     expect(state.loading).toBeFalse();
-    expect(state.data!.kpis.length).toBeGreaterThan(0);
-    expect(state.data!.kpis[0].numericValue).toBe(0);
-    expect(state.data!.recentActivity).toEqual([]);
-    expect(state.data!.fraudAlerts).toEqual([]);
-    expect(state.data!.systemHealth.overall).toBe('operational');
+    expect(state.data!.kpis.length).toBe(12);
+    expect(state.data!.kpis[0].numericValue).toBeGreaterThan(0);
+    expect(state.data!.recentActivity.length).toBeGreaterThan(0);
+    expect(state.data!.fraudAlerts.length).toBeGreaterThan(0);
+    expect(['operational', 'degraded']).toContain(state.data!.systemHealth.overall);
     flush();
   }));
 
-  it('should handle network error and return fallback data', fakeAsync(() => {
+  it('should handle network error and return generated fake data', fakeAsync(() => {
     const req = httpMock.expectOne(isDashboardRequest);
     req.error(new ProgressEvent('network error'));
     tick();
 
     const state = service.state();
     expect(state.data).toBeTruthy();
-    expect(state.data!.kpis[0].numericValue).toBe(0);
+    expect(state.data!.kpis[0].numericValue).toBeGreaterThan(0);
     flush();
   }));
 
