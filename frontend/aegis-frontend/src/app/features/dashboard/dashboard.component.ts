@@ -1,77 +1,121 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { interval } from 'rxjs';
 import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card.component';
 import { StatusChipComponent } from '../../shared/data-display/status-chip/status-chip.component';
+import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skeleton/loading-skeleton.component';
+import { EmptyStateComponent } from '../../shared/data-display/empty-state/empty-state.component';
+import { ChartLineComponent } from '../../shared/data-display/chart-line/chart-line.component';
+import { ChartBarComponent } from '../../shared/data-display/chart-bar/chart-bar.component';
+import { ChartAreaComponent } from '../../shared/data-display/chart-area/chart-area.component';
+import { DashboardService } from './dashboard.service';
+import { TimeRange, KpiCard } from '../../shared/models/dashboard.model';
 
-interface SystemStatus {
-  name: string;
-  status: 'healthy' | 'degraded' | 'down';
-  latency: string;
+const SEVERITY_ICONS: Record<string, string> = { high: 'error', medium: 'warning', low: 'info' };
+const SEVERITY_VARIANTS: Record<string, 'error' | 'warning' | 'info'> = { high: 'error', medium: 'warning', low: 'info' };
+const ACTIVITY_ICONS: Record<string, string> = {
+  payment: 'payments', wallet: 'account_balance_wallet', fraud: 'shield',
+  system: 'settings', refund: 'undo', user: 'person',
+};
+const ACTIVITY_COLORS: Record<string, string> = {
+  payment: 'var(--aegis-color-success)', wallet: 'var(--aegis-color-info)',
+  fraud: 'var(--aegis-color-error)', system: 'var(--aegis-color-text-muted)',
+  refund: 'var(--aegis-color-warning)', user: 'var(--aegis-color-info)',
+};
+
+interface KpiCategory {
+  title: string;
+  icon: string;
+  cards: KpiCard[];
 }
 
-interface ActivityEvent {
-  type: 'payment' | 'wallet' | 'fraud' | 'system';
-  message: string;
-  time: string;
+function categorizeKpis(kpis: KpiCard[]): KpiCategory[] {
+  const map: Record<string, { title: string; icon: string }> = {
+    financial: { title: 'Financial', icon: 'account_balance' },
+    payment: { title: 'Payments', icon: 'payments' },
+    fraud: { title: 'Fraud', icon: 'shield' },
+    operations: { title: 'Operations', icon: 'settings' },
+  };
+  const groups: Record<string, KpiCard[]> = { financial: [], payment: [], fraud: [], operations: [] };
+  for (const kpi of kpis) groups[kpi.category]?.push(kpi);
+  return Object.entries(groups)
+    .filter(([, cards]) => cards.length > 0)
+    .map(([key, cards]) => ({ ...map[key], cards }));
 }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatIconModule, StatCardComponent, StatusChipComponent],
+  imports: [
+    CommonModule, RouterModule, MatIconModule, MatButtonModule,
+    StatCardComponent, StatusChipComponent, LoadingSkeletonComponent, EmptyStateComponent,
+    ChartLineComponent, ChartBarComponent, ChartAreaComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
-  readonly kpis: {
-    label: string;
-    value: string;
-    icon: string;
-    trend: 'up' | 'down' | 'flat';
-    trendValue: string;
-    variant: 'default' | 'success' | 'warning' | 'error' | 'gold';
-    animate: boolean;
-    countUpValue: number;
-    countUpPrefix: string;
-    countUpDecimals: number;
-  }[] = [
-    { label: 'Total Balance', value: '$2,847,392', icon: 'account_balance_wallet', trend: 'up', trendValue: '+12.3%', variant: 'gold', animate: true, countUpValue: 2847392, countUpPrefix: '$', countUpDecimals: 0 },
-    { label: 'Transactions Today', value: '12,847', icon: 'swap_horiz', trend: 'up', trendValue: '+12.3%', variant: 'default', animate: true, countUpValue: 12847, countUpPrefix: '', countUpDecimals: 0 },
-    { label: 'Active Wallets', value: '89,234', icon: 'wallet', trend: 'up', trendValue: '+5.7%', variant: 'default', animate: true, countUpValue: 89234, countUpPrefix: '', countUpDecimals: 0 },
-    { label: 'Fraud Alerts', value: '3', icon: 'shield', trend: 'down', trendValue: '-28.4%', variant: 'error', animate: false, countUpValue: 0, countUpPrefix: '', countUpDecimals: 0 },
-    { label: 'API Latency', value: '42ms', icon: 'speed', trend: 'flat', trendValue: '0.0%', variant: 'success', animate: false, countUpValue: 0, countUpPrefix: '', countUpDecimals: 0 },
-    { label: 'Success Rate', value: '99.97%', icon: 'check_circle', trend: 'up', trendValue: '+0.02%', variant: 'success', animate: false, countUpValue: 0, countUpPrefix: '', countUpDecimals: 0 },
-  ];
+  private readonly dashboardService = inject(DashboardService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly systemStatuses: SystemStatus[] = [
-    { name: 'Identity Service', status: 'healthy', latency: '12ms' },
-    { name: 'Wallet Service', status: 'healthy', latency: '8ms' },
-    { name: 'Payment Service', status: 'healthy', latency: '15ms' },
-    { name: 'Fraud Detection', status: 'degraded', latency: '142ms' },
-    { name: 'Notification Service', status: 'healthy', latency: '6ms' },
-    { name: 'Kafka Cluster', status: 'healthy', latency: '3ms' },
-  ];
+  readonly data = this.dashboardService.state.asReadonly();
+  readonly selectedRange = signal<TimeRange>('30d');
 
-  readonly recentActivity: ActivityEvent[] = [
-    { type: 'payment', message: 'Payment of $12,400.00 processed', time: '2m ago' },
-    { type: 'wallet', message: 'New wallet created (USD)', time: '5m ago' },
-    { type: 'fraud', message: 'Suspicious transaction flagged', time: '8m ago' },
-    { type: 'system', message: 'Auto-scaling triggered: payment-svc', time: '12m ago' },
-    { type: 'payment', message: 'Batch payout completed (47 items)', time: '15m ago' },
-    { type: 'wallet', message: 'Wallet balance threshold alert', time: '18m ago' },
-    { type: 'payment', message: 'Payment of $3,200.00 processed', time: '22m ago' },
-    { type: 'system', message: 'Kafka consumer lag normalized', time: '25m ago' },
-  ];
+  readonly kpiCategories = computed<KpiCategory[]>(() => {
+    const d = this.data().data;
+    return d ? categorizeKpis(d.kpis) : [];
+  });
 
-  readonly chartData = signal<number[]>([35, 42, 38, 55, 48, 62, 58, 72, 68, 85, 78, 92, 88, 95, 82, 90, 96, 88, 94, 100, 92, 98, 105, 95, 110, 102, 115, 108, 120, 112]);
+  readonly paymentVolume = computed(() => this.data().data?.paymentVolume ?? null);
+  readonly transactions = computed(() => this.data().data?.transactions ?? null);
+  readonly fraudTrends = computed(() => this.data().data?.fraudTrends ?? null);
+  readonly walletGrowth = computed(() => this.data().data?.walletGrowth ?? null);
+  readonly recentActivity = computed(() => this.data().data?.recentActivity ?? []);
+  readonly fraudAlerts = computed(() => this.data().data?.fraudAlerts ?? []);
+  readonly systemHealth = computed(() => this.data().data?.systemHealth ?? null);
+  readonly lastUpdated = computed(() => this.data().data?.lastUpdated ?? '');
+  readonly hasFraudAlerts = computed(() => this.fraudAlerts().length > 0);
 
-  readonly barData = signal<number[]>([45, 52, 48, 65, 58, 72, 68, 82, 75, 90, 85, 95]);
+  readonly secondsSinceUpdate = signal(0);
 
-  readonly miniLineData = signal<number[]>([20, 25, 22, 30, 28, 35, 32, 38, 36, 42, 40, 45, 43, 48, 46, 50, 48, 52, 50, 55]);
+  constructor() {
+    interval(1000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.secondsSinceUpdate.update((s) => s + 1);
+    });
+  }
 
-  getStatusClass(status: string): string {
+  setRange(range: TimeRange): void {
+    this.selectedRange.set(range);
+    this.dashboardService.setTimeRange(range);
+  }
+
+  refresh(): void {
+    this.secondsSinceUpdate.set(0);
+    this.dashboardService.refresh();
+  }
+
+  getActivityIcon(type: string): string {
+    return ACTIVITY_ICONS[type] ?? 'info';
+  }
+
+  getActivityColor(type: string): string {
+    return ACTIVITY_COLORS[type] ?? 'var(--aegis-color-text-muted)';
+  }
+
+  getSeverityIcon(severity: string): string {
+    return SEVERITY_ICONS[severity] ?? 'info';
+  }
+
+  getSeverityVariant(severity: string): 'error' | 'warning' | 'info' {
+    return SEVERITY_VARIANTS[severity] ?? 'info';
+  }
+
+  getServiceStatusVariant(status: string): 'success' | 'warning' | 'error' | 'neutral' {
     switch (status) {
       case 'healthy': return 'success';
       case 'degraded': return 'warning';
@@ -80,41 +124,30 @@ export class DashboardComponent {
     }
   }
 
-  getActivityIcon(type: string): string {
-    switch (type) {
-      case 'payment': return 'payments';
-      case 'wallet': return 'account_balance_wallet';
-      case 'fraud': return 'shield';
-      case 'system': return 'settings';
-      default: return 'info';
+  getServiceDotClass(status: string): string {
+    switch (status) {
+      case 'healthy': return 'dot-success';
+      case 'degraded': return 'dot-warning';
+      case 'down': return 'dot-error';
+      default: return 'dot-neutral';
     }
   }
 
-  getActivityColor(type: string): string {
-    switch (type) {
-      case 'payment': return 'var(--aegis-color-success)';
-      case 'wallet': return 'var(--aegis-color-info)';
-      case 'fraud': return 'var(--aegis-color-error)';
-      case 'system': return 'var(--aegis-color-text-muted)';
-      default: return 'var(--aegis-color-text-muted)';
+  getOverallStatusLabel(overall: string): string {
+    switch (overall) {
+      case 'operational': return 'All Systems Operational';
+      case 'degraded': return 'Degraded Performance';
+      case 'outage': return 'Service Outage';
+      default: return 'Unknown';
     }
   }
 
-  getLinePath(): string {
-    const data = this.miniLineData();
-    const max = Math.max(...data);
-    const width = 200;
-    const height = 60;
-    const step = width / (data.length - 1);
-
-    const points = data.map((val, i) => {
-      const x = i * step;
-      const y = height - (val / max) * (height - 4) - 2;
-      return `${x},${y}`;
-    });
-
-    const linePath = `M${points.join(' L')}`;
-    const areaPath = `${linePath} L${width},${height} L0,${height} Z`;
-    return areaPath;
+  getOverallStatusVariant(overall: string): 'success' | 'warning' | 'error' {
+    switch (overall) {
+      case 'operational': return 'success';
+      case 'degraded': return 'warning';
+      case 'outage': return 'error';
+      default: return 'success';
+    }
   }
 }
