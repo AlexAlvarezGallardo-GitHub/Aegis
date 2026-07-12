@@ -7,8 +7,9 @@ import {
   UrlTree,
 } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 import { AuthService } from '../../features/auth/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
@@ -23,6 +24,11 @@ export class AuthGuard implements CanActivate {
       return of(true);
     }
 
+    if (environment.enableMockLogin) {
+      this.authService['authState'].next(true);
+      return of(true);
+    }
+
     return this.authService.checkSession().pipe(
       map((authenticated) => {
         if (authenticated) {
@@ -32,6 +38,9 @@ export class AuthGuard implements CanActivate {
           queryParams: { returnUrl: state.url },
         });
       }),
+      catchError(() => of(this.router.createUrlTree(['/login'], {
+        queryParams: { returnUrl: state.url },
+      }))),
     );
   }
 }

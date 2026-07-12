@@ -119,7 +119,7 @@ export class DashboardService {
       const r = rng(1);
       return r < 0.45 ? 'up' : r < 0.9 ? 'down' : 'flat';
     };
-    const trendVal = (base: number): string => {
+    const trendVal = (): string => {
       const pct = (rng(20, 1) * (rng(1) > 0.5 ? 1 : -1));
       return `${pct > 0 ? '+' : ''}${pct.toFixed(1)}%`;
     };
@@ -161,7 +161,7 @@ export class DashboardService {
       ...k,
       value: k.prefix + Math.round(k.numericValue).toLocaleString() + k.suffix,
       trend: trend(),
-      trendValue: trendVal(k.numericValue),
+      trendValue: trendVal(),
       variant: (k.id === 'total-balance' ? 'gold' : k.id === 'successful-payments' ? 'success' : k.id === 'pending-payments' ? 'warning' : k.id === 'failed-payments' || k.id === 'fraud-alerts' ? 'error' : 'default') as 'default' | 'success' | 'warning' | 'error' | 'gold',
     }));
 
@@ -193,7 +193,7 @@ export class DashboardService {
     }));
 
     const overallHealth: OverallHealth = alerts > 10 ? 'degraded' : 'operational';
-    const services: ServiceStatus[] = SERVICE_NAMES.map((name, i) => ({
+    const services: ServiceStatus[] = SERVICE_NAMES.map((name) => ({
       name: `${name} Service`,
       status: name === 'Fraud' && alerts > 8 ? 'degraded' as const : rng(1) > 0.95 ? 'degraded' as const : rng(1) > 0.98 ? 'down' as const : 'healthy' as const,
       uptime: `${(99.5 + rng(0.49)).toFixed(2)}%`,
