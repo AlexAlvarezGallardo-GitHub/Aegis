@@ -1,0 +1,11 @@
+{
+  "baseTheme": "obsidian",
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "assets",
+  "communityPluginSortOrder": "download",
+  "defaultViewMode": "source",
+  "newFileLocation": "folder",
+  "newLinkFormat": "relative",
+  "showUnsupportedFiles": false,
+  "useMarkdownLinks": true
+}
