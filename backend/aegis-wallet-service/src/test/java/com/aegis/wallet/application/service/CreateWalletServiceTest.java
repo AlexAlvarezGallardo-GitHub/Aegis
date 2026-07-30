@@ -1,6 +1,7 @@
 package com.aegis.wallet.application.service;
 
 import com.aegis.wallet.application.dto.CreateWalletCommand;
+import com.aegis.wallet.domain.event.WalletBalanceAdjusted;
 import com.aegis.wallet.domain.event.WalletCreated;
 import com.aegis.wallet.domain.exception.WalletLimitExceededException;
 import com.aegis.wallet.domain.model.Wallet;
@@ -115,6 +116,10 @@ class CreateWalletServiceTest {
         @Override
         public void publish(WalletCreated event) {
             events.add(event);
+        }
+
+        @Override
+        public void publish(WalletBalanceAdjusted event) {
         }
     }
 }

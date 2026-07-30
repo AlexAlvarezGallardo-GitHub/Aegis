@@ -1,16 +1,23 @@
 package com.aegis.wallet.web.controller;
 
+import com.aegis.wallet.application.dto.AdjustBalanceCommand;
 import com.aegis.wallet.application.dto.CreateWalletCommand;
+import com.aegis.wallet.application.dto.UpdateStatusCommand;
+import com.aegis.wallet.application.dto.WalletDetailResponse;
 import com.aegis.wallet.application.dto.WalletResponse;
 import com.aegis.wallet.application.mapper.WalletMapper;
 import com.aegis.wallet.application.service.CreateWalletService;
+import com.aegis.wallet.application.service.UpdateWalletService;
 import com.aegis.wallet.domain.exception.WalletNotFoundException;
 import com.aegis.wallet.domain.model.WalletId;
+import com.aegis.wallet.domain.model.WalletStatus;
+import com.aegis.wallet.domain.port.inbound.UpdateWalletUseCase;
 import com.aegis.wallet.domain.port.outbound.WalletRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,11 +33,14 @@ import java.util.UUID;
 public class WalletController {
 
     private final CreateWalletService createWalletService;
+    private final UpdateWalletService updateWalletService;
     private final WalletRepository walletRepository;
 
     public WalletController(CreateWalletService createWalletService,
+                             UpdateWalletService updateWalletService,
                              WalletRepository walletRepository) {
         this.createWalletService = createWalletService;
+        this.updateWalletService = updateWalletService;
         this.walletRepository = walletRepository;
     }
 
@@ -62,7 +72,7 @@ public class WalletController {
     }
 
     @GetMapping("/{walletId}")
-    public ResponseEntity<WalletResponse> getWallet(
+    public ResponseEntity<WalletDetailResponse> getWallet(
             @PathVariable UUID walletId,
             @RequestHeader("X-User-Id") UUID userId) {
 
@@ -73,6 +83,48 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        return ResponseEntity.ok(WalletMapper.toResponse(wallet));
+        return ResponseEntity.ok(WalletMapper.toDetailResponse(wallet));
+    }
+
+    @PatchMapping("/{walletId}/balance")
+    public ResponseEntity<WalletDetailResponse> adjustBalance(
+            @PathVariable UUID walletId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
+            @Valid @RequestBody AdjustBalanceCommand request) {
+
+        String effectiveCorrelationId = correlationId != null
+                ? correlationId
+                : UUID.randomUUID().toString();
+
+        var result = updateWalletService.adjustBalance(new UpdateWalletUseCase.AdjustBalanceCommand(
+                walletId, userId, request.amount(), request.description(), effectiveCorrelationId));
+
+        return ResponseEntity.ok(toDetailResponse(result));
+    }
+
+    @PatchMapping("/{walletId}/status")
+    public ResponseEntity<WalletDetailResponse> updateStatus(
+            @PathVariable UUID walletId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @Valid @RequestBody UpdateStatusCommand request) {
+
+        var result = updateWalletService.changeStatus(new UpdateWalletUseCase.StatusChangeCommand(
+                walletId, userId, WalletStatus.valueOf(request.status().toUpperCase())));
+
+        return ResponseEntity.ok(toDetailResponse(result));
+    }
+
+    private WalletDetailResponse toDetailResponse(UpdateWalletUseCase.WalletDetailResult result) {
+        return new WalletDetailResponse(
+                result.walletId(),
+                result.userId(),
+                result.balance(),
+                result.currency(),
+                result.status(),
+                result.premium(),
+                result.createdAt(),
+                result.updatedAt()
+        );
     }
 }

@@ -85,7 +85,12 @@
             />
           </div>
 
-          <div class="wallet-balance mono">{{ formatBalance(wallet.balance) }}</div>
+          <div class="wallet-balance mono {{ getBalanceClass(wallet.balance) }}">
+            {{ formatBalance(wallet.balance) }}
+            @if (wallet.premium) {
+              <span class="premium-badge">PREMIUM</span>
+            }
+          </div>
 
           <div class="wallet-meta">
             <span class="wallet-id mono">{{ shortId(wallet.walletId) }}</span>
@@ -93,7 +98,7 @@
           </div>
 
           <div class="wallet-actions">
-            <button class="action-btn" aria-label="View wallet">
+            <button class="action-btn" aria-label="View wallet" (click)="openDetail(wallet)">
               <mat-icon>visibility</mat-icon>
             </button>
             <button class="action-btn" aria-label="Transfer funds">
@@ -138,6 +143,83 @@
           [fullWidth]="true"
         />
       </form>
+    </div>
+  </div>
+}
+
+<!-- Wallet Detail Slide-Over Panel -->
+@if (showDetailPanel() && selectedWallet(); as wallet) {
+  <div class="panel-overlay" (click)="closeDetail()" (keyup.enter)="closeDetail()" tabindex="0" role="button" aria-label="Close panel"></div>
+  <div class="slide-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Wallet Detail</h2>
+      <button class="panel-close" (click)="closeDetail()" aria-label="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="detail-section">
+        <div class="detail-row">
+          <span class="detail-label">ID</span>
+          <span class="detail-value mono">{{ wallet.walletId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Currency</span>
+          <span class="detail-value">{{ wallet.currency }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Balance</span>
+          <span class="detail-value mono {{ getBalanceClass(wallet.balance) }}">
+            {{ formatCurrency(wallet.balance, wallet.currency) }}
+            @if (wallet.premium) {
+              <span class="premium-badge">PREMIUM</span>
+            }
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <app-status-chip
+            [label]="wallet.status"
+            [variant]="getStatusVariant(wallet.status)"
+            size="sm"
+          />
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Created</span>
+          <span class="detail-value">{{ wallet.createdAt | date:'MMM d, y, HH:mm' }}</span>
+        </div>
+        @if (wallet.updatedAt) {
+          <div class="detail-row">
+            <span class="detail-label">Updated</span>
+            <span class="detail-value">{{ wallet.updatedAt | date:'MMM d, y, HH:mm' }}</span>
+          </div>
+        }
+      </div>
+
+      <mat-divider class="detail-divider"></mat-divider>
+
+      <div class="detail-section">
+        <h3 class="detail-subtitle">Adjust Balance</h3>
+        <div class="adjust-form">
+          <mat-form-field appearance="outline" class="adjust-input">
+            <mat-label>Amount</mat-label>
+            <input matInput type="number" #amountInput placeholder="0.00" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="adjust-input">
+            <mat-label>Description</mat-label>
+            <input matInput #descInput placeholder="Reason" />
+          </mat-form-field>
+          <div class="adjust-actions">
+            <button mat-stroked-button color="primary" (click)="adjustBalance('DEPOSIT', amountInput.value, descInput.value)">
+              <mat-icon>arrow_downward</mat-icon> Deposit
+            </button>
+            <button mat-stroked-button color="warn" (click)="adjustBalance('WITHDRAW', amountInput.value, descInput.value)">
+              <mat-icon>arrow_upward</mat-icon> Withdraw
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 }

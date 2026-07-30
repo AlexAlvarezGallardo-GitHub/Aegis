@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
 import { WalletService } from './wallet.service';
 import { WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
@@ -27,6 +28,7 @@ import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatDividerModule,
     LoadingButtonComponent,
     FormFieldErrorComponent,
     StatusChipComponent,
@@ -48,6 +50,8 @@ export class WalletComponent implements OnInit {
   isLoadingList = false;
   wallets = signal<WalletResponse[]>([]);
   showCreatePanel = signal(false);
+  showDetailPanel = signal(false);
+  selectedWallet = signal<WalletResponse | null>(null);
   searchQuery = signal('');
 
   readonly fieldLabels: Record<string, string> = {
@@ -111,6 +115,48 @@ export class WalletComponent implements OnInit {
     this.walletForm.reset();
   }
 
+  openDetail(wallet: WalletResponse): void {
+    this.selectedWallet.set(wallet);
+    this.showDetailPanel.set(true);
+  }
+
+  closeDetail(): void {
+    this.showDetailPanel.set(false);
+    this.selectedWallet.set(null);
+  }
+
+  adjustBalance(type: 'DEPOSIT' | 'WITHDRAW', amountStr: string, description: string): void {
+    const wallet = this.selectedWallet();
+    if (!wallet) return;
+
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      this.toastService.warning('Please enter a valid positive amount');
+      return;
+    }
+
+    const finalAmount = type === 'WITHDRAW' ? -amount : amount;
+
+    this.walletService.adjustBalance(wallet.walletId, finalAmount, description || undefined)
+      .subscribe({
+        next: (updated) => {
+          this.wallets.update(list =>
+            list.map(w => w.walletId === updated.walletId ? { ...w, balance: updated.balance, premium: updated.premium, updatedAt: updated.updatedAt } : w)
+          );
+          this.selectedWallet.set(updated);
+          this.toastService.success(`Balance ${type === 'DEPOSIT' ? 'deposited' : 'withdrawn'} successfully`);
+        },
+        error: () => this.toastService.warning('Failed to adjust balance')
+      });
+  }
+
+  formatCurrency(balance: number, currency: string): string {
+    const prefix = balance < 0 ? '-' : '';
+    const abs = Math.abs(balance);
+    const symbols: Record<string, string> = { EUR: '€', USD: '$', GBP: '£' };
+    return prefix + (symbols[currency] || currency + ' ') + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
   onSubmit(): void {
     if (this.walletForm.invalid) {
       markFormGroupTouched(this.walletForm);
@@ -153,6 +199,14 @@ export class WalletComponent implements OnInit {
   }
 
   formatBalance(balance: number): string {
-    return '$' + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const prefix = balance < 0 ? '-' : '';
+    const abs = Math.abs(balance);
+    return prefix + '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  getBalanceClass(balance: number): string {
+    if (balance > 0) return 'balance-positive';
+    if (balance < 0) return 'balance-negative';
+    return 'balance-zero';
   }
 }

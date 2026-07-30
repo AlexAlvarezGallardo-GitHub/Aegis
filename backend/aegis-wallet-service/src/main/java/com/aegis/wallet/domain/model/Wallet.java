@@ -1,7 +1,9 @@
 package com.aegis.wallet.domain.model;
 
 import com.aegis.common.util.UuidV7Generator;
+import com.aegis.wallet.domain.event.WalletBalanceAdjusted;
 import com.aegis.wallet.domain.event.WalletCreated;
+import com.aegis.wallet.domain.exception.WalletOperationNotAllowedException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -88,12 +90,70 @@ public class Wallet {
         ledgerEntries.add(entry);
     }
 
+    public void adjustBalance(BigDecimal amount, String description) {
+        if (status != WalletStatus.ACTIVE) {
+            throw new WalletOperationNotAllowedException(
+                    "Cannot modify balance. Wallet is " + status.name().toLowerCase());
+        }
+        if (amount.compareTo(BigDecimal.ZERO) == 0) {
+            throw new IllegalArgumentException("Amount must not be zero");
+        }
+
+        this.balance = this.balance.add(amount);
+
+        LedgerEntryType type = amount.compareTo(BigDecimal.ZERO) > 0
+                ? LedgerEntryType.DEPOSIT
+                : LedgerEntryType.WITHDRAWAL;
+
+        LedgerEntry entry = new LedgerEntry(
+                UuidV7Generator.generate(),
+                walletId.value(),
+                type,
+                amount.abs(),
+                currency,
+                description != null ? description : type == LedgerEntryType.DEPOSIT ? "Deposit" : "Withdrawal",
+                Instant.now()
+        );
+        ledgerEntries.add(entry);
+        this.updatedAt = Instant.now();
+    }
+
+    public void deactivate(WalletStatus targetStatus) {
+        if (targetStatus == WalletStatus.ACTIVE) {
+            throw new IllegalArgumentException("Cannot deactivate to ACTIVE status");
+        }
+        if (this.balance.compareTo(BigDecimal.ZERO) != 0) {
+            throw new WalletOperationNotAllowedException(
+                    "Cannot deactivate wallet with non-zero balance: " + this.balance);
+        }
+        this.status = targetStatus;
+        this.updatedAt = Instant.now();
+    }
+
+    public boolean isPremium() {
+        return "EUR".equals(this.currency) && this.balance.compareTo(new BigDecimal("1000")) > 0;
+    }
+
     public WalletCreated toCreatedEvent(String correlationId) {
         return new WalletCreated(
                 walletId.value(),
                 userId,
                 currency,
                 createdAt,
+                correlationId
+        );
+    }
+
+    public WalletBalanceAdjusted toBalanceAdjustedEvent(BigDecimal previousBalance, BigDecimal amount,
+                                                        String description, String correlationId) {
+        return new WalletBalanceAdjusted(
+                walletId.value(),
+                userId,
+                previousBalance,
+                balance,
+                amount,
+                currency,
+                description,
                 correlationId
         );
     }
