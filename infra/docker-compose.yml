@@ -1,8 +1,8 @@
 services:
   # ── Databases ──────────────────────────────────────────
-  postgres:
+  postgres-identity:
     image: postgres:16-alpine
-    container_name: aegis-postgres
+    container_name: aegis-postgres-identity
     environment:
       POSTGRES_USER: aegis
       POSTGRES_PASSWORD: aegis_secret
@@ -41,6 +41,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: aegis-redis
+    command: redis-server --databases 1
     ports:
       - "6379:6379"
     networks:
@@ -112,12 +113,12 @@ services:
       - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/aegis_identity
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-identity:5432/aegis_identity
       SPRING_DATASOURCE_USERNAME: aegis
       SPRING_DATASOURCE_PASSWORD: aegis_secret
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
-      postgres:
+      postgres-identity:
         condition: service_healthy
       kafka:
         condition: service_healthy
@@ -187,25 +188,31 @@ services:
     ports:
       - "3000:3000"
     environment:
-      CONNECTIONS: postgres
-      LABEL_postgres: Aegis Identity DB
-      SERVER_postgres: postgres
-      PORT_postgres: 5432
-      USER_postgres: aegis
-      PASSWORD_postgres: aegis_secret
-      DATABASE_postgres: aegis_identity
-      ENGINE_postgres: postgres@dbgate-plugin-postgres
-      LABEL_postgres_wallet: Aegis Wallet DB
-      SERVER_postgres_wallet: postgres-wallet
-      PORT_postgres_wallet: 5432
-      USER_postgres_wallet: aegis
-      PASSWORD_postgres_wallet: aegis_secret
-      DATABASE_postgres_wallet: aegis_wallet
-      ENGINE_postgres_wallet: postgres@dbgate-plugin-postgres
+      CONNECTIONS: identity,wallet,redis
+      LABEL_identity: Aegis Identity DB
+      SERVER_identity: postgres-identity
+      PORT_identity: 5432
+      USER_identity: aegis
+      PASSWORD_identity: aegis_secret
+      DATABASE_identity: aegis_identity
+      ENGINE_identity: "postgres@dbgate-plugin-postgres"
+      LABEL_wallet: Aegis Wallet DB
+      SERVER_wallet: postgres-wallet
+      PORT_wallet: 5432
+      USER_wallet: aegis
+      PASSWORD_wallet: aegis_secret
+      DATABASE_wallet: aegis_wallet
+      ENGINE_wallet: "postgres@dbgate-plugin-postgres"
+      LABEL_redis: Aegis Redis
+      SERVER_redis: redis
+      PORT_redis: 6379
+      ENGINE_redis: "redis@dbgate-plugin-redis"
     depends_on:
-      postgres:
+      postgres-identity:
         condition: service_healthy
       postgres-wallet:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - aegis-network

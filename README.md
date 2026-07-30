@@ -252,7 +252,7 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 | **Identity Service** `aegis-identity-service` | ✅ **Built & tested** | User registration, authentication, RBAC — full hexagonal stack |
 | **BFF Service** `aegis-bff-service` | ✅ **Built & tested** | Backend for Frontend — HttpOnly session cookies, JWT proxy, CSRF protection |
 | **Common** `aegis-common` | ✅ **Built** | UUID v7 generator, shared base exceptions, utilities |
-| **Wallet Service** | 📋 Planned | Digital wallets, balance management, transactions |
+| **Wallet Service** | ✅ **Built & tested** | Digital wallets, balance management, transactions |
 | **Payment Service** | 📋 Planned | Payment processing, reconciliation, 3DS |
 | **Fraud Service** | 📋 Planned | Real-time fraud scoring, rule engine, ML pipeline |
 | **Notification Service** | 📋 Planned | Email, SMS, push with templating and delivery tracking |
@@ -317,15 +317,36 @@ aegis/
 │           ├── BffAuthController.java # /api/bff/auth/* endpoints
 │           ├── BffService.java        # Proxy logic (RestClient → Identity Service)
 │           ├── SessionJwtStore.java   # JWT storage in HttpSession
+│           ├── SessionJwtAuthenticationFilter.java # Session-to-JWT filter
+│           ├── LoginRequest.java      # Login request DTO
 │           └── SecurityConfig.java    # CSRF, HttpOnly cookies, stateless session
 ├── frontend/
 │   └── aegis-frontend/                # Angular 22 SPA
+│       ├── Dockerfile                 # Production multi-stage build (nginx)
+│       ├── Dockerfile.dev             # Dev image with ng serve --poll
+│       ├── nginx.conf                 # Nginx reverse proxy for production
+│       ├── proxy.conf.json            # Dev proxy to localhost backends
+│       ├── proxy.conf.docker.json     # Dev proxy to Docker service names
+│       ├── .dockerignore
 │       └── src/app/
+│           ├── features/dashboard/    # Dashboard with KPIs and system status
+│           ├── features/wallet/       # Wallet management (create, list, search)
 │           ├── features/registration/ # Registration form component
 │           ├── features/auth/         # Login component (via BFF)
-│           └── shared/models/         # Registration & auth models
+│           ├── shared/layout/
+│           │   ├── app-shell/         # Main layout wrapper with sidebar + header
+│           │   ├── sidebar/           # Left navigation with grouped sections
+│           │   ├── header/            # Top bar with user menu and theme toggle
+│           │   └── page-placeholder/  # Generic placeholder for stub routes
+│           ├── shared/data-display/   # StatCard, StatusChip, EmptyState, LoadingSkeleton
+│           ├── shared/guards/         # AuthGuard with session verification
+│           ├── shared/interceptors/   # HTTP auth, error handling with 401 redirect
+│           └── shared/models/         # Auth and wallet models
 ├── infra/
-│   └── docker-compose.yml             # PostgreSQL 16, Kafka 7.5, ZooKeeper, Kafka UI, Redis 7
+│   ├── docker-compose.yml             # Production: all services with multi-stage builds
+│   ├── docker-compose.dev.yml         # Dev overlay: hot-reload with volume mounts
+│   ├── build-and-run.bat              # Build & run script (accepts 'dev' argument)
+│   └── build-and-run.sh               # Linux equivalent
 ├── specs/                             # Spec-driven development artifacts
 │   ├── 001-user-registration/
 │   │   ├── spec.md                    # 508-line full specification
@@ -354,6 +375,21 @@ aegis/
 
 ## Getting Started
 
+### Option A: Local Development (Docker Compose with hot-reload)
+
+```bash
+# Start everything with hot-reload (infrastructure + apps)
+infra\build-and-run.bat dev
+# or
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
+```
+
+Changes to any `src/` file are detected automatically:
+- **Frontend**: `ng serve --poll 1000` reloads changed files
+- **Backend**: `spring-boot-devtools` restarts services on recompilation
+
+### Option B: Manual (separate terminals)
+
 ```bash
 # 1. Start infrastructure (PostgreSQL, Kafka, ZooKeeper, Redis)
 docker compose -f infra/docker-compose.yml up -d
@@ -376,6 +412,15 @@ npm install && npm run start
 cd backend && mvn clean verify
 ```
 
+### Option C: Production build
+
+```bash
+# Build images and start all services (no hot-reload)
+infra\build-and-run.bat
+# or
+docker compose -f infra/docker-compose.yml up -d --build
+```
+
 ### Access Points
 
 | Component | URL |
@@ -383,9 +428,12 @@ cd backend && mvn clean verify
 | Angular Frontend | http://localhost:4200 |
 | BFF Service | http://localhost:8082 |
 | Identity Service | http://localhost:8081 |
-| PostgreSQL | localhost:5432 |
+| Wallet Service | http://localhost:8083 |
+| PostgreSQL (Identity) | localhost:5432 |
+| PostgreSQL (Wallet) | localhost:5433 |
 | Kafka UI | http://localhost:8090 |
 | Redis | localhost:6379 |
+| Database Admin (DbGate) | http://localhost:3000 |
 
 ---
 

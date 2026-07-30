@@ -9,14 +9,79 @@ export const routes: Routes = [
       .then(m => m.AppShellComponent),
     children: [
       {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard.component')
+          .then(m => m.DashboardComponent),
+      },
+      {
         path: 'wallets',
         loadComponent: () => import('./features/wallet/wallet.component')
           .then(m => m.WalletComponent),
       },
       {
-        path: 'dashboard',
-        loadComponent: () => import('./features/wallet/wallet.component')
-          .then(m => m.WalletComponent),
+        path: 'payments',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Payments' },
+      },
+      {
+        path: 'transactions',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Transactions' },
+      },
+      {
+        path: 'payouts',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Payouts' },
+      },
+      {
+        path: 'currencies',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Currencies' },
+      },
+      {
+        path: 'fraud',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Fraud Detection' },
+      },
+      {
+        path: 'alerts',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Alerts' },
+      },
+      {
+        path: 'health',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'System Health' },
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Settings' },
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'Users' },
+      },
+      {
+        path: 'api-keys',
+        loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
+          .then(m => m.PagePlaceholderComponent),
+        data: { title: 'API Keys' },
       },
     ],
   },

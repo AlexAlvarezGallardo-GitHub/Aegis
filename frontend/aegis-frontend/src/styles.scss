@@ -4,6 +4,9 @@
 // =============================================================================
 // Aegis Global Styles
 // =============================================================================
+// Premium enterprise fintech operations dashboard.
+// Dark navy palette with gold accents. Inter + JetBrains Mono.
+// =============================================================================
 
 // -- Design Tokens (CSS Custom Properties) ------------------------------------
 :root {
@@ -36,7 +39,9 @@ html, body {
 body {
   font-family: var(--aegis-font-brand);
   font-size: var(--aegis-text-base);
+  font-weight: var(--aegis-font-weight-normal);
   line-height: var(--aegis-leading-normal);
+  letter-spacing: 0.01em;
   background-color: var(--aegis-color-bg);
   color: var(--aegis-color-text);
   -webkit-font-smoothing: antialiased;
@@ -59,8 +64,8 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: var(--aegis-space-2);
-  height: var(--aegis-space-2);
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -72,8 +77,17 @@ a {
   border-radius: var(--aegis-radius-sm);
 
   &:hover {
-    background: var(--aegis-color-border-secondary);
+    background: var(--aegis-color-border-hover);
   }
+}
+
+// -- Typography ----------------------------------------------------------------
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--aegis-font-weight-semibold);
+  line-height: var(--aegis-leading-snug);
+  margin: 0;
+  color: var(--aegis-color-text);
 }
 
 // -- Utility Classes -----------------------------------------------------------
@@ -101,36 +115,46 @@ a {
 }
 
 .aegis-card {
-  background-color: var(--aegis-color-bg-secondary);
-  border: 1px solid var(--aegis-color-border);
+  background-color: var(--aegis-surface-card);
+  border: 1px solid var(--aegis-border-default);
   border-radius: var(--aegis-radius-lg);
   padding: var(--aegis-space-5);
-  box-shadow: var(--aegis-shadow-md);
-  transition: box-shadow var(--aegis-transition);
+  box-shadow: var(--aegis-shadow-card);
+  transition: box-shadow var(--aegis-transition),
+              transform var(--aegis-transition),
+              border-color var(--aegis-transition);
 
   &:hover {
     box-shadow: var(--aegis-shadow-lg);
+    border-color: var(--aegis-border-hover);
   }
 }
 
 .kpi-value {
-  font-size: var(--aegis-text-4xl);
-  font-weight: var(--aegis-font-weight-bold);
+  font-size: var(--aegis-text-3xl);
+  font-weight: var(--aegis-font-weight-semibold);
   line-height: var(--aegis-leading-tight);
   color: var(--aegis-color-text);
+  font-family: var(--aegis-font-brand);
 }
 
 .kpi-label {
   font-size: var(--aegis-text-sm);
-  font-weight: var(--aegis-font-weight-normal);
+  font-weight: var(--aegis-font-weight-medium);
   line-height: var(--aegis-leading-normal);
   color: var(--aegis-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--aegis-tracking-wider);
+}
+
+.mono {
+  font-family: var(--aegis-font-mono);
 }
 
 .status-dot {
   display: inline-block;
-  width: var(--aegis-space-2);
-  height: var(--aegis-space-2);
+  width: 8px;
+  height: 8px;
   border-radius: var(--aegis-radius-full);
   margin-right: var(--aegis-space-1);
 
@@ -139,4 +163,67 @@ a {
   &.error { background-color: var(--aegis-color-error); }
   &.info { background-color: var(--aegis-color-info); }
   &.neutral { background-color: var(--aegis-color-text-muted); }
+
+  &.pulse {
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes status-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+  }
+}
+
+// -- Material Icon Outlined Override -------------------------------------------
+// Force all material icons to use the outlined font
+.material-icons {
+  font-family: 'Material Icons Outlined';
+}
+
+// -- Global Material Overrides for Dark Theme ----------------------------------
+
+// Remove default Material card shadows
+mat-card {
+  --mat-card-container-background-color: var(--aegis-surface-card);
+}
+
+// Compact form fields
+.mat-mdc-form-field {
+  font-size: var(--aegis-text-base);
+}
+
+// Compact table rows
+.mat-mdc-row {
+  &:hover {
+    background-color: var(--aegis-surface-hover) !important;
+  }
+}
+
+// -- Page Transition Animation -------------------------------------------------
+.aegis-page-enter {
+  animation: aegis-page-fade-in 200ms var(--aegis-ease-out) both;
+}
+
+@keyframes aegis-page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// -- Reduced Motion ------------------------------------------------------------
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,40 +1,54 @@
-<mat-toolbar class="header">
+<header class="header">
   <div class="header-left">
-    <span class="header-title">Aegis</span>
+    <button class="mobile-menu-btn" (click)="menuToggle.emit()" aria-label="Toggle menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <div class="breadcrumb">
+      <span class="breadcrumb-root">Aegis</span>
+      <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+      <span class="breadcrumb-current">{{ currentPage }}</span>
+    </div>
   </div>
 
   <div class="header-center">
-    <span class="header-page">{{ currentPage }}</span>
+    <button class="search-trigger" (click)="openSearch()">
+      <mat-icon class="search-icon">search</mat-icon>
+      <span class="search-placeholder">Search or jump to...</span>
+      <span class="search-shortcut">
+        <kbd>&#8984;</kbd><kbd>K</kbd>
+      </span>
+    </button>
   </div>
 
   <div class="header-right">
-    <app-theme-toggle></app-theme-toggle>
+    <span class="env-badge" [class]="environmentClass">{{ environment }}</span>
 
     <button
       mat-icon-button
+      class="notification-btn"
       [matBadge]="notificationCount() || undefined"
       matBadgeColor="warn"
       matBadgeSize="small"
       aria-label="Notifications"
     >
-      <mat-icon>notifications</mat-icon>
+      <mat-icon>notifications_outlined</mat-icon>
     </button>
 
     <button
-      mat-icon-button
+      class="user-btn"
       [matMenuTriggerFor]="userMenu"
       aria-label="User menu"
       (menuOpened)="menuOpen.set(true)"
       (menuClosed)="menuOpen.set(false)"
     >
-      <mat-icon>account_circle</mat-icon>
+      <span class="user-avatar">{{ userInitials }}</span>
+      <mat-icon class="dropdown-arrow">expand_more</mat-icon>
     </button>
 
-    <mat-menu #userMenu="matMenu" xPosition="before">
+    <mat-menu #userMenu="matMenu" xPosition="before" class="user-menu">
       @if (userEmail()) {
         <div class="menu-user-info">
-          <mat-icon>email</mat-icon>
-          <span>{{ userEmail() }}</span>
+          <span class="menu-user-email">{{ userEmail() }}</span>
         </div>
         <mat-divider></mat-divider>
       }
@@ -48,4 +62,4 @@
       </button>
     </mat-menu>
   </div>
-</mat-toolbar>
+</header>

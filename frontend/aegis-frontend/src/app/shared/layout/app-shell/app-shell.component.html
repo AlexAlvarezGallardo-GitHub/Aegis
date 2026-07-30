@@ -1,34 +1,19 @@
 @if (showShell()) {
-  <mat-sidenav-container class="shell-container">
-    <mat-sidenav
-      #sidenav
-      class="shell-sidenav"
-      [mode]="isMobile() ? 'over' : 'side'"
-      [opened]="!isMobile()"
-      [fixedInViewport]="isMobile()"
-    >
-      <app-sidebar></app-sidebar>
-    </mat-sidenav>
+  <div class="aegis-shell">
+    <app-sidebar
+      [collapsed]="sidebarCollapsed()"
+      [isMobile]="isMobile()"
+      (collapsedChange)="onSidebarCollapsedChange($event)"
+    ></app-sidebar>
 
-    <mat-sidenav-content class="shell-content">
-      @if (isMobile()) {
-        <button
-          mat-icon-button
-          class="mobile-menu-btn"
-          (click)="sidenav.toggle()"
-          aria-label="Toggle menu"
-        >
-          <mat-icon>menu</mat-icon>
-        </button>
-      }
+    <div class="aegis-main">
+      <app-header (menuToggle)="toggleSidebar()"></app-header>
 
-      <app-header></app-header>
-
-      <main class="shell-main">
+      <main class="aegis-content">
         <router-outlet [@routeAnimation]="getRouteAnimation()"></router-outlet>
       </main>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+    </div>
+  </div>
 } @else {
   <router-outlet [@routeAnimation]="getRouteAnimation()"></router-outlet>
 }

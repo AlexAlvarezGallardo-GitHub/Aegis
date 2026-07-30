@@ -1,5 +1,12 @@
 @use 'styles/tokens' as tokens;
 
+// =============================================================================
+// Aegis SCSS Mixins — Interactions & Motion
+// =============================================================================
+// Premium micro-interactions for enterprise fintech UI.
+// All animations respect prefers-reduced-motion.
+// =============================================================================
+
 @mixin aegis-hover-glow($color: var(--aegis-color-primary)) {
   @media (prefers-reduced-motion: no-preference) {
     transition: box-shadow var(--aegis-duration-fast) var(--aegis-ease-out),
@@ -44,7 +51,7 @@
 
   &:focus {
     border-color: $color;
-    box-shadow: 0 0 0 3px rgba($color, 0.25);
+    box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.2);
     outline: none;
   }
 }
@@ -60,6 +67,73 @@
     }
     50% {
       box-shadow: 0 0 0 6px rgba($color, 0);
+    }
+  }
+}
+
+@mixin aegis-card-hover {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: transform var(--aegis-duration-fast) var(--aegis-ease-out),
+                box-shadow var(--aegis-duration-fast) var(--aegis-ease-out),
+                border-color var(--aegis-duration-fast) var(--aegis-ease-out);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--aegis-shadow-lg);
+      border-color: var(--aegis-border-hover);
+    }
+  }
+}
+
+@mixin aegis-page-enter {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: aegis-page-enter 200ms var(--aegis-ease-out) both;
+  }
+
+  @keyframes aegis-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@mixin aegis-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--aegis-color-navy-600) 25%,
+    var(--aegis-color-navy-500) 50%,
+    var(--aegis-color-navy-600) 75%
+  );
+  background-size: 200% 100%;
+  animation: aegis-shimmer 1.5s ease-in-out infinite;
+
+  @keyframes aegis-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+}
+
+@mixin aegis-gold-glow {
+  box-shadow: var(--aegis-shadow-gold);
+}
+
+@mixin aegis-button-hover {
+  @media (prefers-reduced-motion: no-preference) {
+    transition: filter var(--aegis-duration-fast) var(--aegis-ease-out),
+                transform var(--aegis-duration-fast) var(--aegis-ease-out);
+
+    &:hover:not([disabled]) {
+      filter: brightness(1.08);
+      transform: scale(1.02);
+    }
+
+    &:active:not([disabled]) {
+      transform: scale(0.98);
     }
   }
 }

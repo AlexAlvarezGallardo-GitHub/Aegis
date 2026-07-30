@@ -1,14 +1,11 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
 import { WalletService } from './wallet.service';
 import { WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
@@ -18,7 +15,7 @@ import { markFormGroupTouched } from '../../shared/utils/validation.utils';
 import { ToastService } from '../../shared/services/toast.service';
 import { StatusChipComponent, ChipVariant } from '../../shared/data-display/status-chip/status-chip.component';
 import { EmptyStateComponent } from '../../shared/data-display/empty-state/empty-state.component';
-import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skeleton/loading-skeleton.component';
+import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card.component';
 
 @Component({
   selector: 'app-wallet',
@@ -26,18 +23,15 @@ import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skel
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    MatTableModule,
     LoadingButtonComponent,
     FormFieldErrorComponent,
     StatusChipComponent,
     EmptyStateComponent,
-    LoadingSkeletonComponent,
+    StatCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './wallet.component.html',
@@ -52,8 +46,9 @@ export class WalletComponent implements OnInit {
   walletForm: FormGroup;
   isLoading = false;
   isLoadingList = false;
-  wallets: WalletResponse[] = [];
-  displayedColumns: string[] = ['currency', 'balance', 'status', 'createdAt', 'walletId'];
+  wallets = signal<WalletResponse[]>([]);
+  showCreatePanel = signal(false);
+  searchQuery = signal('');
 
   readonly fieldLabels: Record<string, string> = {
     currency: 'Currency',
@@ -69,6 +64,29 @@ export class WalletComponent implements OnInit {
     this.loadWallets();
   }
 
+  get filteredWallets(): WalletResponse[] {
+    const query = this.searchQuery().toLowerCase();
+    const all = this.wallets();
+    if (!query) return all;
+    return all.filter(w =>
+      w.currency.toLowerCase().includes(query) ||
+      w.walletId.toLowerCase().includes(query)
+    );
+  }
+
+  get totalBalance(): string {
+    const sum = this.wallets().reduce((acc, w) => acc + w.balance, 0);
+    return '$' + sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  get activeCount(): number {
+    return this.wallets().filter(w => w.status.toLowerCase() === 'active').length;
+  }
+
+  getCurrenciesCount(): number {
+    return new Set(this.wallets().map(w => w.currency)).size;
+  }
+
   loadWallets(): void {
     this.isLoadingList = true;
     this.walletService.getWallets()
@@ -78,10 +96,19 @@ export class WalletComponent implements OnInit {
       )
       .subscribe({
         next: (wallets) => {
-          this.wallets = wallets;
+          this.wallets.set(wallets);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
+  }
+
+  openCreatePanel(): void {
+    this.showCreatePanel.set(true);
+  }
+
+  closeCreatePanel(): void {
+    this.showCreatePanel.set(false);
+    this.walletForm.reset();
   }
 
   onSubmit(): void {
@@ -102,8 +129,9 @@ export class WalletComponent implements OnInit {
       )
       .subscribe({
         next: (wallet) => {
-          this.wallets = [wallet, ...this.wallets];
+          this.wallets.update(w => [wallet, ...w]);
           this.walletForm.reset();
+          this.showCreatePanel.set(false);
           this.toastService.success(`Wallet created! ID: ${wallet.walletId.slice(0, 8)}...`, 5000);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
@@ -122,5 +150,9 @@ export class WalletComponent implements OnInit {
       pending: 'info',
     };
     return map[status.toLowerCase()] || 'neutral';
+  }
+
+  formatBalance(balance: number): string {
+    return '$' + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 }

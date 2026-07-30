@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CountUpDirective } from '../../directives/count-up.directive';
 
 export type TrendDirection = 'up' | 'down' | 'flat';
+export type StatVariant = 'default' | 'success' | 'warning' | 'error' | 'gold';
 
 @Component({
   selector: 'app-stat-card',
@@ -19,6 +20,9 @@ export class StatCardComponent {
   readonly icon = input<string>('trending_up');
   readonly trend = input<TrendDirection>();
   readonly trendValue = input<string>();
+  readonly variant = input<StatVariant>('default');
+  readonly subtitle = input<string>('');
+  readonly loading = input(false);
   readonly animate = input(false);
   readonly countUpValue = input<number>(0);
   readonly countUpDuration = input(1000);
@@ -32,4 +36,6 @@ export class StatCardComponent {
     if (t === 'down') return 'trending_down';
     return 'trending_flat';
   });
+
+  readonly variantClass = computed<string>(() => `variant-${this.variant()}`);
 }

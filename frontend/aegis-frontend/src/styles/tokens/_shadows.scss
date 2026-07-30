@@ -3,26 +3,37 @@
 // =============================================================================
 // Aegis Design Tokens — Shadows / Elevation
 // =============================================================================
-// Depth levels for cards, overlays, modals, and floating elements.
+// Enterprise-grade depth system for dark navy surfaces.
 // =============================================================================
 
 // -- SCSS Map -----------------------------------------------------------------
 
 $aegis-shadows: (
   sm: (
-    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 2px 0 rgba(0, 0, 0, 0.3),
   ),
   md: (
-    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -2px rgba(0, 0, 0, 0.3),
   ),
   lg: (
-    0 8px 24px rgba(0, 0, 0, 0.3),
+    0 10px 15px -3px rgba(0, 0, 0, 0.5),
+    0 4px 6px -4px rgba(0, 0, 0, 0.4),
   ),
   xl: (
-    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 20px 25px -5px rgba(0, 0, 0, 0.6),
+    0 8px 10px -6px rgba(0, 0, 0, 0.5),
   ),
   '2xl': (
-    0 16px 56px rgba(0, 0, 0, 0.5),
+    0 25px 50px -12px rgba(0, 0, 0, 0.7),
+  ),
+  card: (
+    0 1px 3px 0 rgba(0, 0, 0, 0.3),
+    0 1px 2px -1px rgba(0, 0, 0, 0.2),
+  ),
+  gold: (
+    0 0 20px rgba(212, 168, 67, 0.15),
+    0 0 40px rgba(212, 168, 67, 0.05),
   ),
   inner: (
     inset 0 2px 4px rgba(0, 0, 0, 0.2),
@@ -33,11 +44,13 @@ $aegis-shadows: (
 // -- CSS Custom Properties (:root) --------------------------------------------
 
 @mixin aegis-shadow-tokens {
-  --aegis-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --aegis-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-  --aegis-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
-  --aegis-shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.4);
-  --aegis-shadow-2xl: 0 16px 56px rgba(0, 0, 0, 0.5);
+  --aegis-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --aegis-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --aegis-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --aegis-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --aegis-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  --aegis-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  --aegis-shadow-gold: 0 0 20px rgba(212, 168, 67, 0.15), 0 0 40px rgba(212, 168, 67, 0.05);
   --aegis-shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.2);
   --aegis-shadow-none: none;
 }

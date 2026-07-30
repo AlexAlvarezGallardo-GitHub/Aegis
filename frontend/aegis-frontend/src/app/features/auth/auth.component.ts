@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -44,6 +44,7 @@ export class AuthComponent {
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
 
   loginForm: FormGroup;
@@ -80,10 +81,15 @@ export class AuthComponent {
       .subscribe({
         next: () => {
           this.toastService.success('Welcome back, Architect. Loading your financial workspace...', 4000);
-          setTimeout(() => this.router.navigate(['/wallets']), 800);
+          setTimeout(() => this.navigateAfterLogin(), 800);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
+  }
+
+  private navigateAfterLogin(): void {
+    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/wallets';
+    this.router.navigateByUrl(returnUrl);
   }
 
   mockLogin(): void {
@@ -96,7 +102,7 @@ export class AuthComponent {
       .subscribe({
         next: () => {
           this.toastService.success('Welcome back, Architect. Loading your financial workspace...', 4000);
-          setTimeout(() => this.router.navigate(['/wallets']), 800);
+          setTimeout(() => this.navigateAfterLogin(), 800);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });

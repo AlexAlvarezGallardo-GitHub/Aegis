@@ -1,27 +1,73 @@
-# AegisFrontend
+# Aegis Frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.21.
+Angular 22 SPA with Angular Material, standalone components, signals, and reactive forms.
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```bash
+npm start
+```
 
-## Code scaffolding
+Runs `ng serve --poll 1000` at `http://localhost:4200/`. The `--poll` flag ensures file change detection on Windows (NTFS). API calls are proxied to backend services via `proxy.conf.json` (local) or `proxy.conf.docker.json` (Docker).
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Docker Development
 
-## Build
+```bash
+# From repo root — starts everything with hot-reload
+infra\build-and-run.bat dev
+# or
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Uses `Dockerfile.dev` — runs `ng serve --poll 1000` inside the container with source mounted from `./src`.
+
+## Production build
+
+```bash
+npm run build
+```
+
+Multi-stage Docker build (`Dockerfile`) serves static files via nginx. Output in `dist/aegis-frontend/`.
+
+## Proxy Configuration
+
+| Config | Target | Use case |
+|--------|--------|----------|
+| `proxy.conf.json` | `localhost:8081/8082` | Local development without Docker |
+| `proxy.conf.docker.json` | `aegis-bff:8082`, `aegis-identity:8081` | Inside Docker Compose network |
+
+## Project Structure
+
+```
+src/app/
+├── features/
+│   ├── auth/           # Login / mock-login (standalone component)
+│   ├── dashboard/      # KPIs, system status, activity feed
+│   ├── registration/   # User registration form
+│   └── wallet/         # Wallet management (create, list, search)
+├── shared/
+│   ├── data-display/   # StatCard, StatusChip, EmptyState, LoadingSkeleton
+│   ├── guards/         # AuthGuard — checks in-memory state, then GET /me
+│   ├── interceptors/   # httpAuth (pass-through), httpError (401 → login)
+│   ├── layout/
+│   │   ├── app-shell/  # Shell with sidebar + header + router-outlet
+│   │   ├── header/     # User menu, notifications, theme toggle
+│   │   ├── sidebar/    # Left nav: Dashboard, Payments, Wallets, etc.
+│   │   └── page-placeholder/ # Stub component for unimplemented routes
+│   ├── models/         # LoginRequest, LoginResponse, WalletResponse
+│   ├── services/       # ToastService
+│   ├── forms/          # LoadingButton, PasswordInput, FormFieldError
+│   └── utils/          # markFormGroupTouched, validation helpers
+```
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```bash
+npm test
+```
 
-## Running end-to-end tests
+## Lint
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```bash
+npm run lint
+```

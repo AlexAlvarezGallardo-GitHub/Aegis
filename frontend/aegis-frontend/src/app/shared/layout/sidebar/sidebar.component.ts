@@ -1,8 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, DestroyRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, input, output, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { MatListModule } from '@angular/material/list';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -26,7 +25,7 @@ const SIDEBAR_STORAGE_KEY = 'aegis-sidebar-collapsed';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, MatListModule, MatIconModule, MatButtonModule, MatTooltipModule, ThemeToggleComponent],
+  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule, MatTooltipModule, ThemeToggleComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
@@ -35,36 +34,51 @@ export class SidebarComponent {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
-  readonly collapsed = signal<boolean>(this.loadCollapsedState());
+  readonly collapsed = input<boolean>(this.loadCollapsedState());
+  readonly isMobile = input<boolean>(false);
+  readonly collapsedChange = output<boolean>();
+
   readonly currentRoute = signal<string>(this.router.url);
 
   readonly sections: NavSection[] = [
     {
-      label: 'Main',
+      label: 'Overview',
       items: [
         { icon: 'dashboard', label: 'Dashboard', route: '/dashboard' },
-        { icon: 'account_balance_wallet', label: 'Wallets', route: '/wallets' },
-        { icon: 'payments', label: 'Payments', route: '/payments' },
       ],
     },
     {
-      label: 'Management',
+      label: 'Payments',
       items: [
-        { icon: 'people', label: 'Users', route: '/users' },
+        { icon: 'payments', label: 'Payments', route: '/payments' },
         { icon: 'receipt_long', label: 'Transactions', route: '/transactions' },
+        { icon: 'account_balance', label: 'Payouts', route: '/payouts' },
       ],
     },
     {
-      label: 'System',
+      label: 'Wallets',
+      items: [
+        { icon: 'account_balance_wallet', label: 'Wallets', route: '/wallets' },
+        { icon: 'currency_exchange', label: 'Currencies', route: '/currencies' },
+      ],
+    },
+    {
+      label: 'Monitoring',
+      items: [
+        { icon: 'shield', label: 'Fraud', route: '/fraud' },
+        { icon: 'notifications_active', label: 'Alerts', route: '/alerts', badge: '3' },
+        { icon: 'monitor_heart', label: 'System Health', route: '/health' },
+      ],
+    },
+    {
+      label: 'Settings',
       items: [
         { icon: 'settings', label: 'Settings', route: '/settings' },
+        { icon: 'people', label: 'Users', route: '/users' },
+        { icon: 'key', label: 'API Keys', route: '/api-keys' },
       ],
     },
   ];
-
-  readonly allItems = computed<NavItem[]>(() =>
-    this.sections.flatMap((s) => s.items)
-  );
 
   constructor() {
     this.router.events
@@ -79,12 +93,8 @@ export class SidebarComponent {
   }
 
   toggle(): void {
-    this.collapsed.set(!this.collapsed());
-    this.saveCollapsedState();
-  }
-
-  navigate(route: string): void {
-    this.router.navigate([route]);
+    this.collapsedChange.emit(!this.collapsed());
+    this.saveCollapsedState(!this.collapsed());
   }
 
   private loadCollapsedState(): boolean {
@@ -93,8 +103,8 @@ export class SidebarComponent {
     return stored === 'true';
   }
 
-  private saveCollapsedState(): void {
+  private saveCollapsedState(collapsed: boolean): void {
     if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(SIDEBAR_STORAGE_KEY, String(this.collapsed()));
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
   }
 }

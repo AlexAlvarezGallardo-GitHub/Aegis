@@ -3,7 +3,7 @@
 // =============================================================================
 // Aegis Design Tokens — Spacing
 // =============================================================================
-// 4px base unit scale for consistent spacing across the design system.
+// 4px base unit scale with semantic naming for enterprise UI density.
 // =============================================================================
 
 // -- SCSS Map -----------------------------------------------------------------
@@ -60,4 +60,14 @@ $aegis-spacing: (
   --aegis-space-24: #{map.get($aegis-spacing, 24)};
   --aegis-space-28: #{map.get($aegis-spacing, 28)};
   --aegis-space-32: #{map.get($aegis-spacing, 32)};
+
+  /* Semantic spacing aliases */
+  --aegis-space-xs: #{map.get($aegis-spacing, 1)};    // 4px
+  --aegis-space-sm: #{map.get($aegis-spacing, 2)};    // 8px
+  --aegis-space-md: #{map.get($aegis-spacing, 3)};    // 12px
+  --aegis-space-lg: #{map.get($aegis-spacing, 4)};    // 16px
+  --aegis-space-xl: #{map.get($aegis-spacing, 6)};    // 24px
+  --aegis-space-2xl: #{map.get($aegis-spacing, 8)};   // 32px
+  --aegis-space-3xl: #{map.get($aegis-spacing, 12)};  // 48px
+  --aegis-space-4xl: #{map.get($aegis-spacing, 16)};  // 64px
 }

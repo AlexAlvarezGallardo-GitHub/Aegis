@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { of } from 'rxjs';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from '../../features/auth/auth.service';
 
@@ -15,7 +16,7 @@ describe('AuthGuard', () => {
   }
 
   beforeEach(() => {
-    const authSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
+    const authSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated', 'checkSession']);
     const routerSpy = jasmine.createSpyObj('Router', ['createUrlTree']);
 
     TestBed.configureTestingModule({
@@ -35,35 +36,60 @@ describe('AuthGuard', () => {
     expect(guard).toBeTruthy();
   });
 
-  it('should allow activation when authenticated', () => {
+  it('should allow activation when authenticated', (done) => {
     authService.isAuthenticated.and.returnValue(true);
 
-    const result = guard.canActivate(mockRoute, mockState('/wallets'));
-
-    expect(result).toBe(true);
-    expect(router.createUrlTree).not.toHaveBeenCalled();
-  });
-
-  it('should redirect to login with return URL when not authenticated', () => {
-    authService.isAuthenticated.and.returnValue(false);
-    router.createUrlTree.and.returnValue({} as UrlTree);
-
-    const result = guard.canActivate(mockRoute, mockState('/wallets'));
-
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/login'], {
-      queryParams: { returnUrl: '/wallets' },
+    guard.canActivate(mockRoute, mockState('/wallets')).subscribe((result) => {
+      expect(result).toBe(true);
+      expect(router.createUrlTree).not.toHaveBeenCalled();
+      done();
     });
-    expect(result).toEqual({} as UrlTree);
   });
 
-  it('should redirect to login with nested return URL', () => {
+  it('should allow activation when session check succeeds', (done) => {
     authService.isAuthenticated.and.returnValue(false);
+    authService.checkSession.and.returnValue(of(true));
+
+    guard.canActivate(mockRoute, mockState('/wallets')).subscribe((result) => {
+      expect(result).toBe(true);
+      expect(authService.checkSession).toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it('should redirect to login with return URL when not authenticated', (done) => {
+    authService.isAuthenticated.and.returnValue(false);
+    authService.checkSession.and.returnValue(of(false));
     router.createUrlTree.and.returnValue({} as UrlTree);
 
-    guard.canActivate(mockRoute, mockState('/settings/profile'));
+    guard.canActivate(mockRoute, mockState('/wallets')).subscribe((result) => {
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/login'], {
+        queryParams: { returnUrl: '/wallets' },
+      });
+      expect(result).toEqual({} as UrlTree);
+      done();
+    });
+  });
 
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/login'], {
-      queryParams: { returnUrl: '/settings/profile' },
+  it('should redirect to login with nested return URL', (done) => {
+    authService.isAuthenticated.and.returnValue(false);
+    authService.checkSession.and.returnValue(of(false));
+    router.createUrlTree.and.returnValue({} as UrlTree);
+
+    guard.canActivate(mockRoute, mockState('/settings/profile')).subscribe(() => {
+      expect(router.createUrlTree).toHaveBeenCalledWith(['/login'], {
+        queryParams: { returnUrl: '/settings/profile' },
+      });
+      done();
+    });
+  });
+
+  it('should not call checkSession when already authenticated', (done) => {
+    authService.isAuthenticated.and.returnValue(true);
+
+    guard.canActivate(mockRoute, mockState('/wallets')).subscribe(() => {
+      expect(authService.checkSession).not.toHaveBeenCalled();
+      done();
     });
   });
 });

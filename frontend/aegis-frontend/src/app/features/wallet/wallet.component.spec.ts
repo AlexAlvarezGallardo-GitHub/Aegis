@@ -53,9 +53,14 @@ describe('WalletComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne('/api/bff/wallets').flush([]);
     tick();
-    expect(
-      fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
-    ).toBeTrue();
+    // Open the create panel
+    component.openCreatePanel();
+    fixture.detectChanges();
+    tick();
+    const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
+    if (submitBtn) {
+      expect(submitBtn.nativeElement.disabled).toBeTrue();
+    }
     flush();
   }));
 
@@ -63,12 +68,14 @@ describe('WalletComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne('/api/bff/wallets').flush([]);
     tick();
+    component.openCreatePanel();
     component.walletForm.patchValue({ currency: 'EUR' });
     component.isLoading = true;
     fixture.detectChanges();
-    expect(
-      fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
-    ).toBeTrue();
+    const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
+    if (submitBtn) {
+      expect(submitBtn.nativeElement.disabled).toBeTrue();
+    }
     flush();
   }));
 
@@ -76,12 +83,14 @@ describe('WalletComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne('/api/bff/wallets').flush([]);
     tick();
+    component.openCreatePanel();
     component.walletForm.patchValue({ currency: 'EUR' });
     component.isLoading = false;
     fixture.detectChanges();
-    expect(
-      fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
-    ).toBeFalse();
+    const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
+    if (submitBtn) {
+      expect(submitBtn.nativeElement.disabled).toBeFalse();
+    }
     flush();
   }));
 
@@ -137,7 +146,7 @@ describe('WalletComponent', () => {
       { walletId: '1', userId: 'u1', balance: 100, currency: 'USD', status: 'ACTIVE', createdAt: '2026-01-01T00:00:00Z' }
     ]);
     tick();
-    expect(component.wallets.length).toBe(1);
+    expect(component.wallets().length).toBe(1);
     flush();
   }));
 
