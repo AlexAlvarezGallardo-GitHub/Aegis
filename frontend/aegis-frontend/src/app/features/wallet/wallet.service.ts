@@ -22,4 +22,12 @@ export class WalletService {
   getWallet(walletId: string): Observable<WalletResponse> {
     return this.http.get<WalletResponse>(`${this.baseUrl}/${walletId}`);
   }
+
+  adjustBalance(walletId: string, amount: number, description?: string): Observable<WalletResponse> {
+    return this.http.patch<WalletResponse>(`${this.baseUrl}/${walletId}/balance`, { amount, description });
+  }
+
+  updateStatus(walletId: string, status: string): Observable<WalletResponse> {
+    return this.http.patch<WalletResponse>(`${this.baseUrl}/${walletId}/status`, { status });
+  }
 }

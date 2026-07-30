@@ -68,6 +68,7 @@ public class CreateWalletService implements CreateWalletUseCase {
                 result.balance(),
                 result.currency(),
                 result.status(),
+                false,
                 result.createdAt()
         );
     }

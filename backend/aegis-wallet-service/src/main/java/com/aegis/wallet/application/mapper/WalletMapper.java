@@ -1,5 +1,6 @@
 package com.aegis.wallet.application.mapper;
 
+import com.aegis.wallet.application.dto.WalletDetailResponse;
 import com.aegis.wallet.application.dto.WalletResponse;
 import com.aegis.wallet.domain.model.Wallet;
 
@@ -16,6 +17,7 @@ public final class WalletMapper {
                 wallet.getBalance(),
                 wallet.getCurrency(),
                 wallet.getStatus().name(),
+                wallet.isPremium(),
                 wallet.getCreatedAt()
         );
     }
@@ -24,5 +26,18 @@ public final class WalletMapper {
         return wallets.stream()
                 .map(WalletMapper::toResponse)
                 .toList();
+    }
+
+    public static WalletDetailResponse toDetailResponse(Wallet wallet) {
+        return new WalletDetailResponse(
+                wallet.getWalletId().value(),
+                wallet.getUserId(),
+                wallet.getBalance(),
+                wallet.getCurrency(),
+                wallet.getStatus().name(),
+                wallet.isPremium(),
+                wallet.getCreatedAt(),
+                wallet.getUpdatedAt()
+        );
     }
 }
