@@ -3,6 +3,7 @@ import { Router, UrlTree, ActivatedRouteSnapshot, RouterStateSnapshot } from '@a
 import { of } from 'rxjs';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from '../../features/auth/auth.service';
+import * as environment from '../../../environments/environment';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
@@ -30,6 +31,8 @@ describe('AuthGuard', () => {
     guard = TestBed.inject(AuthGuard);
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+
+    (environment.environment as { enableMockLogin: boolean }).enableMockLogin = false;
   });
 
   it('should be created', () => {

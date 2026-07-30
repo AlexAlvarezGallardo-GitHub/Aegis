@@ -6,191 +6,284 @@
       <p class="page-subtitle">Enterprise payment operations overview</p>
     </div>
     <div class="page-actions">
+      <!-- Time Range Toggle -->
+      <div class="range-toggle">
+        @for (range of ['7d', '30d', '90d']; track range) {
+          <button
+            class="range-btn"
+            [class.active]="selectedRange() === range"
+            (click)="setRange($any(range))"
+          >{{ range }}</button>
+        }
+      </div>
+      <button mat-icon-button (click)="refresh()" [title]="'Refresh data'" aria-label="Refresh dashboard">
+        <mat-icon>refresh</mat-icon>
+      </button>
       <span class="last-updated">
         <mat-icon class="update-icon">schedule</mat-icon>
-        Updated just now
+        @if (data().loading) {
+          Loading...
+        } @else {
+          {{ secondsSinceUpdate() }}s ago
+        }
       </span>
     </div>
   </div>
 
-  <!-- KPI Cards Row -->
-  <div class="kpi-grid">
-    @for (kpi of kpis; track kpi.label) {
-      <app-stat-card
-        [label]="kpi.label"
-        [value]="kpi.value"
-        [icon]="kpi.icon"
-        [trend]="kpi.trend"
-        [trendValue]="kpi.trendValue"
-        [variant]="kpi.variant"
-        [animate]="kpi.animate"
-        [countUpValue]="kpi.countUpValue"
-        [countUpPrefix]="kpi.countUpPrefix || ''"
-        [countUpDecimals]="kpi.countUpDecimals || 0"
-        [countUpDuration]="800"
+  <!-- Loading State -->
+  @if (data().loading && !data().data) {
+    <div class="loading-section">
+      <div class="kpi-grid">
+        @for (_ of [1,2,3,4,5,6,7,8,9,10,11,12]; track $index) {
+          <app-loading-skeleton variant="card" height="120px" />
+        }
+      </div>
+      <div class="charts-grid">
+        <app-loading-skeleton variant="rect" height="200px" />
+        <app-loading-skeleton variant="rect" height="200px" />
+      </div>
+      <div class="middle-grid">
+        <app-loading-skeleton variant="rect" height="200px" />
+        <app-loading-skeleton variant="rect" height="200px" />
+        <app-loading-skeleton variant="rect" height="200px" />
+      </div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (data().error && !data().data) {
+    <div class="error-section">
+      <app-empty-state
+        icon="error_outline"
+        title="Failed to load dashboard"
+        [description]="data().error || 'Unable to fetch dashboard data. Please try again.'"
+        actionLabel="Retry"
+        (click)="refresh()"
       />
+    </div>
+  }
+
+  <!-- Dashboard Content -->
+  @if (data().data; as dashboard) {
+    <!-- KPI Cards by Category -->
+    @for (category of kpiCategories(); track category.title) {
+      <div class="kpi-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">{{ category.icon }}</mat-icon>
+          <h2 class="section-title">{{ category.title }}</h2>
+        </div>
+        <div class="kpi-grid">
+          @for (kpi of category.cards; track kpi.id) {
+            <app-stat-card
+              [label]="kpi.label"
+              [value]="kpi.value"
+              [icon]="kpi.icon"
+              [trend]="kpi.trend"
+              [trendValue]="kpi.trendValue"
+              [variant]="kpi.variant"
+              [animate]="true"
+              [countUpValue]="kpi.numericValue"
+              [countUpPrefix]="kpi.prefix"
+              [countUpSuffix]="kpi.suffix"
+              [countUpDecimals]="kpi.decimals"
+              [countUpDuration]="800"
+              [subtitle]="kpi.subtitle"
+            />
+          }
+        </div>
+      </div>
     }
-  </div>
 
-  <!-- Charts Section -->
-  <div class="charts-grid">
-    <!-- Payment Volume Chart -->
-    <div class="card chart-card chart-card-wide">
-      <div class="card-header">
-        <div>
-          <h3 class="card-title">Payment Volume</h3>
-          <p class="card-subtitle">Last 30 days</p>
+    <!-- Charts Section -->
+    <div class="charts-grid">
+      <!-- Payment Volume (Line) -->
+      <div class="card chart-card chart-card-wide">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Payment Volume</h3>
+            <p class="card-subtitle">Last {{ selectedRange() }}</p>
+          </div>
         </div>
-        <div class="card-value">$1.2M</div>
+        <div class="chart-body">
+          @if (paymentVolume()?.data?.length; as len) {
+            @if (len > 0) {
+              <app-chart-line
+                [data]="paymentVolume()!.data"
+                stroke="var(--aegis-gold-500)"
+                gradientTop="rgba(212, 168, 67, 0.3)"
+                gradientBottom="rgba(212, 168, 67, 0)"
+                height="180px"
+              />
+            } @else {
+              <app-empty-state icon="show_chart" title="No volume data" />
+            }
+          }
+        </div>
       </div>
-      <div class="chart-container">
-        <div class="area-chart">
-          @for (val of chartData(); track $index) {
-            <div class="chart-bar" [style.height.%]="(val / 120) * 100" [style.animation-delay]="$index * 20 + 'ms'"></div>
+
+      <!-- Transactions (Bar) -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Transactions</h3>
+            <p class="card-subtitle">Last {{ selectedRange() }}</p>
+          </div>
+        </div>
+        <div class="chart-body">
+          @if (transactions()?.data?.length; as len) {
+            @if (len > 0) {
+              <app-chart-bar
+                [data]="transactions()!.data"
+                height="180px"
+              />
+            } @else {
+              <app-empty-state icon="bar_chart" title="No transaction data" />
+            }
           }
         </div>
       </div>
     </div>
 
-    <!-- Wallet Growth Chart -->
-    <div class="card chart-card">
-      <div class="card-header">
-        <div>
-          <h3 class="card-title">Wallet Growth</h3>
-          <p class="card-subtitle">Last 12 months</p>
+    <!-- Middle Section -->
+    <div class="middle-grid">
+      <!-- Fraud Trends (Area) -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Fraud Trends</h3>
+            <p class="card-subtitle">Risk score over time</p>
+          </div>
+        </div>
+        <div class="chart-body">
+          @if (fraudTrends()?.data?.length; as len) {
+            @if (len > 0) {
+              <app-chart-area
+                [data]="fraudTrends()!.data"
+                stroke="var(--aegis-color-error)"
+                gradientTop="rgba(239, 68, 68, 0.3)"
+                gradientBottom="rgba(239, 68, 68, 0)"
+                [showThreshold]="true"
+                [thresholdValue]="70"
+                height="180px"
+              />
+            } @else {
+              <app-empty-state icon="assessment" title="No fraud trend data" />
+            }
+          }
         </div>
       </div>
-      <div class="chart-container">
-        <div class="bar-chart">
-          @for (val of barData(); track $index) {
-            <div class="bar-col">
-              <div class="bar" [style.height.%]="(val / 95) * 100" [style.animation-delay]="$index * 40 + 'ms'"></div>
-              <span class="bar-label">{{ ['J','F','M','A','M','J','J','A','S','O','N','D'][$index] }}</span>
+
+      <!-- Wallet Growth (Line) -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Wallet Growth</h3>
+            <p class="card-subtitle">Cumulative wallets created</p>
+          </div>
+        </div>
+        <div class="chart-body">
+          @if (walletGrowth()?.data?.length; as len) {
+            @if (len > 0) {
+              <app-chart-line
+                [data]="walletGrowth()!.data"
+                stroke="var(--aegis-color-success)"
+                gradientTop="rgba(34, 197, 94, 0.3)"
+                gradientBottom="rgba(34, 197, 94, 0)"
+                height="180px"
+              />
+            } @else {
+              <app-empty-state icon="account_balance_wallet" title="No wallet data" />
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Recent Activity</h3>
+          <a routerLink="/activity" class="view-all-link">View all</a>
+        </div>
+        <div class="activity-list">
+          @if (recentActivity().length === 0) {
+            <app-empty-state icon="notifications_none" title="No recent activity" />
+          }
+          @for (event of recentActivity().slice(0, 10); track event.id) {
+            <div class="activity-row">
+              <mat-icon
+                class="activity-icon"
+                [style.color]="getActivityColor(event.type)"
+              >{{ getActivityIcon(event.type) }}</mat-icon>
+              <div class="activity-content">
+                <span class="activity-message">{{ event.message }}</span>
+                <span class="activity-time">{{ event.timestamp }}</span>
+              </div>
+              <app-status-chip
+                [label]="event.status"
+                [variant]="event.status === 'success' ? 'success' : event.status === 'warning' ? 'warning' : event.status === 'error' ? 'error' : 'info'"
+                size="sm"
+              />
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Fraud Alerts -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Fraud Alerts</h3>
+          <a routerLink="/fraud" class="view-all-link">View all</a>
+        </div>
+        <div class="alert-list">
+          @if (fraudAlerts().length === 0 && recentActivity().length === 0) {
+            <app-empty-state icon="verified_user" title="No fraud alerts" description="All clear — no suspicious activity detected" />
+          }
+          @if (fraudAlerts().length === 0 && recentActivity().length > 0) {
+            <div class="alert-clear">
+              <mat-icon class="clear-icon">verified_user</mat-icon>
+              <span class="clear-text">All clear — no alerts</span>
+            </div>
+          }
+          @for (alert of fraudAlerts(); track alert.id) {
+            <div class="alert-row" [class]="'severity-' + alert.severity">
+              <mat-icon class="alert-icon">{{ getSeverityIcon(alert.severity) }}</mat-icon>
+              <div class="alert-content">
+                <span class="alert-message">{{ alert.description }}</span>
+                <span class="alert-time">{{ alert.timestamp }}</span>
+              </div>
+              @if (alert.actionLink) {
+                <a [routerLink]="alert.actionLink" class="alert-link">Review</a>
+              }
             </div>
           }
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Middle Section -->
-  <div class="middle-grid">
-    <!-- Transactions per minute -->
-    <div class="card chart-card">
-      <div class="card-header">
-        <div>
-          <h3 class="card-title">Transactions / min</h3>
-          <p class="card-subtitle">Real-time</p>
+    <!-- System Health -->
+    @if (systemHealth(); as health) {
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">System Health</h3>
+          <app-status-chip
+            [label]="getOverallStatusLabel(health.overall)"
+            [variant]="getOverallStatusVariant(health.overall)"
+            [pulse]="health.overall === 'operational'"
+            size="sm"
+          />
         </div>
-        <div class="card-value accent">42</div>
-      </div>
-      <div class="chart-container">
-        <div class="line-chart">
-          <svg viewBox="0 0 200 60" preserveAspectRatio="none" class="line-svg">
-            <defs>
-              <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="var(--aegis-color-info)" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="var(--aegis-color-info)" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <path [attr.d]="getLinePath()" fill="url(#lineGrad)" class="line-area"/>
-            <path [attr.d]="getLinePath()" fill="none" stroke="var(--aegis-color-info)" stroke-width="1.5" class="line-stroke"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- System Status -->
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">System Status</h3>
-        <app-status-chip label="All Systems" variant="success" size="sm" />
-      </div>
-      <div class="system-list">
-        @for (sys of systemStatuses; track sys.name) {
-          <div class="system-row">
-            <span class="status-dot" [class]="getStatusClass(sys.status)" [class.pulse]="sys.status === 'healthy'"></span>
-            <span class="system-name">{{ sys.name }}</span>
-            <span class="system-latency mono">{{ sys.latency }}</span>
-          </div>
-        }
-      </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">Recent Activity</h3>
-      </div>
-      <div class="activity-list">
-        @for (event of recentActivity; track $index) {
-          <div class="activity-row">
-            <mat-icon class="activity-icon" [style.color]="getActivityColor(event.type)">{{ getActivityIcon(event.type) }}</mat-icon>
-            <div class="activity-content">
-              <span class="activity-message">{{ event.message }}</span>
-              <span class="activity-time">{{ event.time }}</span>
+        <div class="health-grid">
+          @for (svc of health.services; track svc.name) {
+            <div class="health-item">
+              <span class="health-dot" [class]="getServiceDotClass(svc.status)"></span>
+              <div class="health-info">
+                <span class="health-name">{{ svc.name }}</span>
+                <span class="health-meta">{{ svc.uptime }} · {{ svc.lastCheck }}</span>
+              </div>
             </div>
-          </div>
-        }
+          }
+        </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Bottom Section: Recent Transactions -->
-  <div class="card">
-    <div class="card-header">
-      <h3 class="card-title">Recent Transactions</h3>
-      <button class="view-all-btn">View all</button>
-    </div>
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Transaction ID</th>
-            <th>Amount</th>
-            <th>Currency</th>
-            <th>Status</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono">txn_8f3a2b1c</td>
-            <td class="mono">$12,400.00</td>
-            <td>USD</td>
-            <td><app-status-chip label="Completed" variant="success" size="sm" /></td>
-            <td class="mono">2026-07-09 14:32:01</td>
-          </tr>
-          <tr>
-            <td class="mono">txn_7e4d9c2a</td>
-            <td class="mono">$3,200.00</td>
-            <td>EUR</td>
-            <td><app-status-chip label="Completed" variant="success" size="sm" /></td>
-            <td class="mono">2026-07-09 14:28:45</td>
-          </tr>
-          <tr>
-            <td class="mono">txn_6b5e8d3f</td>
-            <td class="mono">$8,750.00</td>
-            <td>GBP</td>
-            <td><app-status-chip label="Pending" variant="warning" size="sm" [pulse]="true" /></td>
-            <td class="mono">2026-07-09 14:25:12</td>
-          </tr>
-          <tr>
-            <td class="mono">txn_5c2f1a4e</td>
-            <td class="mono">$1,100.00</td>
-            <td>USD</td>
-            <td><app-status-chip label="Completed" variant="success" size="sm" /></td>
-            <td class="mono">2026-07-09 14:20:33</td>
-          </tr>
-          <tr>
-            <td class="mono">txn_4d6a3b7c</td>
-            <td class="mono">$25,000.00</td>
-            <td>USD</td>
-            <td><app-status-chip label="Flagged" variant="error" size="sm" /></td>
-            <td class="mono">2026-07-09 14:15:07</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    }
+  }
 </div>
