@@ -20,17 +20,14 @@ Enum representing wallet lifecycle states.
 
 ## State Transitions
 
-```text
-                 ┌─────────┐
-          ┌──────│  ACTIVE  │──────┐
-          │      └─────────┘      │
-          ▼                       ▼
-    ┌─────────┐            ┌──────────┐
-    │  FROZEN │            │  CLOSED  │
-    └─────────┘            └──────────┘
-          ▲                       ▲
-          └───────────────────────┘
-         (reactivate from both)
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVE
+    ACTIVE --> FROZEN: freeze (balance = 0)
+    ACTIVE --> CLOSED: close (balance = 0)
+    FROZEN --> ACTIVE: reactivate
+    CLOSED --> ACTIVE: reactivate
+    CLOSED --> [*]
 ```
 
 ## Used By

@@ -42,23 +42,40 @@ Extend the wallet service with wallet management operations — opening wallet d
 
 ### Flow: Adjust Balance
 
-```text
-Angular -> PATCH /api/bff/wallets/{walletId}/balance
-     -> PATCH /api/v1/wallets/{walletId}/balance
-     -> Load wallet, validate ACTIVE status
-     -> Adjust balance, create ledger entry (DEPOSIT/WITHDRAWAL)
-     -> Publish WalletBalanceAdjusted via outbox
-     -> Return wallet detail with premium flag
+```mermaid
+sequenceDiagram
+    participant Angular
+    participant BFF
+    participant Wallet as Wallet Service
+    participant DB as PostgreSQL
+    participant Kafka as Kafka (outbox)
+
+    Angular->>BFF: PATCH /api/bff/wallets/{walletId}/balance
+    BFF->>Wallet: PATCH /api/v1/wallets/{walletId}/balance
+    Wallet->>Wallet: load wallet, validate ACTIVE
+    Wallet->>Wallet: adjust balance, create ledger entry (DEPOSIT/WITHDRAWAL)
+    Wallet->>DB: save wallet + ledger entry
+    Wallet->>DB: insert outbox event (WalletBalanceAdjusted)
+    DB-->>Kafka: outbox relay
+    Wallet-->>BFF: wallet detail with premium flag
+    BFF-->>Angular: 200 wallet detail
 ```
 
 ### Flow: Deactivate Wallet
 
-```text
-Angular -> PATCH /api/bff/wallets/{walletId}/status
-     -> PATCH /api/v1/wallets/{walletId}/status
-     -> Validate target != ACTIVE, balance == 0
-     -> Update status to FROZEN or CLOSED
-     -> Return updated wallet detail
+```mermaid
+sequenceDiagram
+    participant Angular
+    participant BFF
+    participant Wallet as Wallet Service
+    participant DB as PostgreSQL
+
+    Angular->>BFF: PATCH /api/bff/wallets/{walletId}/status
+    BFF->>Wallet: PATCH /api/v1/wallets/{walletId}/status
+    Wallet->>Wallet: validate target != ACTIVE, balance == 0
+    Wallet->>DB: update status to FROZEN or CLOSED
+    Wallet-->>BFF: updated wallet detail
+    BFF-->>Angular: 200 updated wallet detail
 ```
 
 ## API Endpoints

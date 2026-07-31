@@ -181,6 +181,11 @@ Every inbound port file in `docs/obsidian/04 - Ports/inbound/` MUST include:
 Every infrastructure file (Kafka Topics, etc.) MUST include:
 - A `graph` diagram showing the topology (topics, partitions, consumer groups)
 
+Every enum/status domain model file (UserStatus, WalletStatus, etc.) MUST include:
+- A `stateDiagram-v2` showing state transitions (with trigger labels)
+
+No file in the vault MAY use plain-text/ASCII diagrams (` ```text `) for architecture, flows, or transitions — Mermaid is mandatory.
+
 All Mermaid diagrams MUST use ` ```mermaid ` blocks (Obsidian-native rendering), not inline diagrams. Use `graph TB`/`graph LR` for static topology and `sequenceDiagram` for flows. Color nodes with `style` directives for visual grouping: services `#bbf`, infrastructure `#fdb`, databases `#afa`.
 
 ## Authority

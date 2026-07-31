@@ -79,20 +79,35 @@ sequenceDiagram
 
 ## Context (C4 Level 1)
 
-```text
-[User] ──HTTPS──> [BFF Service :8082]
-                      │
-           ┌──────────┼──────────┬──────────────┐
-           ▼          ▼          ▼              ▼
-   [Identity Svc]  [Wallet Svc] [Reporting Svc] [Audit Svc]
-   :8081           :8083         :8087           :8088
-           │          │            │              │
-           ▼          ▼            ▼              ▼
-      [PostgreSQL] [PostgreSQL] [PostgreSQL]  [PostgreSQL]
-           │          │            │              │
-           └──────────┼────────────┼──────────────┘
-                      ▼            ▼
-                [Apache Kafka]  [Apache Kafka]
+```mermaid
+flowchart TB
+    User([User])
+    User -->|HTTPS| BFF["BFF Service<br/>:8082"]
+    BFF --> Identity["Identity Service<br/>:8081"]
+    BFF --> Wallet["Wallet Service<br/>:8083"]
+    BFF --> Fraud["Fraud Service<br/>:8089"]
+    Identity --> PG1[("PostgreSQL<br/>aegis_identity")]
+    Wallet --> PG2[("PostgreSQL<br/>aegis_wallet")]
+    Wallet -->|wallet.funds.deposited| Kafka[[Apache Kafka]]
+    Fraud -->|fraud.assessment.completed| Kafka
+    Kafka --> Report["Reporting Service<br/>:8087"]
+    Kafka --> Audit["Audit Service<br/>:8088"]
+    Report --> PG3[("PostgreSQL<br/>aegis_reporting")]
+    Audit --> PG4[("PostgreSQL<br/>aegis_audit")]
+    Fraud --> PG5[("PostgreSQL<br/>aegis_fraud")]
+    style User fill:#f9f,stroke:#333,stroke-width:2px
+    style BFF fill:#bbf,stroke:#333
+    style Identity fill:#bbf,stroke:#333
+    style Wallet fill:#bbf,stroke:#333
+    style Fraud fill:#bbf,stroke:#333
+    style Report fill:#bbf,stroke:#333
+    style Audit fill:#bbf,stroke:#333
+    style Kafka fill:#fdb,stroke:#333
+    style PG1 fill:#afa,stroke:#333
+    style PG2 fill:#afa,stroke:#333
+    style PG3 fill:#afa,stroke:#333
+    style PG4 fill:#afa,stroke:#333
+    style PG5 fill:#afa,stroke:#333
 ```
 
 ## Services

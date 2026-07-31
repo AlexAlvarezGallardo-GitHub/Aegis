@@ -22,13 +22,16 @@ Enum representing account lifecycle states.
 
 ## State Transitions
 
-```text
-PENDING_VERIFICATION → ACTIVE
-ACTIVE → LOCKED (5 failed attempts)
-ACTIVE → SUSPENDED (admin)
-ACTIVE → CLOSED (user request)
-LOCKED → ACTIVE (timeout or admin unlock)
-SUSPENDED → ACTIVE (admin)
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING_VERIFICATION
+    PENDING_VERIFICATION --> ACTIVE: email verified
+    ACTIVE --> LOCKED: 5 failed attempts
+    ACTIVE --> SUSPENDED: admin
+    ACTIVE --> CLOSED: user request
+    LOCKED --> ACTIVE: timeout / admin unlock
+    SUSPENDED --> ACTIVE: admin
+    CLOSED --> [*]
 ```
 
 ## Used By
