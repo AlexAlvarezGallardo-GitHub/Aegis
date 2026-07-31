@@ -308,7 +308,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      CONNECTIONS: identity,wallet,redis
+      CONNECTIONS: identity,wallet,reporting,audit,fraud,redis
       LABEL_identity: Aegis Identity DB
       SERVER_identity: postgres-identity
       PORT_identity: 5432
@@ -323,6 +323,27 @@ services:
       PASSWORD_wallet: aegis_secret
       DATABASE_wallet: aegis_wallet
       ENGINE_wallet: "postgres@dbgate-plugin-postgres"
+      LABEL_reporting: Aegis Reporting DB
+      SERVER_reporting: postgres-reporting
+      PORT_reporting: 5432
+      USER_reporting: aegis
+      PASSWORD_reporting: aegis_secret
+      DATABASE_reporting: aegis_reporting
+      ENGINE_reporting: "postgres@dbgate-plugin-postgres"
+      LABEL_audit: Aegis Audit DB
+      SERVER_audit: postgres-audit
+      PORT_audit: 5432
+      USER_audit: aegis
+      PASSWORD_audit: aegis_secret
+      DATABASE_audit: aegis_audit
+      ENGINE_audit: "postgres@dbgate-plugin-postgres"
+      LABEL_fraud: Aegis Fraud DB
+      SERVER_fraud: postgres-fraud
+      PORT_fraud: 5432
+      USER_fraud: aegis
+      PASSWORD_fraud: aegis_secret
+      DATABASE_fraud: aegis_fraud
+      ENGINE_fraud: "postgres@dbgate-plugin-postgres"
       LABEL_redis: Aegis Redis
       SERVER_redis: redis
       PORT_redis: 6379
@@ -331,6 +352,12 @@ services:
       postgres-identity:
         condition: service_healthy
       postgres-wallet:
+        condition: service_healthy
+      postgres-reporting:
+        condition: service_healthy
+      postgres-audit:
+        condition: service_healthy
+      postgres-fraud:
         condition: service_healthy
       redis:
         condition: service_healthy
