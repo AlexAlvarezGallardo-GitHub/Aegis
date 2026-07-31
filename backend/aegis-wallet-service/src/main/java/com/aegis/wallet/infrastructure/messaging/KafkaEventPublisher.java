@@ -1,6 +1,7 @@
 package com.aegis.wallet.infrastructure.messaging;
 
 import com.aegis.common.util.UuidV7Generator;
+import com.aegis.wallet.domain.event.FundsDeposited;
 import com.aegis.wallet.domain.event.WalletBalanceAdjusted;
 import com.aegis.wallet.domain.event.WalletCreated;
 import com.aegis.wallet.domain.port.outbound.EventPublisher;
@@ -30,6 +31,11 @@ public class KafkaEventPublisher implements EventPublisher {
 
     @Override
     public void publish(WalletCreated event) {
+        publish("WALLET", event.walletId(), event.eventType(), event);
+    }
+
+    @Override
+    public void publish(FundsDeposited event) {
         publish("WALLET", event.walletId(), event.eventType(), event);
     }
 

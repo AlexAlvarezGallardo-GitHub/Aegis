@@ -2,15 +2,19 @@ package com.aegis.wallet.web.controller;
 
 import com.aegis.wallet.application.dto.AdjustBalanceCommand;
 import com.aegis.wallet.application.dto.CreateWalletCommand;
+import com.aegis.wallet.application.dto.DepositFundsCommand;
+import com.aegis.wallet.application.dto.DepositReceipt;
 import com.aegis.wallet.application.dto.UpdateStatusCommand;
 import com.aegis.wallet.application.dto.WalletDetailResponse;
 import com.aegis.wallet.application.dto.WalletResponse;
 import com.aegis.wallet.application.mapper.WalletMapper;
 import com.aegis.wallet.application.service.CreateWalletService;
+import com.aegis.wallet.application.service.DepositFundsService;
 import com.aegis.wallet.application.service.UpdateWalletService;
 import com.aegis.wallet.domain.exception.WalletNotFoundException;
 import com.aegis.wallet.domain.model.WalletId;
 import com.aegis.wallet.domain.model.WalletStatus;
+import com.aegis.wallet.domain.port.inbound.DepositFundsUseCase;
 import com.aegis.wallet.domain.port.inbound.UpdateWalletUseCase;
 import com.aegis.wallet.domain.port.outbound.WalletRepository;
 import jakarta.validation.Valid;
@@ -34,13 +38,16 @@ public class WalletController {
 
     private final CreateWalletService createWalletService;
     private final UpdateWalletService updateWalletService;
+    private final DepositFundsService depositFundsService;
     private final WalletRepository walletRepository;
 
     public WalletController(CreateWalletService createWalletService,
                              UpdateWalletService updateWalletService,
+                             DepositFundsService depositFundsService,
                              WalletRepository walletRepository) {
         this.createWalletService = createWalletService;
         this.updateWalletService = updateWalletService;
+        this.depositFundsService = depositFundsService;
         this.walletRepository = walletRepository;
     }
 
@@ -101,6 +108,33 @@ public class WalletController {
                 walletId, userId, request.amount(), request.description(), effectiveCorrelationId));
 
         return ResponseEntity.ok(toDetailResponse(result));
+    }
+
+    @PostMapping("/{walletId}/deposits")
+    public ResponseEntity<DepositReceipt> depositFunds(
+            @PathVariable UUID walletId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
+            @Valid @RequestBody DepositFundsCommand request) {
+
+        String effectiveCorrelationId = correlationId != null
+                ? correlationId
+                : UUID.randomUUID().toString();
+
+        var result = depositFundsService.deposit(new DepositFundsUseCase.DepositCommand(
+                walletId, userId, request.amount(), request.currency(),
+                request.source(), request.reference(), effectiveCorrelationId));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(new DepositReceipt(
+                result.depositId(),
+                result.walletId(),
+                result.newBalance(),
+                result.amount(),
+                result.currency(),
+                result.source(),
+                result.reference(),
+                result.timestamp()
+        ));
     }
 
     @PatchMapping("/{walletId}/status")

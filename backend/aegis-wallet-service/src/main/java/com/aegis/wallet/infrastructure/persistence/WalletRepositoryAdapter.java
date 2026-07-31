@@ -52,21 +52,22 @@ public class WalletRepositoryAdapter implements WalletRepository {
     }
 
     private void saveLedgerEntries(Wallet wallet) {
-        List<LedgerEntryJpaEntity> existing = ledgerEntryJpaRepository
-                .findByWalletIdOrderByCreatedAtAsc(wallet.getWalletId().value());
-        if (!existing.isEmpty()) {
-            return;
-        }
+        var existingIds = ledgerEntryJpaRepository
+                .findByWalletIdOrderByCreatedAtAsc(wallet.getWalletId().value()).stream()
+                .map(LedgerEntryJpaEntity::getId)
+                .collect(java.util.stream.Collectors.toSet());
         for (LedgerEntry entry : wallet.getLedgerEntries()) {
-            ledgerEntryJpaRepository.save(new LedgerEntryJpaEntity(
-                    entry.id(),
-                    entry.walletId(),
-                    entry.type().name(),
-                    entry.amount(),
-                    entry.currency(),
-                    entry.reference(),
-                    entry.timestamp()
-            ));
+            if (!existingIds.contains(entry.id())) {
+                ledgerEntryJpaRepository.save(new LedgerEntryJpaEntity(
+                        entry.id(),
+                        entry.walletId(),
+                        entry.type().name(),
+                        entry.amount(),
+                        entry.currency(),
+                        entry.reference(),
+                        entry.timestamp()
+                ));
+            }
         }
     }
 

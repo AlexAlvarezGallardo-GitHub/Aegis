@@ -1,0 +1,45 @@
+event: FundsDeposited
+topic: wallet.funds.deposited
+schemaVersion: "1.0"
+
+headers:
+  contentType: application/json
+  eventType: FUNDS_DEPOSITED
+
+payload:
+  eventId:
+    type: string
+    format: uuid
+    description: Unique event identifier
+  eventType:
+    type: string
+    enum: [FUNDS_DEPOSITED]
+  schemaVersion:
+    type: string
+    example: "1.0"
+  walletId:
+    type: string
+    format: uuid
+  userId:
+    type: string
+    format: uuid
+  amount:
+    type: number
+    format: decimal
+  currency:
+    type: string
+    pattern: "^[A-Z]{3}$"
+  source:
+    type: string
+    description: Source of funds (BANK_TRANSFER, CARD, etc.)
+  reference:
+    type: string
+    description: External reference for idempotency
+  newBalance:
+    type: number
+    format: decimal
+  timestamp:
+    type: string
+    format: date-time
+  correlationId:
+    type: string

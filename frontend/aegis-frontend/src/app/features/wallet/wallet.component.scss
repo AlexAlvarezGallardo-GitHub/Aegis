@@ -430,3 +430,51 @@
   display: flex;
   gap: var(--aegis-space-2);
 }
+
+// ── Deposit Section ────────────────────────────────────────────────────────────
+
+.detail-hint {
+  font-size: var(--aegis-text-xs);
+  color: var(--aegis-color-text-muted);
+  margin: 0;
+}
+
+.deposit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-3);
+}
+
+.deposit-input {
+  width: 100%;
+}
+
+.deposit-actions {
+  display: flex;
+  gap: var(--aegis-space-2);
+}
+
+.deposit-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-1);
+  padding: var(--aegis-space-3);
+  margin-top: var(--aegis-space-3);
+  background-color: var(--aegis-surface-success, #f0fdf4);
+  border: 1px solid var(--aegis-border-success, #bbf7d0);
+  border-radius: var(--aegis-radius-md);
+}
+
+.receipt-label {
+  font-size: var(--aegis-text-xs);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.receipt-value {
+  font-size: var(--aegis-text-sm);
+  font-family: var(--aegis-font-mono, 'SF Mono', 'Fira Code', monospace);
+  color: var(--aegis-color-text);
+}

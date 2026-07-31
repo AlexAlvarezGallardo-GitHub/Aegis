@@ -1,6 +1,7 @@
 package com.aegis.wallet.web.advice;
 
 import com.aegis.common.domain.exception.AegisException;
+import com.aegis.wallet.domain.exception.DuplicateDepositException;
 import com.aegis.wallet.domain.exception.WalletLimitExceededException;
 import com.aegis.wallet.domain.exception.WalletNotFoundException;
 import com.aegis.wallet.domain.exception.WalletOperationNotAllowedException;
@@ -29,6 +30,11 @@ public class WalletExceptionHandler {
     @ExceptionHandler(WalletNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleWalletNotFound(WalletNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(DuplicateDepositException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateDeposit(DuplicateDepositException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
     }
 
     @ExceptionHandler(WalletOperationNotAllowedException.class)

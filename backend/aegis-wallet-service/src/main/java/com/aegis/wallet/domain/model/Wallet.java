@@ -1,6 +1,7 @@
 package com.aegis.wallet.domain.model;
 
 import com.aegis.common.util.UuidV7Generator;
+import com.aegis.wallet.domain.event.FundsDeposited;
 import com.aegis.wallet.domain.event.WalletBalanceAdjusted;
 import com.aegis.wallet.domain.event.WalletCreated;
 import com.aegis.wallet.domain.exception.WalletOperationNotAllowedException;
@@ -118,6 +119,30 @@ public class Wallet {
         this.updatedAt = Instant.now();
     }
 
+    public void depositFunds(BigDecimal amount, String source, String reference, String description) {
+        if (status != WalletStatus.ACTIVE) {
+            throw new WalletOperationNotAllowedException(
+                    "Cannot deposit. Wallet is " + status.name().toLowerCase());
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Deposit amount must be positive");
+        }
+
+        this.balance = this.balance.add(amount);
+
+        LedgerEntry entry = new LedgerEntry(
+                UuidV7Generator.generate(),
+                walletId.value(),
+                LedgerEntryType.DEPOSIT,
+                amount,
+                currency,
+                reference != null ? reference : description != null ? description : "Deposit",
+                Instant.now()
+        );
+        ledgerEntries.add(entry);
+        this.updatedAt = Instant.now();
+    }
+
     public void deactivate(WalletStatus targetStatus) {
         if (targetStatus == WalletStatus.ACTIVE) {
             throw new IllegalArgumentException("Cannot deactivate to ACTIVE status");
@@ -140,6 +165,20 @@ public class Wallet {
                 userId,
                 currency,
                 createdAt,
+                correlationId
+        );
+    }
+
+    public FundsDeposited toFundsDepositedEvent(BigDecimal amount, String source, String reference,
+                                                  String correlationId) {
+        return new FundsDeposited(
+                walletId.value(),
+                userId,
+                amount,
+                currency,
+                source,
+                reference,
+                balance,
                 correlationId
         );
     }
