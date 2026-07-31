@@ -14,12 +14,17 @@ database: aegis_audit
 
 ```mermaid
 graph LR
-    Kafka[("Kafka<br/>wallet.funds.deposited")] --> Consumer[FundsDepositedConsumer]
-    Consumer --> Repo[AuditRecordRepository]
-    Repo --> DB[(PostgreSQL<br/>aegis_audit)]
+    Kafka[("Kafka")] --> Consumer1[FundsDepositedConsumer]
+    Kafka --> Consumer2[FraudAssessmentConsumer]
+    Consumer1 --> Repo1[AuditRecordRepository]
+    Consumer2 --> Repo2[FraudAuditRecordRepository]
+    Repo1 --> DB[(PostgreSQL<br/>aegis_audit)]
+    Repo2 --> DB
     subgraph "Hexagonal"
-        Consumer
-        Repo
+        Consumer1
+        Consumer2
+        Repo1
+        Repo2
     end
     style Kafka fill:#fdb,stroke:#333
     style DB fill:#afa,stroke:#333
@@ -47,12 +52,12 @@ sequenceDiagram
 ## Hexagonal Structure
 
 ### Domain (`com.aegis.audit.domain`)
-- **Events**: `FundsDepositedEvent` (local copy for Kafka deserialization)
-- **Models**: `AuditRecord` (JPA entity)
+- **Events**: `FundsDepositedEvent`, `FraudAssessmentCompletedEvent` (local copies for Kafka deserialization)
+- **Models**: `AuditRecord`, `FraudAuditRecord` (JPA entities)
 
 ### Infrastructure (`com.aegis.audit.infrastructure`)
-- **Persistence**: `AuditRecordRepository`
-- **Messaging**: `FundsDepositedConsumer`
+- **Persistence**: `AuditRecordRepository`, `FraudAuditRecordRepository`
+- **Messaging**: `FundsDepositedConsumer`, `FraudAssessmentConsumer`
 - **Config**: `KafkaConfig`
 
 ## Event Consumers
@@ -60,8 +65,10 @@ sequenceDiagram
 | Event | Topic | Handler | Action |
 |-------|-------|---------|--------|
 | [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | `wallet.funds.deposited` | `FundsDepositedConsumer` | Persists `AuditRecord` with all event fields |
+| [[03 - Domain Events/FraudAssessmentCompleted\|FraudAssessmentCompleted]] | `fraud.assessment.completed` | `FraudAssessmentConsumer` | Persists `FraudAuditRecord` |
 
 ## Dependencies
 
 - **Depends on**: [[01 - Services/Common Module\|Common Module]], PostgreSQL, Kafka
 - **Consumes from**: [[01 - Services/Wallet Service\|Wallet Service]] (via `wallet.funds.deposited`)
+- **Consumes from**: [[01 - Services/Fraud Service\|Fraud Service]] (via `fraud.assessment.completed`)

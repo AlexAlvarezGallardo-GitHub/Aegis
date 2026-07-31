@@ -1,0 +1,155 @@
+openapi: 3.0.3
+info:
+  title: Fraud Service API
+  version: 1.0.0
+  description: Real-time fraud detection and risk scoring API
+
+paths:
+  /api/v1/fraud/assess:
+    post:
+      summary: Assess a transaction for fraud risk
+      operationId: assessFraud
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentRequest'
+      responses:
+        '200':
+          description: Fraud assessment completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/fraud/assessments/{assessmentId}:
+    get:
+      summary: Retrieve a fraud assessment by ID
+      operationId: getAssessment
+      parameters:
+        - name: assessmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Fraud assessment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    AssessmentRequest:
+      type: object
+      required: [transactionId, transactionType, amount, currency, userId]
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        transactionType:
+          type: string
+          enum: [TRANSFER, PAYMENT, WITHDRAWAL, DEPOSIT]
+        amount:
+          type: number
+          format: decimal
+          minimum: 0
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        sourceWalletId:
+          type: string
+          format: uuid
+        destWalletId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        countryCode:
+          type: string
+          description: ISO 3166-1 alpha-2 country of the transaction origin
+
+    RuleEvaluation:
+      type: object
+      properties:
+        ruleName:
+          type: string
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        matched:
+          type: boolean
+        details:
+          type: string
+
+    AssessmentResponse:
+      type: object
+      properties:
+        assessmentId:
+          type: string
+          format: uuid
+        transactionId:
+          type: string
+          format: uuid
+        transactionType:
+          type: string
+        riskScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        decision:
+          type: string
+          enum: [APPROVE, REVIEW, REJECT]
+        rulesEvaluated:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleEvaluation'
+        timestamp:
+          type: string
+          format: date-time
+
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Assessment not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

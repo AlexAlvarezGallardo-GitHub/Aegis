@@ -16,10 +16,13 @@ graph TB
     Wallet -->|wallet.funds.deposited| Kafka[Apache Kafka]
     Kafka --> Report[Reporting Service :8087]
     Kafka --> Audit[Audit Service :8088]
+    Fraud[Fraud Service :8089] -->|fraud.assessment.completed| Kafka
+    Fraud -->|consumes payment.*| Kafka
     Identity --> PG1[(PostgreSQL identity)]
     Wallet --> PG2[(PostgreSQL wallet)]
     Report --> PG3[(PostgreSQL reporting)]
     Audit --> PG4[(PostgreSQL audit)]
+    Fraud --> PG5[(PostgreSQL fraud)]
     subgraph Frontend
         BFF
     end
@@ -28,6 +31,7 @@ graph TB
         Wallet
         Report
         Audit
+        Fraud
     end
     subgraph Infrastructure
         Kafka
@@ -35,6 +39,7 @@ graph TB
         PG2
         PG3
         PG4
+        PG5
     end
     style User fill:#f9f,stroke:#333,stroke-width:2px
     style BFF fill:#bbf,stroke:#333
@@ -42,6 +47,7 @@ graph TB
     style Wallet fill:#bbf,stroke:#333
     style Report fill:#bbf,stroke:#333
     style Audit fill:#bbf,stroke:#333
+    style Fraud fill:#bbf,stroke:#333
     style Kafka fill:#fdb,stroke:#333
 ```
 
@@ -98,6 +104,7 @@ sequenceDiagram
 | [[01 - Services/Wallet Service\|Wallet Service]] | 8083 | Spring Boot + JPA | ✅ |
 | [[01 - Services/Reporting Service\|Reporting Service]] | 8087 | Spring Boot + JPA + Kafka | ✅ |
 | [[01 - Services/Audit Service\|Audit Service]] | 8088 | Spring Boot + JPA + Kafka | ✅ |
+| [[01 - Services/Fraud Service\|Fraud Service]] | 8089 | Spring Boot + JPA + Kafka | ✅ |
 | [[01 - Services/Common Module\|Common Module]] | — | Shared library | ✅ |
 | [[01 - Services/Frontend\|Frontend]] | 4200 | Angular 18+ | ✅ |
 
@@ -128,6 +135,7 @@ sequenceDiagram
 | [[03 - Domain Events/WalletCreated\|WalletCreated]] | Wallet | `aegis.wallet.wallet-created` |
 | [[03 - Domain Events/WalletBalanceAdjusted\|WalletBalanceAdjusted]] | Wallet | `aegis.wallet.balance.adjusted` |
 | [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | Wallet | `wallet.funds.deposited` |
+| [[03 - Domain Events/FraudAssessmentCompleted\|FraudAssessmentCompleted]] | Fraud | `fraud.assessment.completed` |
 
 ## Ports (Hexagonal Architecture)
 
@@ -137,6 +145,7 @@ sequenceDiagram
 - [[04 - Ports/inbound/CreateWalletUseCase\|CreateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
 - [[04 - Ports/inbound/UpdateWalletUseCase\|UpdateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
 - [[04 - Ports/inbound/DepositFundsUseCase\|DepositFundsUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
+- [[04 - Ports/inbound/AssessFraudUseCase\|AssessFraudUseCase]] → [[01 - Services/Fraud Service|Fraud Service]]
 
 **Outbound (Driven)**
 - [[04 - Ports/outbound/UserRepository\|UserRepository]] → [[01 - Services/Identity Service|Identity Service]]
@@ -158,6 +167,7 @@ sequenceDiagram
 - [[07 - Specs/UC-002 User Authentication\|UC-002 User Authentication]]
 - [[07 - Specs/UC-003 Create Wallet\|UC-003 Create Wallet]]
 - [[07 - Specs/UC-004 Deposit Funds\|UC-004 Deposit Funds]]
+- [[07 - Specs/UC-008 Fraud Detection\|UC-008 Fraud Detection]]
 - [[07 - Specs/UC-010 BFF\|UC-010 BFF]]
 
 ## Architecture Decisions

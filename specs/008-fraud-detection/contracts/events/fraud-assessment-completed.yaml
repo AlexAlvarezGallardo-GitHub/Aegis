@@ -1,0 +1,41 @@
+event: FraudAssessmentCompleted
+topic: fraud.assessment.completed
+schemaVersion: "1.0"
+
+headers:
+  contentType: application/json
+  eventType: FRAUD_ASSESSMENT_COMPLETED
+
+payload:
+  assessmentId:
+    type: string
+    format: uuid
+  transactionId:
+    type: string
+    format: uuid
+  transactionType:
+    type: string
+    enum: [TRANSFER, PAYMENT, WITHDRAWAL, DEPOSIT]
+  riskScore:
+    type: integer
+    minimum: 0
+    maximum: 100
+  decision:
+    type: string
+    enum: [APPROVE, REVIEW, REJECT]
+  rulesEvaluated:
+    type: array
+    items:
+      type: object
+      properties:
+        ruleName:
+          type: string
+        score:
+          type: integer
+        matched:
+          type: boolean
+        details:
+          type: string
+  timestamp:
+    type: string
+    format: date-time
