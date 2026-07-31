@@ -10,6 +10,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ public class FraudAssessmentJpaEntity {
     @Column(nullable = false)
     private FraudDecisionJpa decision;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "rules_evaluated", columnDefinition = "jsonb", nullable = false)
     private String rulesEvaluatedJson;
 

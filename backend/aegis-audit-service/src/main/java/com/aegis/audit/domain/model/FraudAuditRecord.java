@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -30,6 +32,7 @@ public class FraudAuditRecord {
     @Column(name = "decision", nullable = false)
     private String decision;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "rules_evaluated", columnDefinition = "jsonb", nullable = false)
     private String rulesEvaluatedJson;
 

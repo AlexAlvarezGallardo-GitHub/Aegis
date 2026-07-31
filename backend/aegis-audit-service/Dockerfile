@@ -19,13 +19,13 @@ RUN mvn dependency:go-offline -B -q
 COPY aegis-common/src aegis-common/src
 RUN mvn install -pl aegis-common -B -q -DskipTests
 
-# ── 4. Build bff-service ───────────────────────────────
-COPY aegis-bff-service/src aegis-bff-service/src
-RUN mvn package -pl aegis-bff-service -am -B -q -DskipTests
+# ── 4. Build audit-service ─────────────────────────────
+COPY aegis-audit-service/src aegis-audit-service/src
+RUN mvn package -pl aegis-audit-service -am -B -q -DskipTests
 
 # ── Runtime ──────────────────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /build/aegis-bff-service/target/aegis-bff-service-*.jar app.jar
-EXPOSE 8082
+COPY --from=build /build/aegis-audit-service/target/aegis-audit-service-*.jar app.jar
+EXPOSE 8088
 ENTRYPOINT ["java", "-jar", "app.jar"]

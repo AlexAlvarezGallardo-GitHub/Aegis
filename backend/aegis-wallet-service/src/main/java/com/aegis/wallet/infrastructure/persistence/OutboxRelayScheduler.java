@@ -18,7 +18,9 @@ public class OutboxRelayScheduler {
     private static final Logger log = LoggerFactory.getLogger(OutboxRelayScheduler.class);
 
     private static final Map<String, String> TOPIC_MAP = Map.of(
-            "WALLET_CREATED", "aegis.wallet.created"
+            "WALLET_CREATED", "aegis.wallet.created",
+            "WALLET_BALANCE_ADJUSTED", "aegis.wallet.balance.adjusted",
+            "FUNDS_DEPOSITED", "wallet.funds.deposited"
     );
 
     private final OutboxEventJpaRepository outboxRepository;

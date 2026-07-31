@@ -26,7 +26,8 @@ public class FraudAssessmentConsumer {
         this.objectMapper = objectMapper;
     }
 
-    @KafkaListener(topics = "fraud.assessment.completed", groupId = "audit-group")
+    @KafkaListener(topics = "fraud.assessment.completed", groupId = "audit-group",
+            containerFactory = "fraudAssessmentListenerContainerFactory")
     public void consume(FraudAssessmentCompletedEvent event) {
         log.info("Received FraudAssessmentCompleted for assessment {} (decision {})",
                 event.assessmentId(), event.decision());

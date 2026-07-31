@@ -38,7 +38,7 @@ public class FundsDepositedConsumer {
     @KafkaListener(
             topics = "${aegis.kafka.topics.funds-deposited}",
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "fundsDepositedListenerContainerFactory"
     )
     public void consume(FundsDepositedEvent event) {
         log.info("Received FundsDepositedEvent: eventId={}, walletId={}, amount={} {}",
