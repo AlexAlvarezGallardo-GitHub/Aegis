@@ -165,7 +165,9 @@ When testing Angular components, the test-engineer MUST verify:
 - **finalize guarantee**: Use a spy and verify `isLoading` transitions: `false → true → false` always completes
 - **HTTP mock**: Use `HttpTestingController` to flush/expect requests and verify loading states
 
-## Obsidian Vault — Mermaid Diagrams
+## Mermaid Diagrams (Vault + Service READMEs)
+
+The Mermaid rules below apply to `docs/obsidian/` files AND to the `## Architecture` section of every service `README.md` (`backend/*/README.md`). No ASCII/plain-text diagrams allowed anywhere.
 
 Every service documentation file in `docs/obsidian/01 - Services/` MUST include:
 - A `graph` diagram showing the service's hexagonal architecture (layers → ports → infrastructure)
