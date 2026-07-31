@@ -1,5 +1,6 @@
 package com.aegis.wallet.domain.model;
 
+import com.aegis.wallet.domain.exception.InsufficientFundsException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -161,5 +162,35 @@ class WalletTest {
         assertEquals("EUR", event.currency());
         assertEquals(correlationId, event.correlationId());
         assertEquals("WALLET_CREATED", event.eventType());
+    }
+
+    @Test
+    void adjustBalanceShouldRejectWithdrawalThatWouldMakeBalanceNegative() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("50.00"), "BANK_TRANSFER", "TXN-001", null);
+
+        InsufficientFundsException ex = assertThrows(InsufficientFundsException.class,
+                () -> wallet.adjustBalance(new BigDecimal("-100.00"), "Overdraw"));
+        assertEquals("INSUFFICIENT_FUNDS", ex.getCode());
+    }
+
+    @Test
+    void adjustBalanceShouldAllowWithdrawalWithinBalance() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK_TRANSFER", "TXN-001", null);
+
+        wallet.adjustBalance(new BigDecimal("-50.00"), "Withdrawal");
+
+        assertEquals(0, new BigDecimal("50.00").compareTo(wallet.getBalance()));
+    }
+
+    @Test
+    void adjustBalanceShouldAllowExactBalanceWithdrawal() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK_TRANSFER", "TXN-001", null);
+
+        wallet.adjustBalance(new BigDecimal("-100.00"), "Full withdrawal");
+
+        assertEquals(0, BigDecimal.ZERO.compareTo(wallet.getBalance()));
     }
 }

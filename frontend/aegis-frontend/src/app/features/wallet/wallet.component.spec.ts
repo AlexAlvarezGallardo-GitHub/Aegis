@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter, Routes } from '@angular/router';
 import { WalletComponent } from './wallet.component';
@@ -19,10 +20,9 @@ describe('WalletComponent', () => {
       imports: [
         WalletComponent,
         ReactiveFormsModule,
-        HttpClientTestingModule,
         NoopAnimationsModule
       ],
-      providers: [WalletService, provideRouter(stubRoutes)]
+      providers: [WalletService, provideRouter(stubRoutes), provideHttpClient(withInterceptors([])), provideHttpClientTesting()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(WalletComponent);

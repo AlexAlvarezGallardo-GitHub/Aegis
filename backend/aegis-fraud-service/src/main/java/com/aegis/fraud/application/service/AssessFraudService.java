@@ -10,6 +10,7 @@ import com.aegis.fraud.domain.port.inbound.AssessFraudUseCase;
 import com.aegis.fraud.domain.port.outbound.EventPublisher;
 import com.aegis.fraud.domain.port.outbound.FraudAssessmentRepository;
 import com.aegis.fraud.domain.port.outbound.FraudRuleRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Application service implementing the fraud assessment use case.
+ */
 @Service
 public class AssessFraudService implements AssessFraudUseCase {
 
@@ -30,13 +34,15 @@ public class AssessFraudService implements AssessFraudUseCase {
     private final RiskScorer riskScorer;
     private final DecisionMaker decisionMaker;
     private final Map<FraudRule.RuleType, FraudRuleEvaluator> evaluators;
+    private final String expectedCountryCode;
 
     public AssessFraudService(FraudRuleRepository ruleRepository,
                               FraudAssessmentRepository assessmentRepository,
                               EventPublisher eventPublisher,
                               RiskScorer riskScorer,
                               DecisionMaker decisionMaker,
-                              List<FraudRuleEvaluator> ruleEvaluators) {
+                              List<FraudRuleEvaluator> ruleEvaluators,
+                              @Value("${aegis.fraud.expected-country:ES}") String expectedCountryCode) {
         this.ruleRepository = ruleRepository;
         this.assessmentRepository = assessmentRepository;
         this.eventPublisher = eventPublisher;
@@ -46,6 +52,7 @@ public class AssessFraudService implements AssessFraudUseCase {
         for (FraudRuleEvaluator evaluator : ruleEvaluators) {
             this.evaluators.put(evaluator.supportedType(), evaluator);
         }
+        this.expectedCountryCode = expectedCountryCode;
     }
 
     @Override
@@ -88,7 +95,7 @@ public class AssessFraudService implements AssessFraudUseCase {
                 command.destWalletId(),
                 command.userId(),
                 command.countryCode(),
-                "ES",
+                expectedCountryCode,
                 DEFAULT_RECENT_TRANSACTION_COUNT,
                 Instant.now()
         );

@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed, effect, PLATFORM_ID } from '@angular/core';
+import { Injectable, inject, signal, computed, effect, PLATFORM_ID, DestroyRef } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -8,6 +8,7 @@ const STORAGE_KEY = 'aegis-theme';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly preference = signal<ThemeMode>(this.loadPreference());
   private readonly systemDark = signal<boolean>(this.getSystemPreference());
@@ -25,7 +26,12 @@ export class ThemeService {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', (e) => this.systemDark.set(e.matches));
+      const onChange = (e: MediaQueryListEvent): void => this.systemDark.set(e.matches);
+      mediaQuery.addEventListener('change', onChange);
+
+      this.destroyRef.onDestroy(() => {
+        mediaQuery.removeEventListener('change', onChange);
+      });
 
       effect(() => {
         this.applyTheme(this.activeTheme());

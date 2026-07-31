@@ -1,5 +1,7 @@
 package com.aegis.fraud.domain.model;
 
+import com.aegis.common.util.UuidV7Generator;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +31,7 @@ public class FraudAssessment {
     public static FraudAssessment complete(UUID transactionId, String transactionType,
                                            int riskScore, FraudDecision decision,
                                            List<RuleEvaluation> rulesEvaluated) {
-        return new FraudAssessment(UUID.randomUUID(), transactionId, transactionType,
+        return new FraudAssessment(UuidV7Generator.generate(), transactionId, transactionType,
                 riskScore, decision, rulesEvaluated, Instant.now());
     }
 

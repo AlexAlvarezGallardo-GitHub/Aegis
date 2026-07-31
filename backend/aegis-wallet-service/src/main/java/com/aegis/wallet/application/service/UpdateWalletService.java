@@ -54,11 +54,6 @@ public class UpdateWalletService implements UpdateWalletUseCase {
         return toResult(saved);
     }
 
-    public WalletDetailResult getDetail(UUID walletId, UUID userId) {
-        Wallet wallet = findAndValidateOwnership(walletId, userId);
-        return toResult(wallet);
-    }
-
     private Wallet findAndValidateOwnership(UUID walletId, UUID userId) {
         Wallet wallet = walletRepository.findById(WalletId.of(walletId))
                 .orElseThrow(() -> new WalletNotFoundException(walletId));

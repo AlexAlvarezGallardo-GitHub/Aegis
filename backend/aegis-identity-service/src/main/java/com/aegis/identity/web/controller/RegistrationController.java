@@ -1,8 +1,7 @@
 package com.aegis.identity.web.controller;
 
-import com.aegis.identity.application.dto.RegisterUserCommand;
 import com.aegis.identity.application.dto.UserRegistrationResponse;
-import com.aegis.identity.application.service.RegisterUserService;
+import com.aegis.identity.domain.port.inbound.RegisterUserUseCase;
 import com.aegis.identity.web.dto.RegisterUserRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,10 +18,10 @@ import java.util.UUID;
 @RequestMapping("/api/v1/users")
 public class RegistrationController {
 
-    private final RegisterUserService registerUserService;
+    private final RegisterUserUseCase registerUserUseCase;
 
-    public RegistrationController(RegisterUserService registerUserService) {
-        this.registerUserService = registerUserService;
+    public RegistrationController(RegisterUserUseCase registerUserUseCase) {
+        this.registerUserUseCase = registerUserUseCase;
     }
 
     @PostMapping("/register")
@@ -34,7 +33,7 @@ public class RegistrationController {
                 ? correlationId
                 : UUID.randomUUID().toString();
 
-        RegisterUserCommand command = new RegisterUserCommand(
+        RegisterUserUseCase.Command command = new RegisterUserUseCase.Command(
                 request.email(),
                 request.password(),
                 request.firstName(),
@@ -42,7 +41,14 @@ public class RegistrationController {
                 effectiveCorrelationId
         );
 
-        UserRegistrationResponse response = registerUserService.registerAndReturnResponse(command);
+        RegisterUserUseCase.Result result = registerUserUseCase.register(command);
+
+        UserRegistrationResponse response = new UserRegistrationResponse(
+                result.userId(),
+                result.email(),
+                result.status(),
+                result.registeredAt()
+        );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

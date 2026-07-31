@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# pre-commit hook: validates branch naming convention
+# pre-commit hook: validates branch naming convention + scans staged diff for secrets
 # Enable: git config core.hooksPath .githooks
 #
 
@@ -11,6 +11,7 @@ if [ "$BRANCH" = "main" ] || [ -z "$BRANCH" ]; then
   exit 0
 fi
 
+# ── Branch name validation ──────────────────────────────────
 TYPES="feature|fix|chore|refactor|docs|test|ci|security"
 PATTERN="^($TYPES)/[0-9]+-[a-z0-9-]+$"
 
@@ -29,4 +30,31 @@ if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
   echo "  Rename with: git branch -m <new-name>"
   echo ""
   exit 1
+fi
+
+# ── Secret scanning in staged diff ──────────────────────────
+# Check staged changes for potential hardcoded secrets.
+# This is a best-effort warning — not a blocker — to catch common mistakes.
+STAGED_DIFF=$(git diff --cached --diff-filter=ACM -U0 2>/dev/null)
+
+if [ -n "$STAGED_DIFF" ]; then
+  # Patterns that suggest hardcoded secrets (case-insensitive)
+  SECRET_PATTERNS='(aegis_secret|password\s*[:=]\s*"[^"]+"|secret\s*[:=]\s*"[^"]+"|api_key\s*[:=]\s*"[^"]+"|apikey\s*[:=]\s*"[^"]+"|access_token\s*[:=]\s*"[^"]+"|private_key\s*[:=]\s*"[^"]+")'
+
+  MATCHES=$(echo "$STAGED_DIFF" | grep -iE "^\+" | grep -vE "^\+\+\+" | grep -iE "$SECRET_PATTERNS" || true)
+
+  if [ -n "$MATCHES" ]; then
+    echo ""
+    echo "WARNING: Potential secrets detected in staged changes:"
+    echo ""
+    echo "$MATCHES" | head -10 | while IFS= read -r line; do
+      echo "  $line"
+    done
+    echo ""
+    echo "  If these are real secrets, remove them and use environment variables."
+    echo "  See infra/.env.example for the expected pattern."
+    echo "  To bypass this warning (false positive): git commit --no-verify"
+    echo ""
+    # Warning only — does not block the commit
+  fi
 fi

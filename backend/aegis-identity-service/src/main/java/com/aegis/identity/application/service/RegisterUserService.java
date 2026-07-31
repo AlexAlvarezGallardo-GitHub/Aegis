@@ -1,7 +1,5 @@
 package com.aegis.identity.application.service;
 
-import com.aegis.identity.application.dto.RegisterUserCommand;
-import com.aegis.identity.application.dto.UserRegistrationResponse;
 import com.aegis.identity.domain.event.UserRegistered;
 import com.aegis.identity.domain.exception.DuplicateEmailException;
 import com.aegis.identity.domain.model.Email;
@@ -55,25 +53,6 @@ public class RegisterUserService implements RegisterUserUseCase {
                 savedUser.getEmail().value(),
                 savedUser.getStatus().name(),
                 savedUser.getRegisteredAt()
-        );
-    }
-
-    public UserRegistrationResponse registerAndReturnResponse(RegisterUserCommand command) {
-        Command useCaseCommand = new Command(
-                command.email(),
-                command.password(),
-                command.firstName(),
-                command.lastName(),
-                command.correlationId()
-        );
-
-        Result result = register(useCaseCommand);
-
-        return new UserRegistrationResponse(
-                result.userId(),
-                result.email(),
-                result.status(),
-                result.registeredAt()
         );
     }
 }

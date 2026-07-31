@@ -10,6 +10,26 @@ status: implemented
 
 **Purpose**: Shared base classes and utilities used across all backend services.
 
+```mermaid
+graph TB
+    subgraph "aegis-common"
+        direction TB
+        Domain["domain/exception<br/>AegisException (base)"]
+        Util["util/<br/>UuidV7Generator"]
+        Web["web/advice<br/>AbstractExceptionHandler"]
+    end
+    Identity["Identity Service"] -->|depends on| Common["aegis-common"]
+    Wallet["Wallet Service"] -->|depends on| Common
+    BFF["BFF Service"] -->|depends on| Common
+    Fraud["Fraud Service"] -->|depends on| Common
+    Audit["Audit Service"] -->|depends on| Common
+    Reporting["Reporting Service"] -->|depends on| Common
+    style Common fill:#bbf,stroke:#333
+    style Domain fill:#fdb,stroke:#333
+    style Util fill:#fdb,stroke:#333
+    style Web fill:#fdb,stroke:#333
+```
+
 ## Contents
 
 ### Exceptions

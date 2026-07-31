@@ -24,10 +24,12 @@ graph LR
         F_Assessment[fraud.assessment.completed]
     end
     subgraph Consumers
-        W_Deposit --> Report[Reporting group]
-        W_Deposit --> Audit[Audit group]
-        F_Assessment --> Audit
+        Report[Reporting group]
+        Audit[Audit group]
     end
+    W_Deposit --> Report
+    W_Deposit --> Audit
+    F_Assessment --> Audit
     style Report fill:#bfb,stroke:#333
     style Audit fill:#bfb,stroke:#333
     style I_Reg fill:#fdb,stroke:#333

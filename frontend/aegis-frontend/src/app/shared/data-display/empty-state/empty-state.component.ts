@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, input, ContentChild, TemplateRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, ContentChild, TemplateRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -12,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './empty-state.component.scss',
 })
 export class EmptyStateComponent {
+  private router = inject(Router);
+
   readonly icon = input<string>('inbox');
   readonly title = input.required<string>();
   readonly description = input<string>('');
@@ -23,7 +26,7 @@ export class EmptyStateComponent {
   onAction(): void {
     const route = this.actionRoute();
     if (route) {
-      window.location.hash = route;
+      this.router.navigate([route]);
     }
   }
 }

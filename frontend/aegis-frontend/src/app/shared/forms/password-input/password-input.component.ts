@@ -29,6 +29,7 @@ export class PasswordInputComponent implements ControlValueAccessor {
   readonly appearance = input<'fill' | 'outline'>('outline');
 
   readonly hidePassword = signal<boolean>(true);
+  readonly isDisabled = signal<boolean>(false);
 
   private onChange: (value: string) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
@@ -47,8 +48,8 @@ export class PasswordInputComponent implements ControlValueAccessor {
     this.onTouched = fn;
   }
 
-  setDisabledState(): void {
-    // Material handles disabled state
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled.set(isDisabled);
   }
 
   onInput(value: string): void {

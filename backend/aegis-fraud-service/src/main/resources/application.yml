@@ -39,9 +39,13 @@ aegis:
   fraud:
     review-threshold: 30
     reject-threshold: 70
+    expected-country: ES
+    outbox:
+      polling-interval-ms: 1000
+      batch-size: 50
   kafka:
     topics:
-      fraud-assessment-completed: fraud.assessment.completed
+      FRAUD_ASSESSMENT_COMPLETED: fraud.assessment.completed
       payment-transfer-requested: payment.transfer.requested
 
 logging:

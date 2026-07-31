@@ -1,10 +1,10 @@
 import { Component, ChangeDetectionStrategy, signal, computed, inject, DestroyRef, HostListener } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd, ChildrenOutletContexts } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { filter } from 'rxjs/operators';
+import { filter, map, startWith } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
@@ -52,8 +52,17 @@ export class AppShellComponent {
   readonly isMobile = signal<boolean>(this.checkMobile());
   readonly sidebarCollapsed = signal<boolean>(false);
 
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd),
+      map(() => this.router.url),
+      startWith(this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+
   readonly showShell = computed<boolean>(() => {
-    const url = this.router.url;
+    const url = this.currentUrl();
     return url !== '/login' && url !== '/register' && !url.startsWith('/register');
   });
 

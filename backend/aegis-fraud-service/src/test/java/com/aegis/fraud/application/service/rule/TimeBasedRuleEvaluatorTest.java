@@ -45,4 +45,21 @@ class TimeBasedRuleEvaluatorTest {
 
         assertFalse(result.matched());
     }
+
+    @Test
+    void shouldMatchAtExactly23() {
+        FraudRule rule = FraudRule.create("OFF_HOURS_TRANSACTION", FraudRule.RuleType.TIME, 0, 15);
+        RuleEvaluation result = evaluator.evaluate(rule, contextAtUtcHour(23));
+
+        assertTrue(result.matched());
+        assertEquals(15, result.score());
+    }
+
+    @Test
+    void shouldNotMatchAtExactly6() {
+        FraudRule rule = FraudRule.create("OFF_HOURS_TRANSACTION", FraudRule.RuleType.TIME, 0, 15);
+        RuleEvaluation result = evaluator.evaluate(rule, contextAtUtcHour(6));
+
+        assertFalse(result.matched());
+    }
 }

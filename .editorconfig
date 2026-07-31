@@ -1,0 +1,43 @@
+# EditorConfig — https://editorconfig.org
+# Root: stop searching for .editorconfig files in parent directories.
+root = true
+
+# ── Global defaults ─────────────────────────────────────────
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+# ── Java / XML (Maven, Spring) ──────────────────────────────
+[*.{java,xml}]
+indent_size = 4
+
+# ── SQL (Flyway migrations) ─────────────────────────────────
+[*.sql]
+indent_size = 4
+
+# ── TypeScript / Angular ────────────────────────────────────
+[*.{ts,tsx,js,jsx}]
+indent_size = 2
+
+# ── Styles ──────────────────────────────────────────────────
+[*.{scss,css}]
+indent_size = 2
+
+# ── Markup ──────────────────────────────────────────────────
+[*.{html,htm}]
+indent_size = 2
+
+# ── Data / Config ───────────────────────────────────────────
+[*.{yaml,yml,json}]
+indent_size = 2
+
+# ── Markdown ────────────────────────────────────────────────
+[*.md]
+trim_trailing_whitespace = false
+
+# ── Makefiles (require tabs) ────────────────────────────────
+[Makefile]
+indent_style = tab

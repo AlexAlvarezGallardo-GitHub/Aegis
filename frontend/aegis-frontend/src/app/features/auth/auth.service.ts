@@ -56,6 +56,10 @@ export class AuthService {
     );
   }
 
+  setAuthenticated(): void {
+    this.authState.next(true);
+  }
+
   setUnauthenticated(): void {
     this.authState.next(false);
   }

@@ -16,14 +16,14 @@ import { ChartDataPoint } from '../../models/dashboard.model';
           class="chart-svg"
         >
           <defs>
-            <linearGradient [attr.id]="gradientId()" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient [attr.id]="gradientId" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" [attr.stop-color]="gradientTop()" stop-opacity="1"/>
               <stop offset="100%" [attr.stop-color]="gradientBottom()" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <path
             [attr.d]="areaPath()"
-            [attr.fill]="'url(#' + gradientId() + ')'"
+            [attr.fill]="'url(#' + gradientId + ')'"
             class="chart-area"
           />
           <path
@@ -63,7 +63,7 @@ export class ChartLineComponent {
   readonly height = input('140px');
   readonly padding = input(4);
 
-  readonly gradientId = computed(() => `line-grad-${Math.random().toString(36).slice(2, 8)}`);
+  readonly gradientId = 'line-grad-' + Math.random().toString(36).slice(2, 8);
 
   readonly viewBox = computed(() => {
     const len = this.data().length;

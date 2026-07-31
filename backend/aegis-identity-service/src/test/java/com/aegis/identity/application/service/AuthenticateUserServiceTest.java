@@ -6,7 +6,6 @@ import com.aegis.identity.domain.exception.AccountLockedException;
 import com.aegis.identity.domain.exception.InvalidCredentialsException;
 import com.aegis.identity.domain.model.Email;
 import com.aegis.identity.domain.model.PasswordHash;
-import com.aegis.identity.domain.model.TokenPair;
 import com.aegis.identity.domain.model.User;
 import com.aegis.identity.domain.model.UserId;
 import com.aegis.identity.domain.model.UserStatus;
@@ -72,21 +71,20 @@ class AuthenticateUserServiceTest {
         when(userRepository.findByEmail(any(Email.class))).thenReturn(Optional.of(activeUser));
         when(passwordHasher.matches(any(), any())).thenReturn(true);
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(tokenProvider.generateTokenPair(any(UserId.class), anyString()))
-                .thenReturn(new TokenPair("access-token", "refresh-token"));
+        when(tokenProvider.generateAccessToken(any(UserId.class), anyString()))
+                .thenReturn("access-token");
 
         AuthenticateUserUseCase.Command command = new AuthenticateUserUseCase.Command(
                 "user@example.com", "SecureP@ss1", "corr-123");
 
         AuthenticateUserUseCase.Result result = service.authenticate(command);
 
-        assertNotNull(result.tokenPair());
-        assertEquals("access-token", result.tokenPair().accessToken());
-        assertEquals("refresh-token", result.tokenPair().refreshToken());
+        assertNotNull(result.accessToken());
+        assertEquals("access-token", result.accessToken());
 
         verify(userRepository).saveAndFlush(any(User.class));
         verify(eventPublisher).publish(any(UserAuthenticated.class));
-        verify(tokenProvider).generateTokenPair(any(UserId.class), anyString());
+        verify(tokenProvider).generateAccessToken(any(UserId.class), anyString());
     }
 
     @Test
@@ -116,7 +114,7 @@ class AuthenticateUserServiceTest {
         assertThrows(InvalidCredentialsException.class, () -> service.authenticate(command));
 
         verify(eventPublisher, never()).publish(any(UserAuthenticated.class));
-        verify(tokenProvider, never()).generateTokenPair(any(), any());
+        verify(tokenProvider, never()).generateAccessToken(any(), any());
     }
 
     @Test

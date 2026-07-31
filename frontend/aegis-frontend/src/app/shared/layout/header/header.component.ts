@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, inject, signal, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, output, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +9,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/auth.service';
 import { CommandPaletteService } from '../../services/command-palette.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-header',
@@ -28,6 +30,7 @@ export class HeaderComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
   private commandPaletteService = inject(CommandPaletteService);
+  private destroyRef = inject(DestroyRef);
 
   readonly menuToggle = output<void>();
 
@@ -52,7 +55,7 @@ export class HeaderComponent {
     return email.substring(0, 2).toUpperCase();
   }
 
-  readonly environment = 'PROD';
+  readonly environment = environment.production ? 'PROD' : 'DEV';
 
   get environmentClass(): string {
     const env = this.environment;
@@ -66,10 +69,12 @@ export class HeaderComponent {
   }
 
   onLogout(): void {
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login']),
-    });
+    this.authService.logout()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.router.navigate(['/login']),
+        error: () => this.router.navigate(['/login']),
+      });
   }
 
   navigateTo(route: string): void {
@@ -77,9 +82,11 @@ export class HeaderComponent {
   }
 
   private loadUser(): void {
-    this.authService.getCurrentUser().subscribe({
-      next: (user) => this.userEmail.set(user.email),
-      error: () => { /* ignore */ },
-    });
+    this.authService.getCurrentUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => this.userEmail.set(user.email),
+        error: () => { /* ignore */ },
+      });
   }
 }

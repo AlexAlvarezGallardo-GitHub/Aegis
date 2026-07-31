@@ -1,0 +1,202 @@
+openapi: 3.0.3
+info:
+  title: Aegis Deposit Funds API
+  description: |
+    Deposit funds API for the Aegis digital payment platform.
+    Handles fund deposits into wallets with source tracking and idempotency.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8083
+    description: Local development server
+  - url: https://api.aegis.dev
+    description: Development environment
+
+paths:
+  /api/v1/wallets/{walletId}/deposits:
+    post:
+      operationId: depositFunds
+      summary: Deposit funds into a wallet
+      description: |
+        Deposits funds into the specified wallet with source tracking.
+        The deposit reference must be unique (idempotency key).
+        A FundsDeposited event is published to downstream services via Kafka.
+      tags: [Deposits]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          description: UUID of the wallet to deposit into
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositFundsRequest'
+            example:
+              amount: 150.00
+              currency: EUR
+              source: BANK_TRANSFER
+              reference: "TXN-2026-001"
+      responses:
+        '201':
+          description: Deposit processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepositReceipt'
+              example:
+                walletId: "01912345-6789-7abc-def0-123456789abc"
+                amount: 150.00
+                currency: EUR
+                newBalance: 650.00
+                source: BANK_TRANSFER
+                reference: "TXN-2026-001"
+                timestamp: "2026-07-31T12:00:00.000Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: WALLET_NOT_FOUND
+                message: "Wallet not found: 01912345-6789-7abc-def0-123456789abc"
+                details: null
+                timestamp: "2026-07-31T12:00:00.000Z"
+        '409':
+          description: Duplicate deposit reference (idempotency conflict)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: DUPLICATE_DEPOSIT
+                message: "Deposit with reference 'TXN-2026-001' already exists"
+                details: null
+                timestamp: "2026-07-31T12:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from the Auth API
+
+  schemas:
+    DepositFundsRequest:
+      type: object
+      required: [amount, currency, source, reference]
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Amount to deposit (must be positive)
+          example: 150.00
+          exclusiveMinimum: 0
+        currency:
+          type: string
+          description: ISO 4217 currency code (3 letters)
+          example: EUR
+          minLength: 3
+          maxLength: 3
+        source:
+          type: string
+          description: Source of funds
+          enum: [BANK_TRANSFER, CARD, CASH, INTERNAL_TRANSFER, REFUND, OTHER]
+          example: BANK_TRANSFER
+        reference:
+          type: string
+          description: External reference for idempotency (must be unique per wallet)
+          example: "TXN-2026-001"
+          maxLength: 255
+
+    DepositReceipt:
+      type: object
+      properties:
+        walletId:
+          type: string
+          format: uuid
+          description: Wallet that received the deposit
+        amount:
+          type: number
+          format: double
+          description: Deposited amount
+        currency:
+          type: string
+          description: ISO 4217 currency code
+        newBalance:
+          type: number
+          format: double
+          description: Wallet balance after deposit
+        source:
+          type: string
+          description: Source of funds
+        reference:
+          type: string
+          description: External reference
+        timestamp:
+          type: string
+          format: date-time
+          description: Deposit timestamp (UTC)
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          nullable: true
+          description: Additional error context
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred (UTC)
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_ERROR
+            message: "amount: Must be positive"
+            details:
+              amount: "Must be positive"
+            timestamp: "2026-07-31T12:00:00.000Z"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: INTERNAL_ERROR
+            message: "An unexpected error occurred."
+            details: null
+            timestamp: "2026-07-31T12:00:00.000Z"

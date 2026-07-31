@@ -58,15 +58,30 @@ public class User {
         this.version = version;
     }
 
+    /**
+     * Registers a new user.
+     *
+     * <p>The raw password is validated via the {@link Password} value object before
+     * being hashed. This ensures password strength rules are enforced at the domain layer.</p>
+     *
+     * @param rawEmail    the user's email address
+     * @param rawPassword the user's plain-text password (validated by {@link Password})
+     * @param firstName   the user's first name
+     * @param lastName    the user's last name
+     * @param hasher      the password hasher port
+     * @return the newly registered user
+     */
     public static User register(String rawEmail, String rawPassword,
                                 String firstName, String lastName,
                                 PasswordHasher hasher) {
         validateName(firstName, "First name");
         validateName(lastName, "Last name");
 
+        Password password = Password.of(rawPassword);
+
         UserId userId = UserId.generate();
         Email email = Email.of(rawEmail);
-        PasswordHash passwordHash = hasher.hash(rawPassword);
+        PasswordHash passwordHash = hasher.hash(password.value());
 
         return new User(userId, email, passwordHash, firstName.trim(), lastName.trim());
     }

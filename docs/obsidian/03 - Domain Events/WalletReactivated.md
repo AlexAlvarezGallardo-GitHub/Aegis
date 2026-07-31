@@ -3,13 +3,41 @@ type: domain-event
 service: aegis-wallet-service
 layer: domain
 tags: [event, kafka, wallet]
-status: implemented
+status: planned
 topic: aegis.wallet.wallet-reactivated
 ---
+
+> **Status: Planned** — This event is documented but not yet implemented in code. The wallet reactivation flow exists but does not yet publish a domain event.
 
 # WalletReactivated
 
 Published when a CLOSED or FROZEN wallet is reactivated.
+
+```mermaid
+graph LR
+    Wallet[Wallet Service] -->|publishes| Topic[aegis.wallet.wallet-reactivated]
+    Topic --> Audit[Audit Service]
+    style Wallet fill:#bbf,stroke:#333
+    style Topic fill:#fdb,stroke:#333
+    style Audit fill:#bfb,stroke:#333
+```
+
+```mermaid
+sequenceDiagram
+    participant Wallet as Wallet (Domain)
+    participant Svc as ReactivateWalletService
+    participant Pub as KafkaEventPublisher
+    participant DB as PostgreSQL (Outbox)
+    participant Kafka as Kafka Topic
+    participant Audit as Audit Consumer
+
+    Wallet->>Svc: reactivate()
+    Svc->>Svc: validate status != ACTIVE
+    Svc->>Pub: publish(WalletReactivated)
+    Pub->>DB: INSERT outbox_event (payload=WalletReactivated JSON)
+    DB-->>Kafka: OutboxRelayScheduler polls & sends
+    Kafka->>Audit: Consume (group=audit-group)
+```
 
 ## Schema
 

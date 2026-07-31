@@ -1,22 +1,21 @@
 package com.aegis.wallet.web.controller;
 
-import com.aegis.wallet.application.dto.AdjustBalanceCommand;
 import com.aegis.wallet.application.dto.CreateWalletCommand;
-import com.aegis.wallet.application.dto.DepositFundsCommand;
 import com.aegis.wallet.application.dto.DepositReceipt;
-import com.aegis.wallet.application.dto.UpdateStatusCommand;
 import com.aegis.wallet.application.dto.WalletDetailResponse;
 import com.aegis.wallet.application.dto.WalletResponse;
-import com.aegis.wallet.application.mapper.WalletMapper;
 import com.aegis.wallet.application.service.CreateWalletService;
 import com.aegis.wallet.application.service.DepositFundsService;
 import com.aegis.wallet.application.service.UpdateWalletService;
-import com.aegis.wallet.domain.exception.WalletNotFoundException;
-import com.aegis.wallet.domain.model.WalletId;
 import com.aegis.wallet.domain.model.WalletStatus;
 import com.aegis.wallet.domain.port.inbound.DepositFundsUseCase;
+import com.aegis.wallet.domain.port.inbound.GetWalletDetailUseCase;
+import com.aegis.wallet.domain.port.inbound.ListWalletsUseCase;
 import com.aegis.wallet.domain.port.inbound.UpdateWalletUseCase;
-import com.aegis.wallet.domain.port.outbound.WalletRepository;
+import com.aegis.wallet.web.dto.AdjustBalanceRequest;
+import com.aegis.wallet.web.dto.CreateWalletRequest;
+import com.aegis.wallet.web.dto.DepositFundsRequest;
+import com.aegis.wallet.web.dto.UpdateStatusRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,21 +38,24 @@ public class WalletController {
     private final CreateWalletService createWalletService;
     private final UpdateWalletService updateWalletService;
     private final DepositFundsService depositFundsService;
-    private final WalletRepository walletRepository;
+    private final ListWalletsUseCase listWalletsUseCase;
+    private final GetWalletDetailUseCase getWalletDetailUseCase;
 
     public WalletController(CreateWalletService createWalletService,
                              UpdateWalletService updateWalletService,
                              DepositFundsService depositFundsService,
-                             WalletRepository walletRepository) {
+                             ListWalletsUseCase listWalletsUseCase,
+                             GetWalletDetailUseCase getWalletDetailUseCase) {
         this.createWalletService = createWalletService;
         this.updateWalletService = updateWalletService;
         this.depositFundsService = depositFundsService;
-        this.walletRepository = walletRepository;
+        this.listWalletsUseCase = listWalletsUseCase;
+        this.getWalletDetailUseCase = getWalletDetailUseCase;
     }
 
     @PostMapping
     public ResponseEntity<WalletResponse> createWallet(
-            @Valid @RequestBody CreateWalletCommand request,
+            @Valid @RequestBody CreateWalletRequest request,
             @RequestHeader("X-User-Id") UUID userId,
             @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
 
@@ -74,8 +76,13 @@ public class WalletController {
     public ResponseEntity<List<WalletResponse>> listWallets(
             @RequestHeader("X-User-Id") UUID userId) {
 
-        var wallets = walletRepository.findByUserId(userId);
-        return ResponseEntity.ok(WalletMapper.toResponseList(wallets));
+        List<ListWalletsUseCase.Result> results = listWalletsUseCase.listByUser(userId);
+        List<WalletResponse> responses = results.stream()
+                .map(r -> new WalletResponse(
+                        r.walletId(), r.userId(), r.balance(), r.currency(),
+                        r.status(), r.premium(), r.createdAt()))
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{walletId}")
@@ -83,14 +90,10 @@ public class WalletController {
             @PathVariable UUID walletId,
             @RequestHeader("X-User-Id") UUID userId) {
 
-        var wallet = walletRepository.findById(WalletId.of(walletId))
-                .orElseThrow(() -> new WalletNotFoundException(walletId));
-
-        if (!wallet.getUserId().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        return ResponseEntity.ok(WalletMapper.toDetailResponse(wallet));
+        GetWalletDetailUseCase.Result result = getWalletDetailUseCase.getDetail(walletId, userId);
+        return ResponseEntity.ok(new WalletDetailResponse(
+                result.walletId(), result.userId(), result.balance(), result.currency(),
+                result.status(), result.premium(), result.createdAt(), result.updatedAt()));
     }
 
     @PatchMapping("/{walletId}/balance")
@@ -98,7 +101,7 @@ public class WalletController {
             @PathVariable UUID walletId,
             @RequestHeader("X-User-Id") UUID userId,
             @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
-            @Valid @RequestBody AdjustBalanceCommand request) {
+            @Valid @RequestBody AdjustBalanceRequest request) {
 
         String effectiveCorrelationId = correlationId != null
                 ? correlationId
@@ -115,7 +118,7 @@ public class WalletController {
             @PathVariable UUID walletId,
             @RequestHeader("X-User-Id") UUID userId,
             @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
-            @Valid @RequestBody DepositFundsCommand request) {
+            @Valid @RequestBody DepositFundsRequest request) {
 
         String effectiveCorrelationId = correlationId != null
                 ? correlationId
@@ -141,10 +144,12 @@ public class WalletController {
     public ResponseEntity<WalletDetailResponse> updateStatus(
             @PathVariable UUID walletId,
             @RequestHeader("X-User-Id") UUID userId,
-            @Valid @RequestBody UpdateStatusCommand request) {
+            @Valid @RequestBody UpdateStatusRequest request) {
+
+        WalletStatus newStatus = WalletStatus.fromString(request.status());
 
         var result = updateWalletService.changeStatus(new UpdateWalletUseCase.StatusChangeCommand(
-                walletId, userId, WalletStatus.valueOf(request.status().toUpperCase())));
+                walletId, userId, newStatus));
 
         return ResponseEntity.ok(toDetailResponse(result));
     }

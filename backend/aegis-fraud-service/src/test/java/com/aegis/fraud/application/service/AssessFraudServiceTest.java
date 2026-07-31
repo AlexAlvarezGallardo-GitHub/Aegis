@@ -104,7 +104,8 @@ class AssessFraudServiceTest {
                 publisher,
                 new RiskScorer(),
                 new DecisionMaker(30, 70),
-                List.of(new AmountThresholdRuleEvaluator(), new VelocityRuleEvaluator()));
+                List.of(new AmountThresholdRuleEvaluator(), new VelocityRuleEvaluator()),
+                "ES");
     }
 
     private AssessFraudService serviceWithRepository(StubAssessmentRepository repository) {
@@ -115,7 +116,8 @@ class AssessFraudServiceTest {
                 new StubEventPublisher(),
                 new RiskScorer(),
                 new DecisionMaker(30, 70),
-                List.of(new AmountThresholdRuleEvaluator()));
+                List.of(new AmountThresholdRuleEvaluator()),
+                "ES");
     }
 
     private static class StubRuleRepository implements FraudRuleRepository {

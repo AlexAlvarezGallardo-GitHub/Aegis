@@ -1,12 +1,14 @@
 package com.aegis.bff;
 
+import com.aegis.bff.application.service.BffService;
+import com.aegis.bff.web.controller.BffAuthController;
+import com.aegis.bff.web.dto.LoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
@@ -69,13 +71,59 @@ class BffAuthControllerTest {
                 .andExpect(jsonPath("$.expiresIn").value(900));
     }
 
+    @Test
+    void shouldLoginWithoutCorrelationIdHeader() throws Exception {
+        fakeBffService.loginResult = Map.of(
+                "tokenType", "Bearer",
+                "expiresIn", 900,
+                "emailVerified", false
+        );
+
+        mockMvc.perform(post("/api/bff/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                Map.of("email", "user@test.com", "password", "pass"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.emailVerified").value(false));
+    }
+
+    @Test
+    void shouldRefreshWithoutCorrelationIdHeader() throws Exception {
+        fakeBffService.refreshResult = Map.of("tokenType", "Bearer", "expiresIn", 600);
+
+        mockMvc.perform(post("/api/bff/auth/refresh"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.expiresIn").value(600));
+    }
+
+    @Test
+    void shouldLoginWithExplicitCorrelationId() throws Exception {
+        fakeBffService.loginResult = Map.of(
+                "tokenType", "Bearer",
+                "expiresIn", 900,
+                "emailVerified", true
+        );
+
+        mockMvc.perform(post("/api/bff/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Correlation-Id", "explicit-corr-id")
+                        .content(objectMapper.writeValueAsString(
+                                Map.of("email", "user@test.com", "password", "pass"))))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Test double that overrides all BffService methods to return preconfigured results.
+     */
     static class FakeBffService extends BffService {
+
         Map<String, Object> loginResult;
         Map<String, Object> refreshResult;
         Map<String, Object> currentUserResult;
 
         FakeBffService() {
-            super((RestClient) null, null, null);
+            super(null, null, null);
         }
 
         @Override
@@ -94,7 +142,7 @@ class BffAuthControllerTest {
 
         @Override
         public Map<String, Object> getCurrentUser() {
-            if (currentUserResult == null) throw new RuntimeException("Not authenticated");
+            if (currentUserResult == null) throw new IllegalStateException("Not authenticated");
             return currentUserResult;
         }
     }

@@ -18,4 +18,16 @@ public record AuthenticationResponse(
                 emailVerified
         );
     }
+
+    /**
+     * Creates an authentication response with only an access token (no refresh token).
+     *
+     * @param accessToken   the JWT access token
+     * @param emailVerified whether the user's email has been verified
+     * @param expiresIn     the access token expiry in seconds
+     * @return the authentication response
+     */
+    public static AuthenticationResponse ofAccessTokenOnly(String accessToken, boolean emailVerified, long expiresIn) {
+        return new AuthenticationResponse(accessToken, null, "Bearer", expiresIn, emailVerified);
+    }
 }

@@ -1,4 +1,4 @@
-import { AbstractControl, ValidationErrors, ValidatorFn, FormGroup } from '@angular/forms';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export function emailValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -63,13 +63,4 @@ export function getErrorMessage(
 
 export function markFormGroupTouched(form: AbstractControl): void {
   form.markAllAsTouched();
-  if (form instanceof FormGroup) {
-    Object.values(form.controls).forEach((control) => {
-      if (control instanceof FormGroup) {
-        markFormGroupTouched(control);
-      } else {
-        control.markAsTouched();
-      }
-    });
-  }
 }

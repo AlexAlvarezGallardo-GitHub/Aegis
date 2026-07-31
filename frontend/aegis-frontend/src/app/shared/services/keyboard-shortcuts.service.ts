@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, DestroyRef, inject } from '@angular/core';
 
 export interface Shortcut {
   keys: string;
@@ -41,6 +41,7 @@ const DEFAULT_SHORTCUTS: ShortcutGroup[] = [
 
 @Injectable({ providedIn: 'root' })
 export class KeyboardShortcutsService {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly registeredShortcuts = signal<Map<string, Shortcut>>(new Map());
   private sequenceBuffer: { key: string; timer: ReturnType<typeof setTimeout> } | null = null;
   private readonly isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
@@ -53,6 +54,9 @@ export class KeyboardShortcutsService {
   constructor() {
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', this.onKeydown);
+      this.destroyRef.onDestroy(() => {
+        document.removeEventListener('keydown', this.onKeydown);
+      });
     }
   }
 

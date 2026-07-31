@@ -6,6 +6,10 @@ spring:
       host: localhost
       port: 6379
 
+aegis:
+  jwt:
+    secret: "aegis-dev-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+
 springdoc:
   api-docs:
     enabled: true

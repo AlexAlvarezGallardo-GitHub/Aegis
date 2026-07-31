@@ -1,7 +1,12 @@
 package com.aegis.bff;
 
-import jakarta.servlet.http.HttpSession;
+import com.aegis.bff.application.service.SessionJwtStore;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Optional;
 
@@ -9,13 +14,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SessionJwtStoreTest {
 
-    private final SessionJwtStore store = new SessionJwtStore();
+    private SessionJwtStore store;
+    private MockHttpServletRequest request;
+
+    @BeforeEach
+    void setUp() {
+        store = new SessionJwtStore();
+        request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    }
+
+    @AfterEach
+    void tearDown() {
+        RequestContextHolder.resetRequestAttributes();
+    }
 
     @Test
     void shouldStoreAndRetrieveTokens() {
-        HttpSession session = new FakeSession();
-        store.injectSession(session);
-
         store.storeTokens("access-123", "refresh-456");
 
         assertEquals(Optional.of("access-123"), store.getAccessToken());
@@ -24,54 +39,33 @@ class SessionJwtStoreTest {
 
     @Test
     void shouldReturnEmptyWhenNoSession() {
+        // Reset request attributes so there is no session context
+        RequestContextHolder.resetRequestAttributes();
         assertTrue(store.getAccessToken().isEmpty());
         assertTrue(store.getRefreshToken().isEmpty());
     }
 
     @Test
     void shouldClearAndInvalidate() {
-        HttpSession session = new FakeSession();
-        store.injectSession(session);
         store.storeTokens("access", "refresh");
-
-        FakeSession fakeSession = (FakeSession) session;
         store.clear();
 
-        assertTrue(fakeSession.isInvalid());
+        assertTrue(store.getAccessToken().isEmpty());
+        assertTrue(store.getRefreshToken().isEmpty());
     }
 
     @Test
     void shouldDoNothingOnClearWhenNoSession() {
+        RequestContextHolder.resetRequestAttributes();
         store.clear();
         assertTrue(store.getAccessToken().isEmpty());
     }
 
-    static class FakeSession implements HttpSession {
-        private final java.util.Map<String, Object> attrs = new java.util.HashMap<>();
-        private boolean invalid = false;
-
-        @Override
-        public void setAttribute(String name, Object value) { attrs.put(name, value); }
-
-        @Override
-        public Object getAttribute(String name) { return attrs.get(name); }
-
-        @Override
-        public void removeAttribute(String name) { attrs.remove(name); }
-
-        @Override
-        public void invalidate() { this.invalid = true; }
-
-        boolean isInvalid() { return invalid; }
-
-        // Unused HttpSession methods
-        public long getCreationTime() { return 0; }
-        public String getId() { return "test"; }
-        public long getLastAccessedTime() { return 0; }
-        public jakarta.servlet.ServletContext getServletContext() { return null; }
-        public void setMaxInactiveInterval(int interval) {}
-        public int getMaxInactiveInterval() { return 0; }
-        public java.util.Enumeration<String> getAttributeNames() { return null; }
-        public boolean isNew() { return false; }
+    @Test
+    void shouldThrowWhenStoringTokensWithoutRequestContext() {
+        RequestContextHolder.resetRequestAttributes();
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> store.storeTokens("access", "refresh"));
+        assertTrue(ex.getMessage().contains("No HTTP request context available"));
     }
 }

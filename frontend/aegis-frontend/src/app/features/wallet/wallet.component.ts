@@ -143,6 +143,7 @@ export class WalletComponent implements OnInit {
     const finalAmount = type === 'WITHDRAW' ? -amount : amount;
 
     this.walletService.adjustBalance(wallet.walletId, finalAmount, description || undefined)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updated) => {
           this.wallets.update(list =>
@@ -181,7 +182,10 @@ export class WalletComponent implements OnInit {
       currency: wallet.currency,
       source: this.depositSource(),
       reference: this.depositReference(),
-    }).pipe(finalize(() => this.isDepositing.set(false)))
+    }).pipe(
+      finalize(() => this.isDepositing.set(false)),
+      takeUntilDestroyed(this.destroyRef),
+    )
       .subscribe({
         next: (receipt) => {
           this.wallets.update(list =>

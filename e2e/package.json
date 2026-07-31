@@ -1,0 +1,14 @@
+{
+  "name": "aegis-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end tests for the Aegis platform using Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report ../evidence/html-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

@@ -1,4 +1,4 @@
-import { Directive, ElementRef, inject, input, effect } from '@angular/core';
+import { Directive, ElementRef, inject, input, effect, OnDestroy } from '@angular/core';
 
 function isMotionReduced(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16,7 +16,7 @@ function formatNumber(value: number, decimals: number): string {
   selector: '[appAegisCountUp]',
   standalone: true,
 })
-export class CountUpDirective {
+export class CountUpDirective implements OnDestroy {
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly appAegisCountUp = input.required<number>();
@@ -27,6 +27,11 @@ export class CountUpDirective {
 
   private observer: IntersectionObserver | null = null;
   private animated = false;
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+    this.observer = null;
+  }
 
   constructor() {
     effect(() => {

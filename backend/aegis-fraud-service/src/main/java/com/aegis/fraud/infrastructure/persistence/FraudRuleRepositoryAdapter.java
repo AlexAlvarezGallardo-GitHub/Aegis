@@ -2,11 +2,11 @@ package com.aegis.fraud.infrastructure.persistence;
 
 import com.aegis.fraud.domain.model.FraudRule;
 import com.aegis.fraud.domain.port.outbound.FraudRuleRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Component
+@Repository
 public class FraudRuleRepositoryAdapter implements FraudRuleRepository {
 
     private final FraudRuleJpaRepository jpaRepository;

@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, interval, Subject, merge, of } from 'rxjs';
+import { Observable, interval, Subject, merge, of, throwError } from 'rxjs';
 import {
   catchError,
   map,
@@ -10,6 +10,7 @@ import {
   startWith,
 } from 'rxjs/operators';
 import { DashboardData, TimeRange, TrendDirection, ActivityEvent, FraudAlert, ServiceStatus, OverallHealth } from '../../shared/models/dashboard.model';
+import { environment } from '../../../environments/environment';
 
 export interface DashboardState {
   data: DashboardData | null;
@@ -102,7 +103,10 @@ export class DashboardService {
         ...data,
         lastUpdated: new Date().toISOString(),
       })),
-      catchError(() => {
+      catchError((err) => {
+        if (environment.production) {
+          return throwError(() => err);
+        }
         return of(this.generateFakeData());
       }),
     );
