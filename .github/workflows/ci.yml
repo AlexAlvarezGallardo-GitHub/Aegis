@@ -198,11 +198,13 @@ jobs:
             filter: frontend
     steps:
       - uses: actions/checkout@v4
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Run Trivy vulnerability scanner
         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
         uses: aquasecurity/trivy-action@0.29.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
+          image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
           format: 'sarif'
           output: 'trivy-results-${{ matrix.image }}.sarif'
       - name: Upload Trivy scan results
@@ -239,11 +241,13 @@ jobs:
             filter: frontend
     steps:
       - uses: actions/checkout@v4
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Generate SBOM with Syft
         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
         uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.sha }}
+          image: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
           output-file: ${{ matrix.image }}-sbom.spdx.json
           format: spdx-json
       - name: Upload SBOM
@@ -252,6 +256,38 @@ jobs:
         with:
           name: ${{ matrix.image }}-sbom
           path: ${{ matrix.image }}-sbom.spdx.json
+
+  gitops-update:
+    name: Update GitOps (DEV)
+    runs-on: ubuntu-latest
+    needs: [detect-changes, docker-build-push]
+    if: needs.docker-build-push.result == 'success'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v4
+        with:
+          repository: AlexAlvarezGallardo-GitHub/Aegis-GitOps
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: aegis-gitops
+      - name: Update image tags
+        working-directory: aegis-gitops
+        run: |
+          sed -i "s|newTag: .*|newTag: ${{ github.sha }}|g" overlays/dev/kustomization.yaml
+          git diff --stat
+      - name: Commit and push
+        working-directory: aegis-gitops
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add overlays/dev/kustomization.yaml
+          if git diff --cached --quiet; then
+            echo "No image tag changes to push."
+            exit 0
+          fi
+          git commit -m "chore(infra): update dev image tags to ${{ github.sha }}"
+          git push
 
   ci-summary:
     name: CI Summary
@@ -263,6 +299,7 @@ jobs:
       - docker-build-push
       - security-scan
       - sbom
+      - gitops-update
     if: always()
     steps:
       - name: Write summary

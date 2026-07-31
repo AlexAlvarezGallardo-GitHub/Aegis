@@ -126,10 +126,12 @@ jobs:
           - frontend
     steps:
       - uses: actions/checkout@v4
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.29.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:nightly-${{ github.run_number }}
+          image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:nightly-${{ github.run_number }}
           format: 'sarif'
           output: 'trivy-results.sarif'
       - name: Upload Trivy scan results

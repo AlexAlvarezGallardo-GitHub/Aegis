@@ -122,10 +122,12 @@ jobs:
           - frontend
     steps:
       - uses: actions/checkout@v4
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.ref_name }}
+          image: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.ref_name }}
           output-file: ${{ matrix.image }}-${{ github.ref_name }}-sbom.spdx.json
           format: spdx-json
       - name: Upload SBOM

@@ -52,7 +52,8 @@ runs:
       id: tags
       shell: bash
       run: |
-        IMAGE="ghcr.io/${{ github.repository_owner }}/${{ inputs.image }}"
+        OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        IMAGE="ghcr.io/$OWNER/${{ inputs.image }}"
         TAGS=$(echo "${{ inputs.tags }}" | tr ',' '\n' | sed "s|^|$IMAGE:|" | paste -sd ',' -)
         echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
         echo "labels=org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" >> "$GITHUB_OUTPUT"
