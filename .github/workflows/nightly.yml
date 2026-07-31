@@ -1,0 +1,164 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+jobs:
+  backend-nightly:
+    name: Backend Nightly Regression
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - aegis-identity-service
+          - aegis-wallet-service
+          - aegis-bff-service
+          - aegis-audit-service
+          - aegis-fraud-service
+          - aegis-reporting-service
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: ./.github/actions/setup-java
+        with:
+          working-directory: backend
+      - name: Full build and integration tests
+        working-directory: backend
+        run: mvn -B verify -Pintegration-tests -pl ${{ matrix.module }} -am
+
+  frontend-nightly:
+    name: Frontend Nightly Regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
+        with:
+          working-directory: frontend/aegis-frontend
+      - name: Lint
+        working-directory: frontend/aegis-frontend
+        run: npm run lint
+      - name: Build
+        working-directory: frontend/aegis-frontend
+        run: npm run build
+      - name: Unit tests
+        working-directory: frontend/aegis-frontend
+        run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
+
+  docker-nightly:
+    name: Docker Nightly Build
+    runs-on: ubuntu-latest
+    needs: [backend-nightly, frontend-nightly]
+    if: always() && (needs.backend-nightly.result == 'success' || needs.frontend-nightly.result == 'success')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: identity
+            image: identity-service
+            context: backend
+            file: backend/aegis-identity-service/Dockerfile
+          - name: wallet
+            image: wallet-service
+            context: backend
+            file: backend/aegis-wallet-service/Dockerfile
+          - name: bff
+            image: bff-service
+            context: backend
+            file: backend/aegis-bff-service/Dockerfile
+          - name: audit
+            image: audit-service
+            context: backend
+            file: backend/aegis-audit-service/Dockerfile
+          - name: fraud
+            image: fraud-service
+            context: backend
+            file: backend/aegis-fraud-service/Dockerfile
+          - name: reporting
+            image: reporting-service
+            context: backend
+            file: backend/aegis-reporting-service/Dockerfile
+          - name: frontend
+            image: frontend
+            context: frontend/aegis-frontend
+            file: frontend/aegis-frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push nightly
+        uses: ./.github/actions/docker-build-push
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          image: ${{ matrix.image }}
+          tags: nightly-${{ github.run_number }}
+          push: 'true'
+
+  security-nightly:
+    name: Nightly Security Scan
+    runs-on: ubuntu-latest
+    needs: docker-nightly
+    if: always() && needs.docker-nightly.result == 'success'
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - identity-service
+          - wallet-service
+          - bff-service
+          - audit-service
+          - fraud-service
+          - reporting-service
+          - frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:nightly-${{ github.run_number }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  nightly-summary:
+    name: Nightly Summary
+    runs-on: ubuntu-latest
+    needs:
+      - backend-nightly
+      - frontend-nightly
+      - docker-nightly
+      - security-nightly
+    if: always()
+    steps:
+      - name: Write summary
+        uses: actions/github-script@v7
+        env:
+          RESULTS: ${{ toJson(needs) }}
+        with:
+          script: |
+            const results = JSON.parse(process.env.RESULTS || '{}');
+            const lines = ['| Job | Result |', '|-----|--------|'];
+            for (const [job, data] of Object.entries(results)) {
+              const result = data.result || 'unknown';
+              const icon = result === 'success' ? '✅' : result === 'failure' ? '❌' : result === 'cancelled' ? '🚫' : '⏳';
+              lines.push(`| ${job} | ${icon} ${result} |`);
+            }
+            await core.summary.addRaw(lines.join('\n')).write();

@@ -1,0 +1,75 @@
+name: 'Docker Build and Push'
+description: 'Build a Docker image with Buildx and optional layer caching, then push to GHCR.'
+
+inputs:
+  context:
+    description: 'Build context'
+    required: true
+  file:
+    description: 'Path to Dockerfile'
+    required: true
+  image:
+    description: 'Image name (without registry)'
+    required: true
+  tags:
+    description: 'Comma-separated list of tags'
+    required: true
+  push:
+    description: 'Push image to registry'
+    required: false
+    default: 'false'
+  cache-from:
+    description: 'Cache from spec'
+    required: false
+    default: 'type=gha'
+  cache-to:
+    description: 'Cache to spec'
+    required: false
+    default: 'type=gha,mode=max'
+  platforms:
+    description: 'Target platforms'
+    required: false
+    default: 'linux/amd64'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to GitHub Container Registry
+      if: ${{ inputs.push == 'true' }}
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+
+    - name: Build tags
+      id: tags
+      shell: bash
+      run: |
+        IMAGE="ghcr.io/${{ github.repository_owner }}/${{ inputs.image }}"
+        TAGS=$(echo "${{ inputs.tags }}" | tr ',' '\n' | sed "s|^|$IMAGE:|" | paste -sd ',' -)
+        echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+        echo "labels=org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" >> "$GITHUB_OUTPUT"
+
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        push: ${{ inputs.push == 'true' }}
+        tags: ${{ steps.tags.outputs.tags }}
+        labels: ${{ steps.tags.outputs.labels }}
+        cache-from: ${{ inputs.cache-from }}
+        cache-to: ${{ inputs.cache-to }}
+        platforms: ${{ inputs.platforms }}
+        sbom: true
+        provenance: true
