@@ -11,7 +11,7 @@ if [ "$BRANCH" = "main" ] || [ -z "$BRANCH" ]; then
   exit 0
 fi
 
-# ── Branch name validation ──────────────────────────────────
+# = Branch name validation =
 TYPES="feature|fix|chore|refactor|docs|test|ci|security"
 PATTERN="^($TYPES)/[0-9]+-[a-z0-9-]+$"
 
@@ -32,9 +32,9 @@ if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
   exit 1
 fi
 
-# ── Secret scanning in staged diff ──────────────────────────
+# = Secret scanning in staged diff =
 # Check staged changes for potential hardcoded secrets.
-# This is a best-effort warning — not a blocker — to catch common mistakes.
+# This is a best-effort warning - not a blocker - to catch common mistakes.
 STAGED_DIFF=$(git diff --cached --diff-filter=ACM -U0 2>/dev/null)
 
 if [ -n "$STAGED_DIFF" ]; then
@@ -55,6 +55,6 @@ if [ -n "$STAGED_DIFF" ]; then
     echo "  See infra/.env.example for the expected pattern."
     echo "  To bypass this warning (false positive): git commit --no-verify"
     echo ""
-    # Warning only — does not block the commit
+    # Warning only - does not block the commit
   fi
 fi

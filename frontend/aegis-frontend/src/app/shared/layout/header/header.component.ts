@@ -58,10 +58,7 @@ export class HeaderComponent {
   readonly environment = environment.production ? 'PROD' : 'DEV';
 
   get environmentClass(): string {
-    const env = this.environment;
-    if (env === 'PROD') return 'env-prod';
-    if (env === 'STAGING') return 'env-staging';
-    return 'env-dev';
+    return this.environment === 'PROD' ? 'env-prod' : 'env-dev';
   }
 
   openSearch(): void {

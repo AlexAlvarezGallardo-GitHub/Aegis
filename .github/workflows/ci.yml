@@ -88,34 +88,29 @@ jobs:
     name: Docker image build
     runs-on: ubuntu-latest
     needs: [backend-build, frontend-build]
-    strategy:
-      matrix:
-        include:
-          - service: aegis-identity
-            context: backend
-            dockerfile: aegis-identity-service/Dockerfile
-          - service: aegis-wallet
-            context: backend
-            dockerfile: aegis-wallet-service/Dockerfile
-          - service: aegis-bff
-            context: backend
-            dockerfile: aegis-bff-service/Dockerfile
-          - service: aegis-frontend
-            context: frontend/aegis-frontend
-            dockerfile: Dockerfile
     steps:
       - uses: actions/checkout@v4
-      - name: Build ${{ matrix.service }}
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.dockerfile }}
-          push: false
-          tags: ${{ matrix.service }}:ci-${{ github.sha }}
+      - name: Build all images sequentially
+        shell: bash
+        run: |
+          set -e
+          declare -A IMAGES
+          IMAGES["aegis-identity"]="backend|aegis-identity-service/Dockerfile"
+          IMAGES["aegis-wallet"]="backend|aegis-wallet-service/Dockerfile"
+          IMAGES["aegis-bff"]="backend|aegis-bff-service/Dockerfile"
+          IMAGES["aegis-frontend"]="frontend/aegis-frontend|Dockerfile"
+          for key in "${!IMAGES[@]}"; do
+            IFS='|' read -r ctx dockerfile <<< "${IMAGES[$key]}"
+            echo "Building $key (context=$ctx, dockerfile=$dockerfile)"
+            docker build --file "$ctx/$dockerfile" --tag "$key:ci-${{ github.sha }}" "$ctx"
+          done
 
   security-scan:
     name: Secret scanning (Gitleaks)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:

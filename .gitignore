@@ -104,6 +104,10 @@ coverage/
 .nyc_output/
 *.lcov
 .jest-cache/
+test-results/
+playwright-report/
+html-report/
+evidence/html-report/
 
 # ============================================================================
 # Build Artifacts
