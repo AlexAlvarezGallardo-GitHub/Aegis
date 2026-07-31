@@ -177,6 +177,7 @@ jobs:
     if: always() && needs.docker-build-push.result == 'success'
     permissions:
       contents: read
+      packages: read
       security-events: write
     strategy:
       fail-fast: false
@@ -200,9 +201,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compute GHCR owner
         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Trivy vulnerability scanner
         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
           format: 'sarif'
@@ -243,6 +250,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compute GHCR owner
         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate SBOM with Syft
         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
         uses: anchore/sbom-action@v0
@@ -250,6 +263,8 @@ jobs:
           image: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
           output-file: ${{ matrix.image }}-sbom.spdx.json
           format: spdx-json
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload SBOM
         if: ${{ (needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true') && always() }}
         uses: actions/upload-artifact@v4
