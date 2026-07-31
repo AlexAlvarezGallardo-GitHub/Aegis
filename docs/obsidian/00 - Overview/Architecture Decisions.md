@@ -26,6 +26,8 @@ status: implemented
 | Wallet | BigDecimal for balance | No floating-point errors |
 | Wallet | 5 wallets max per user | Configurable limit |
 | Events | Transactional outbox | Exactly-once semantics |
+| Fraud | DB-backed rules + strategy evaluators | Configurable without redeploy (ADR-001) |
+| Fraud | Risk score thresholds (30/70) | APPROVE/REVIEW/REJECT |
 | BFF | Redis-backed HttpSession | Distributed session store |
 | Frontend | Angular Material | Enterprise design system |
 | Frontend | Gold (#D4AF37) theme | Brand identity |

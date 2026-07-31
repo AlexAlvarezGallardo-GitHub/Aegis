@@ -20,9 +20,13 @@ graph LR
         W_Balance[aegis.wallet.balance.adjusted]
         W_Deposit[wallet.funds.deposited]
     end
+    subgraph Fraud
+        F_Assessment[fraud.assessment.completed]
+    end
     subgraph Consumers
         W_Deposit --> Report[Reporting group]
         W_Deposit --> Audit[Audit group]
+        F_Assessment --> Audit
     end
     style Report fill:#bfb,stroke:#333
     style Audit fill:#bfb,stroke:#333
@@ -32,6 +36,7 @@ graph LR
     style W_Create fill:#fdb,stroke:#333
     style W_Balance fill:#fdb,stroke:#333
     style W_Deposit fill:#fdb,stroke:#333
+    style F_Assessment fill:#fdb,stroke:#333
 ```
 
 ## Identity Service Topics
@@ -50,12 +55,19 @@ graph LR
 | `aegis.wallet.balance.adjusted` | [[03 - Domain Events/WalletBalanceAdjusted\|WalletBalanceAdjusted]] | 3 | 7 days |
 | `wallet.funds.deposited` | [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | 3 | 7 days |
 
+## Fraud Service Topics
+
+| Topic | Event | Partitions | Retention |
+|-------|-------|-----------|-----------|
+| `fraud.assessment.completed` | [[03 - Domain Events/FraudAssessmentCompleted\|FraudAssessmentCompleted]] | 3 | 30 days |
+
 ## Consumer Groups
 
 | Group | Service | Topics Consumed |
 |-------|---------|-----------------|
 | `reporting-group` | [[01 - Services/Reporting Service\|Reporting Service]] | `wallet.funds.deposited` |
-| `audit-group` | [[01 - Services/Audit Service\|Audit Service]] | `wallet.funds.deposited` |
+| `audit-group` | [[01 - Services/Audit Service\|Audit Service]] | `wallet.funds.deposited`, `fraud.assessment.completed` |
+| `fraud-group` | [[01 - Services/Fraud Service\|Fraud Service]] | `payment.transfer.requested` |
 
 ## Naming Convention
 
