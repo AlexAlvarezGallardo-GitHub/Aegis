@@ -13,12 +13,26 @@
 
 ## Architecture
 
-```
-Kafka (payment.*) → TransactionEventConsumer → AssessFraudService → rules engine → risk scorer → decision
-                                                                          │
-                                                              POST /api/v1/fraud/assess (sync)
-                                                                          │
-                                                              Kafka: fraud.assessment.completed → Audit Service
+```mermaid
+graph LR
+    subgraph Fraud["Fraud Service"]
+        Consumer["TransactionEventConsumer"]
+        Svc["AssessFraudService"]
+        Rules["Rules Engine<br/>Velocity / Amount / Geographic / Time"]
+        Scorer["RiskScorer"]
+        Decision["DecisionMaker"]
+        Consumer --> Svc
+        Svc --> Rules
+        Svc --> Scorer
+        Svc --> Decision
+    end
+    Client["Payment Service"] -->|POST /api/v1/fraud/assess| Svc
+    KafkaIn[("Kafka<br/>payment.*")] --> Consumer
+    Svc --> KafkaOut[("Kafka<br/>fraud.assessment.completed")]
+    KafkaOut --> Audit["Audit Service"]
+    style KafkaIn fill:#fdb,stroke:#333
+    style KafkaOut fill:#fdb,stroke:#333
+    style Audit fill:#bfb,stroke:#333
 ```
 
 ## Tech Stack

@@ -14,27 +14,28 @@ database: aegis_fraud
 
 ```mermaid
 graph TB
-    Kafka[("Kafka<br/>payment.*")] --> Consumer[TransactionEventConsumer]
-    Client[Payment/Wallet Service] -->|POST /api/v1/fraud/assess| Ctrl[FraudController]
-    Ctrl --> Svc[AssessFraudService]
-    Consumer --> Svc
-    Svc --> Rules[Rules Engine<br/>Velocity / Amount / Geographic / Time]
-    Svc --> Scorer[RiskScorer]
-    Svc --> Decision[DecisionMaker]
-    Svc --> Repo[FraudAssessmentRepository]
-    Repo --> DB[(PostgreSQL<br/>aegis_fraud)]
-    Svc --> Pub[KafkaEventPublisher]
-    Pub --> Out[("Kafka<br/>fraud.assessment.completed")]
-    subgraph "Hexagonal"
-        Ctrl
-        Consumer
-        Svc
-        Rules
-        Scorer
-        Decision
-        Repo
-        Pub
+    subgraph Hexagonal["Hexagonal Architecture"]
+        direction TB
+        Ctrl["FraudController"]
+        Consumer["TransactionEventConsumer"]
+        Svc["AssessFraudService"]
+        Rules["Rules Engine<br/>Velocity / Amount / Geographic / Time"]
+        Scorer["RiskScorer"]
+        Decision["DecisionMaker"]
+        Repo["FraudAssessmentRepository"]
+        Pub["KafkaEventPublisher"]
+        Ctrl --> Svc
+        Consumer --> Svc
+        Svc --> Rules
+        Svc --> Scorer
+        Svc --> Decision
+        Svc --> Repo
+        Svc --> Pub
     end
+    Kafka["Kafka<br/>payment.*"] --> Consumer
+    Client["Payment/Wallet Service"] -->|POST /api/v1/fraud/assess| Ctrl
+    Repo --> DB[("PostgreSQL<br/>aegis_fraud")]
+    Pub --> Out["Kafka<br/>fraud.assessment.completed"]
     style DB fill:#afa,stroke:#333
     style Kafka fill:#fdb,stroke:#333
     style Out fill:#fdb,stroke:#333

@@ -10,8 +10,13 @@
 
 ## Architecture
 
-```
-Kafka (wallet.funds.deposited) → FundsDepositedConsumer → BalanceProjectionRepository → PostgreSQL (aegis_reporting)
+```mermaid
+graph LR
+    Kafka[("Kafka<br/>wallet.funds.deposited")] --> Consumer["FundsDepositedConsumer"]
+    Consumer --> Repo["BalanceProjectionRepository"]
+    Repo --> DB[("PostgreSQL<br/>aegis_reporting")]
+    style Kafka fill:#fdb,stroke:#333
+    style DB fill:#afa,stroke:#333
 ```
 
 ## Tech Stack

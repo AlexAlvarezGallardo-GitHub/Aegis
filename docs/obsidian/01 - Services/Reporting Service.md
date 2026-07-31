@@ -14,13 +14,13 @@ database: aegis_reporting
 
 ```mermaid
 graph LR
-    Kafka[("Kafka<br/>wallet.funds.deposited")] --> Consumer[FundsDepositedConsumer]
-    Consumer --> Repo[BalanceProjectionRepository]
-    Repo --> DB[(PostgreSQL<br/>aegis_reporting)]
-    subgraph "Hexagonal"
-        Consumer
-        Repo
+    subgraph Hexagonal["Hexagonal"]
+        Consumer["FundsDepositedConsumer"]
+        Repo["BalanceProjectionRepository"]
+        Consumer --> Repo
     end
+    Kafka[("Kafka<br/>wallet.funds.deposited")] --> Consumer
+    Repo --> DB[("PostgreSQL<br/>aegis_reporting")]
     style Kafka fill:#fdb,stroke:#333
     style DB fill:#afa,stroke:#333
 ```

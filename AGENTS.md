@@ -165,7 +165,9 @@ When testing Angular components, the test-engineer MUST verify:
 - **finalize guarantee**: Use a spy and verify `isLoading` transitions: `false → true → false` always completes
 - **HTTP mock**: Use `HttpTestingController` to flush/expect requests and verify loading states
 
-## Obsidian Vault — Mermaid Diagrams
+## Mermaid Diagrams (Vault + Service READMEs)
+
+The Mermaid rules below apply to `docs/obsidian/` files AND to the `## Architecture` section of every service `README.md` (`backend/*/README.md`). No ASCII/plain-text diagrams allowed anywhere.
 
 Every service documentation file in `docs/obsidian/01 - Services/` MUST include:
 - A `graph` diagram showing the service's hexagonal architecture (layers → ports → infrastructure)
@@ -181,7 +183,14 @@ Every inbound port file in `docs/obsidian/04 - Ports/inbound/` MUST include:
 Every infrastructure file (Kafka Topics, etc.) MUST include:
 - A `graph` diagram showing the topology (topics, partitions, consumer groups)
 
+Every enum/status domain model file (UserStatus, WalletStatus, etc.) MUST include:
+- A `stateDiagram-v2` showing state transitions (with trigger labels)
+
+No file in the vault MAY use plain-text/ASCII diagrams (` ```text `) for architecture, flows, or transitions — Mermaid is mandatory.
+
 All Mermaid diagrams MUST use ` ```mermaid ` blocks (Obsidian-native rendering), not inline diagrams. Use `graph TB`/`graph LR` for static topology and `sequenceDiagram` for flows. Color nodes with `style` directives for visual grouping: services `#bbf`, infrastructure `#fdb`, databases `#afa`.
+
+When using `subgraph` blocks, ALL nodes belonging to a subgraph MUST be declared (with their shape and label) INSIDE that subgraph, then referenced by id from outside. Never create nodes in top-level arrow statements and later list them inside a subgraph — that breaks rendering in some Mermaid versions.
 
 ## Authority
 
