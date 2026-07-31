@@ -1,0 +1,156 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+  security-events: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  backend-release:
+    name: Backend Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: ./.github/actions/setup-java
+        with:
+          working-directory: backend
+      - name: Build and test
+        working-directory: backend
+        run: mvn -B verify
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-release-artifacts
+          path: backend/**/target/*.jar
+
+  frontend-release:
+    name: Frontend Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
+        with:
+          working-directory: frontend/aegis-frontend
+      - name: Lint
+        working-directory: frontend/aegis-frontend
+        run: npm run lint
+      - name: Build
+        working-directory: frontend/aegis-frontend
+        run: npm run build
+      - name: Unit tests
+        working-directory: frontend/aegis-frontend
+        run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
+
+  docker-release:
+    name: Docker ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: [backend-release, frontend-release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: identity
+            image: identity-service
+            context: backend
+            file: backend/aegis-identity-service/Dockerfile
+          - name: wallet
+            image: wallet-service
+            context: backend
+            file: backend/aegis-wallet-service/Dockerfile
+          - name: bff
+            image: bff-service
+            context: backend
+            file: backend/aegis-bff-service/Dockerfile
+          - name: audit
+            image: audit-service
+            context: backend
+            file: backend/aegis-audit-service/Dockerfile
+          - name: fraud
+            image: fraud-service
+            context: backend
+            file: backend/aegis-fraud-service/Dockerfile
+          - name: reporting
+            image: reporting-service
+            context: backend
+            file: backend/aegis-reporting-service/Dockerfile
+          - name: frontend
+            image: frontend
+            context: frontend/aegis-frontend
+            file: frontend/aegis-frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push
+        uses: ./.github/actions/docker-build-push
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          image: ${{ matrix.image }}
+          tags: ${{ github.ref_name }},latest
+          push: 'true'
+
+  sbom-release:
+    name: Release SBOM
+    runs-on: ubuntu-latest
+    needs: docker-release
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - identity-service
+          - wallet-service
+          - bff-service
+          - audit-service
+          - fraud-service
+          - reporting-service
+          - frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.ref_name }}
+          output-file: ${{ matrix.image }}-${{ github.ref_name }}-sbom.spdx.json
+          format: spdx-json
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.image }}-${{ github.ref_name }}-sbom
+          path: ${{ matrix.image }}-${{ github.ref_name }}-sbom.spdx.json
+
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [docker-release, sbom-release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: '*-sbom'
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            Aegis release ${{ github.ref_name }}
+
+            Container images published to `ghcr.io/${{ github.repository_owner }}`.
+          files: release-assets/**/*
+          generate_release_notes: true

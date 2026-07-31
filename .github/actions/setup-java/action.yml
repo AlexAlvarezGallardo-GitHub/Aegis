@@ -1,0 +1,26 @@
+name: 'Setup Java 21'
+description: 'Checkout repository, setup Java 21 Temurin, and cache Maven dependencies.'
+
+inputs:
+  working-directory:
+    description: 'Directory containing the Maven project'
+    required: false
+    default: 'backend'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Cache Maven repository
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-m2-${{ hashFiles(format('{0}/pom.xml', inputs.working-directory), format('{0}/**/pom.xml', inputs.working-directory)) }}
+        restore-keys: |
+          ${{ runner.os }}-m2-

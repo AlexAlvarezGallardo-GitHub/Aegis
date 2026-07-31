@@ -1,0 +1,23 @@
+name: 'Setup Node 22'
+description: 'Checkout repository, setup Node 22, and cache npm dependencies.'
+
+inputs:
+  working-directory:
+    description: 'Directory containing the Node project'
+    required: false
+    default: 'frontend/aegis-frontend'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm ci

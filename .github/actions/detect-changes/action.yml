@@ -1,0 +1,36 @@
+name: 'Detect Changes'
+description: 'Detect changed paths in a pull request or push event using dorny/paths-filter.'
+
+inputs:
+  filters:
+    description: 'YAML map of filter rules (passed to dorny/paths-filter)'
+    required: true
+
+outputs:
+  backend:
+    description: 'True if backend files changed'
+    value: ${{ steps.filter.outputs.backend }}
+  frontend:
+    description: 'True if frontend files changed'
+    value: ${{ steps.filter.outputs.frontend }}
+  e2e:
+    description: 'True if e2e files changed'
+    value: ${{ steps.filter.outputs.e2e }}
+  infra:
+    description: 'True if infrastructure files changed'
+    value: ${{ steps.filter.outputs.infra }}
+  workflows:
+    description: 'True if workflow files changed'
+    value: ${{ steps.filter.outputs.workflows }}
+  any:
+    description: 'True if any of the tracked paths changed'
+    value: ${{ steps.filter.outputs.any }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Detect changes
+      id: filter
+      uses: dorny/paths-filter@v3
+      with:
+        filters: ${{ inputs.filters }}
