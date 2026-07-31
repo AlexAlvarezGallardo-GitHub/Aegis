@@ -1,12 +1,18 @@
 package com.aegis.identity.infrastructure.security;
 
-import com.aegis.identity.domain.exception.WeakPasswordException;
 import com.aegis.identity.domain.model.PasswordHash;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Tests for {@link BCryptPasswordHasher}.
+ *
+ * <p>Password strength validation is now the responsibility of the
+ * {@link com.aegis.identity.domain.model.Password} value object.
+ * These tests only verify hashing and matching behaviour.</p>
+ */
 class BCryptPasswordHasherTest {
 
     private BCryptPasswordHasher hasher;
@@ -36,45 +42,9 @@ class BCryptPasswordHasherTest {
     }
 
     @Test
-    void shouldRejectPasswordTooShort() {
-        WeakPasswordException ex = assertThrows(WeakPasswordException.class,
-                () -> hasher.hash("Sh@1"));
-        assertEquals("PASSWORD_TOO_SHORT", ex.getCode());
-    }
-
-    @Test
-    void shouldRejectPasswordTooLong() {
-        String longPassword = "A".repeat(129) + "a1@";
-        WeakPasswordException ex = assertThrows(WeakPasswordException.class,
-                () -> hasher.hash(longPassword));
-        assertEquals("PASSWORD_TOO_LONG", ex.getCode());
-    }
-
-    @Test
-    void shouldRejectPasswordMissingUppercase() {
-        WeakPasswordException ex = assertThrows(WeakPasswordException.class,
-                () -> hasher.hash("securep@ss1"));
-        assertEquals("PASSWORD_MISSING_UPPERCASE", ex.getCode());
-    }
-
-    @Test
-    void shouldRejectPasswordMissingLowercase() {
-        WeakPasswordException ex = assertThrows(WeakPasswordException.class,
-                () -> hasher.hash("SECUREP@SS1"));
-        assertEquals("PASSWORD_MISSING_LOWERCASE", ex.getCode());
-    }
-
-    @Test
-    void shouldRejectPasswordMissingDigit() {
-        WeakPasswordException ex = assertThrows(WeakPasswordException.class,
-                () -> hasher.hash("SecureP@ss"));
-        assertEquals("PASSWORD_MISSING_DIGIT", ex.getCode());
-    }
-
-    @Test
-    void shouldRejectPasswordMissingSpecialCharacter() {
-        WeakPasswordException ex = assertThrows(WeakPasswordException.class,
-                () -> hasher.hash("SecurePass1"));
-        assertEquals("PASSWORD_MISSING_SPECIAL_CHARACTER", ex.getCode());
+    void shouldProduceDifferentHashesForSamePassword() {
+        PasswordHash hash1 = hasher.hash("SecureP@ss1");
+        PasswordHash hash2 = hasher.hash("SecureP@ss1");
+        assertNotEquals(hash1.hash(), hash2.hash());
     }
 }

@@ -11,6 +11,29 @@ port-type: inbound
 
 Inbound port (interface) for user registration.
 
+```mermaid
+sequenceDiagram
+    participant Ctrl as RegistrationController
+    participant Port as RegisterUserUseCase (port)
+    participant Svc as RegisterUserService (impl)
+    participant Repo as UserRepository
+    participant Hasher as PasswordHasher
+    participant Event as EventPublisher
+
+    Ctrl->>Port: register(command)
+    Port->>Svc: delegate
+    Svc->>Repo: findByEmail(email)
+    alt email already exists
+        Repo-->>Svc: found → throw DuplicateEmailException
+    end
+    Svc->>Hasher: hash(rawPassword)
+    Hasher-->>Svc: passwordHash
+    Svc->>Svc: User.create(email, passwordHash)
+    Svc->>Repo: save(user)
+    Svc->>Event: publish(UserRegistered)
+    Svc-->>Ctrl: UserRegistrationResponse
+```
+
 ## Method
 
 ```java

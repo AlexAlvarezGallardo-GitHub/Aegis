@@ -33,6 +33,7 @@ aegis:
   kafka:
     topics:
       funds-deposited: wallet.funds.deposited
+      fraud-assessment-completed: fraud.assessment.completed
 
 springdoc:
   api-docs:

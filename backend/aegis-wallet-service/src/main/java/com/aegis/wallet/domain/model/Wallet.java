@@ -4,6 +4,7 @@ import com.aegis.common.util.UuidV7Generator;
 import com.aegis.wallet.domain.event.FundsDeposited;
 import com.aegis.wallet.domain.event.WalletBalanceAdjusted;
 import com.aegis.wallet.domain.event.WalletCreated;
+import com.aegis.wallet.domain.exception.InsufficientFundsException;
 import com.aegis.wallet.domain.exception.WalletOperationNotAllowedException;
 
 import java.math.BigDecimal;
@@ -91,6 +92,16 @@ public class Wallet {
         ledgerEntries.add(entry);
     }
 
+    /**
+     * Adjusts the wallet balance by the given amount.
+     *
+     * <p>If the amount is negative (withdrawal) and the resulting balance would be negative,
+     * an {@link InsufficientFundsException} is thrown.</p>
+     *
+     * @param amount      the adjustment amount (positive for deposit, negative for withdrawal)
+     * @param description an optional description for the ledger entry
+     * @throws InsufficientFundsException if the resulting balance would be negative
+     */
     public void adjustBalance(BigDecimal amount, String description) {
         if (status != WalletStatus.ACTIVE) {
             throw new WalletOperationNotAllowedException(
@@ -100,7 +111,13 @@ public class Wallet {
             throw new IllegalArgumentException("Amount must not be zero");
         }
 
-        this.balance = this.balance.add(amount);
+        BigDecimal newBalance = this.balance.add(amount);
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds. Current balance: " + this.balance + ", requested: " + amount);
+        }
+
+        this.balance = newBalance;
 
         LedgerEntryType type = amount.compareTo(BigDecimal.ZERO) > 0
                 ? LedgerEntryType.DEPOSIT
@@ -197,6 +214,16 @@ public class Wallet {
         );
     }
 
+    /**
+     * Returns an unmodifiable copy of the ledger entries.
+     *
+     * <p><strong>Limitation:</strong> All ledger entries are loaded into memory. For wallets with
+     * a very large number of transactions, consider paginating ledger entries at the persistence
+     * layer (e.g., via a dedicated {@code LedgerEntryRepository.findAllByWalletId(walletId, Pageable)}).
+     * This is not yet implemented and should be addressed in a future iteration.</p>
+     *
+     * @return an unmodifiable list of ledger entries
+     */
     public WalletId getWalletId() { return walletId; }
     public UUID getUserId() { return userId; }
     public BigDecimal getBalance() { return balance; }

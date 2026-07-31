@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
     }
 
     if (environment.enableMockLogin) {
-      this.authService['authState'].next(true);
+      this.authService.setAuthenticated();
       return of(true);
     }
 

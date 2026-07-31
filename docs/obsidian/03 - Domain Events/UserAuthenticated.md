@@ -11,6 +11,31 @@ topic: aegis.identity.user-authenticated
 
 Published on successful user login.
 
+```mermaid
+graph LR
+    Identity[Identity Service] -->|publishes| Topic[aegis.identity.user-authenticated]
+    Topic --> Audit[Audit Service]
+    style Identity fill:#bbf,stroke:#333
+    style Topic fill:#fdb,stroke:#333
+    style Audit fill:#bfb,stroke:#333
+```
+
+```mermaid
+sequenceDiagram
+    participant User as User (Domain)
+    participant Svc as AuthenticateUserService
+    participant Pub as KafkaEventPublisher
+    participant DB as PostgreSQL (Outbox)
+    participant Kafka as Kafka Topic
+    participant Audit as Audit Consumer
+
+    User->>Svc: authenticate()
+    Svc->>Pub: publish(UserAuthenticated)
+    Pub->>DB: INSERT outbox_event (payload=UserAuthenticated JSON)
+    DB-->>Kafka: OutboxRelayScheduler polls & sends
+    Kafka->>Audit: Consume (group=audit-group)
+```
+
 ## Schema
 
 | Field | Type | Description |

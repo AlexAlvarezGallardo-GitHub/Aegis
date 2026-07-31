@@ -126,3 +126,4 @@ obj/
 .cache/
 .parcel-cache/
 .turbo/
+.playwright-mcp/

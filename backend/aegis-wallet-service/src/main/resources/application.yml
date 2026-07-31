@@ -36,6 +36,11 @@ aegis:
     outbox:
       polling-interval-ms: 1000
       batch-size: 50
+  kafka:
+    topics:
+      WALLET_CREATED: aegis.wallet.created
+      WALLET_BALANCE_ADJUSTED: aegis.wallet.balance.adjusted
+      FUNDS_DEPOSITED: wallet.funds.deposited
 
 logging:
   level:

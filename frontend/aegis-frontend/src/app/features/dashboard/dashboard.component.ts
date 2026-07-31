@@ -4,7 +4,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { interval } from 'rxjs';
+import { interval, fromEvent, of } from 'rxjs';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card.component';
 import { StatusChipComponent } from '../../shared/data-display/status-chip/status-chip.component';
 import { LoadingSkeletonComponent } from '../../shared/data-display/loading-skeleton/loading-skeleton.component';
@@ -84,7 +85,16 @@ export class DashboardComponent {
   readonly secondsSinceUpdate = signal(0);
 
   constructor() {
-    interval(1000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    // Pause the counter when the browser tab is not visible
+    const visibility$ = typeof document !== 'undefined'
+      ? fromEvent(document, 'visibilitychange').pipe(map(() => document.hidden), startWith(false))
+      : of(false);
+
+    const ticker$ = visibility$.pipe(
+      switchMap((hidden) => (hidden ? [] : interval(1000))),
+    );
+
+    ticker$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.secondsSinceUpdate.update((s) => s + 1);
     });
   }

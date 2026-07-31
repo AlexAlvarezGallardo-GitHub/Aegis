@@ -134,7 +134,39 @@ status: implemented
 
 # $title
 
-**Service**: `$svc`
+**Service**: ``$svc``
+
+``````mermaid
+graph TB
+    subgraph "Hexagonal Architecture"
+        direction TB
+        Web["Web Layer"]
+        App["Application Layer"]
+        Domain["Domain Layer"]
+        Infra["Infrastructure Layer"]
+        Web --> App --> Domain
+        Domain --> Infra
+    end
+    Client["Client"] -->|HTTP| Web
+    Infra -->|JPA| PG[("PostgreSQL")]
+    Infra -->|Outbox| Kafka[("Kafka")]
+``````
+
+``````mermaid
+sequenceDiagram
+    participant Client
+    participant Web as Web Layer
+    participant App as Application
+    participant Domain as Domain
+    participant Infra as Infrastructure
+    Client->>Web: HTTP Request
+    Web->>App: Use Case
+    App->>Domain: Domain Logic
+    Domain->>Infra: Persist / Publish Event
+    Infra-->>App: Result
+    App-->>Web: DTO
+    Web-->>Client: HTTP Response
+``````
 
 ## Layers
 
@@ -246,6 +278,23 @@ status: implemented
 ``$((Split-Path -Leaf $svcDir))/domain/model/$name.java``
 
 "@
+        if ($content -match "enum\s+$name") {
+            # Extract enum values for stateDiagram
+            $enumValues = @()
+            $enumBlock = [regex]::Match($content, "enum\s+$name\s*\{([^}]+)\}")
+            if ($enumBlock.Success) {
+                $enumValues = $enumBlock.Groups[1].Value -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" -and $_ -notmatch "^\s*;" -and $_ -notmatch "^\s*//" }
+            }
+            if ($enumValues.Count -gt 0) {
+                $note += "`n## State Transitions`n`n``````mermaid`nstateDiagram-v2`n"
+                $note += "    [*] --> $($enumValues[0])`n"
+                for ($i = 0; $i -lt $enumValues.Count - 1; $i++) {
+                    $note += "    $($enumValues[$i]) --> $($enumValues[$i + 1]): transition`n"
+                }
+                $note += "    $($enumValues[-1]) --> [*]`n"
+                $note += "```````n"
+            }
+        }
         if ($fields.Count -gt 0) {
             $note += "`n## Fields`n`n| Field | Type |`n|-------|------|"
             $fields | ForEach-Object { $note += "`n| ``$($_.Name)`` | ``$($_.Type)`` |" }
@@ -299,6 +348,31 @@ topic: $topic
 ---
 
 # $name
+
+``````mermaid
+graph LR
+    Producer[$svcName] -->|publishes| Topic[$topic]
+    Topic --> Consumer1[Consumer 1]
+    Topic --> Consumer2[Consumer 2]
+    style Producer fill:#bbf,stroke:#333
+    style Topic fill:#fdb,stroke:#333
+    style Consumer1 fill:#bfb,stroke:#333
+    style Consumer2 fill:#bfb,stroke:#333
+``````
+
+``````mermaid
+sequenceDiagram
+    participant Domain as $svcName Domain
+    participant Svc as Application Service
+    participant Pub as EventPublisher
+    participant DB as PostgreSQL (Outbox)
+    participant Kafka as Kafka Topic
+    Domain->>Svc: domain operation
+    Svc->>Pub: publish($name)
+    Pub->>DB: INSERT outbox_event
+    DB-->>Kafka: OutboxRelayScheduler
+    Kafka->>Consumer: Consume
+``````
 
 "@
         if ($fields.Count -gt 0) {
@@ -356,7 +430,30 @@ port-type: $portType
 
 # $name
 
-$portType port in the `$svcName` service.
+"@
+            if ($portType -eq "inbound") {
+                $note += @"
+``````mermaid
+sequenceDiagram
+    participant Ctrl as Controller
+    participant Port as $name (port)
+    participant Svc as Service (impl)
+    participant Repo as Repository
+    participant Event as EventPublisher
+    Ctrl->>Port: use case method
+    Port->>Svc: delegate
+    Svc->>Repo: load aggregate
+    Svc->>Svc: domain logic
+    Svc->>Repo: save
+    Svc->>Event: publish domain event
+    Svc-->>Ctrl: result
+``````
+
+"@
+            }
+
+            $note += @"
+$portType port in the ``$svcName`` service.
 
 "@
             if ($methods.Count -gt 0) {
@@ -389,6 +486,29 @@ status: implemented
 ---
 
 # Docker Services
+
+``````mermaid
+graph TB
+    subgraph "Databases"
+        PG[("PostgreSQL")]
+        Redis[("Redis")]
+    end
+    subgraph "Messaging"
+        Kafka["Kafka"]
+        ZK["ZooKeeper"]
+        Kafka --> ZK
+    end
+    subgraph "Applications"
+        Apps["Microservices"]
+    end
+    Apps --> PG
+    Apps --> Redis
+    Apps --> Kafka
+    style PG fill:#afa,stroke:#333
+    style Redis fill:#fdb,stroke:#333
+    style Kafka fill:#fdb,stroke:#333
+    style Apps fill:#bbf,stroke:#333
+``````
 
 "@
     $composeFiles | ForEach-Object {
@@ -427,6 +547,19 @@ status: implemented
 ---
 
 # Flyway Migrations — $svcName
+
+``````mermaid
+graph LR
+    subgraph "Migrations"
+        M1["V1__initial_schema"]
+    end
+    subgraph "Database"
+        DB[("$svcName DB")]
+    end
+    M1 --> DB
+    style M1 fill:#fdb,stroke:#333
+    style DB fill:#afa,stroke:#333
+``````
 
 "@
     $migrations | ForEach-Object { $note += "`n- ``$($_.Name)`` — $($_.BaseName)" }

@@ -3,7 +3,7 @@ type: spec
 tags: [spec, wallet]
 status: implemented
 uc: UC-004
-branch: feature/004-manage-wallet
+branch: feature/009-manage-wallet
 ---
 
 # UC-004 Manage Wallet
@@ -29,9 +29,9 @@ Extend the wallet service with wallet management operations — opening wallet d
 
 | Type | Location |
 |------|----------|
-| Spec | `specs/004-manage-wallet/spec.md` |
-| Plan | `specs/004-manage-wallet/plan.md` |
-| Tasks | `specs/004-manage-wallet/tasks.md` |
+| Spec | `specs/009-manage-wallet/spec.md` |
+| Plan | `specs/009-manage-wallet/plan.md` |
+| Tasks | `specs/009-manage-wallet/tasks.md` |
 
 ## Architecture
 

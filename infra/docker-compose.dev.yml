@@ -41,7 +41,7 @@ services:
       SPRING_DEVTOOLS_RESTART_QUIET_PERIOD: 1s
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-identity:5432/aegis_identity
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     networks:
       - aegis-network
@@ -68,7 +68,7 @@ services:
       SPRING_DEVTOOLS_RESTART_QUIET_PERIOD: 1s
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-wallet:5432/aegis_wallet
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     networks:
       - aegis-network

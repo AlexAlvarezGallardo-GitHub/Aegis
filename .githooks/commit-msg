@@ -15,7 +15,7 @@ fi
 TYPES="feat|fix|refactor|test|docs|chore|ci|perf|security"
 SCOPES="identity|wallet|payment|fraud|notification|audit|reporting|gateway|infra|frontend"
 
-PATTERN="^($TYPES)(\(($SCOPES)\))?!?: .{1,72}$"
+PATTERN="^($TYPES)\(($SCOPES)\)!?: .{1,72}$"
 
 if ! echo "$MSG" | grep -qE "$PATTERN"; then
   echo ""
@@ -29,6 +29,7 @@ if ! echo "$MSG" | grep -qE "$PATTERN"; then
   echo "  Scopes:  $SCOPES"
   echo ""
   echo "  Rules:"
+  echo "    - scope is mandatory"
   echo "    - description: lowercase, imperative, no period, max 72 chars"
   echo "    - breaking changes: add ! after scope or BREAKING CHANGE: in body"
   echo ""

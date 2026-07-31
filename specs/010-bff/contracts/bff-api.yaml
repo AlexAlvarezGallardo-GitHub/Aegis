@@ -1,0 +1,443 @@
+openapi: 3.0.3
+info:
+  title: Aegis BFF (Backend for Frontend) API
+  description: |
+    BFF API for the Aegis digital payment platform.
+    Proxies authentication and wallet requests from the Angular SPA
+    to internal microservices, managing session-based JWT storage
+    and hiding internal service topology.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8082
+    description: Local development server
+  - url: https://bff.aegis.dev
+    description: Development environment
+
+paths:
+  # ── Auth ──────────────────────────────────────────────────
+  /api/bff/auth/login:
+    post:
+      operationId: bffLogin
+      summary: Login
+      description: |
+        Authenticates the user via the Identity Service and stores
+        the JWT pair in the server-side session (Redis-backed).
+        Returns the access token for client-side use.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "user@example.com"
+              password: "s3cret"
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/bff/auth/refresh:
+    post:
+      operationId: bffRefresh
+      summary: Refresh tokens
+      description: |
+        Refreshes the JWT token pair using the refresh token stored
+        in the server-side session.
+      tags: [Auth]
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tokens refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Session expired or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/bff/auth/logout:
+    post:
+      operationId: bffLogout
+      summary: Logout
+      description: Invalidates the server-side session.
+      tags: [Auth]
+      responses:
+        '204':
+          description: Logged out successfully
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/bff/auth/me:
+    get:
+      operationId: bffMe
+      summary: Current user info
+      description: Returns the authenticated user's info from the session.
+      tags: [Auth]
+      responses:
+        '200':
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ── Wallets ───────────────────────────────────────────────
+  /api/bff/wallets:
+    post:
+      operationId: bffCreateWallet
+      summary: Create wallet (proxy)
+      description: Proxies to Wallet Service `POST /api/v1/wallets`.
+      tags: [Wallets]
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWalletRequest'
+      responses:
+        '201':
+          description: Wallet created
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Passthrough from Wallet Service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Wallet limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      operationId: bffListWallets
+      summary: List wallets (proxy)
+      description: Proxies to Wallet Service `GET /api/v1/wallets`.
+      tags: [Wallets]
+      responses:
+        '200':
+          description: Wallet list
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Passthrough from Wallet Service
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/bff/wallets/{walletId}:
+    get:
+      operationId: bffGetWallet
+      summary: Get wallet by ID (proxy)
+      description: Proxies to Wallet Service `GET /api/v1/wallets/{walletId}`.
+      tags: [Wallets]
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Wallet found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Passthrough from Wallet Service
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/bff/wallets/{walletId}/deposits:
+    post:
+      operationId: bffDepositFunds
+      summary: Deposit funds (proxy)
+      description: Proxies to Wallet Service `POST /api/v1/wallets/{walletId}/deposits`.
+      tags: [Wallets]
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositFundsRequest'
+      responses:
+        '201':
+          description: Deposit processed
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Passthrough from Wallet Service
+        '409':
+          description: Duplicate reference or wallet not active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/bff/wallets/{walletId}/balance:
+    patch:
+      operationId: bffAdjustBalance
+      summary: Adjust balance (proxy)
+      description: Proxies to Wallet Service `PATCH /api/v1/wallets/{walletId}/balance`.
+      tags: [Wallets]
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustBalanceRequest'
+      responses:
+        '200':
+          description: Balance adjusted
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Passthrough from Wallet Service
+        '409':
+          description: Wallet not active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/bff/wallets/{walletId}/status:
+    patch:
+      operationId: bffUpdateStatus
+      summary: Update wallet status (proxy)
+      description: Proxies to Wallet Service `PATCH /api/v1/wallets/{walletId}/status`.
+      tags: [Wallets]
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Passthrough from Wallet Service
+        '409':
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: JWT refresh token
+        expiresIn:
+          type: integer
+          description: Token TTL in seconds
+
+    CurrentUserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        status:
+          type: string
+
+    CreateWalletRequest:
+      type: object
+      required: [currency]
+      properties:
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+
+    DepositFundsRequest:
+      type: object
+      required: [amount, currency, source, reference]
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        source:
+          type: string
+          enum: [BANK_TRANSFER, CARD, CASH, INTERNAL_TRANSFER, REFUND, OTHER]
+        reference:
+          type: string
+
+    AdjustBalanceRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          format: double
+        description:
+          type: string
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [FROZEN, CLOSED]
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

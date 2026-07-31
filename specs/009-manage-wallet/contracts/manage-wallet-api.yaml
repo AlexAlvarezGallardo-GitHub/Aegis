@@ -1,0 +1,297 @@
+openapi: 3.0.3
+info:
+  title: Aegis Manage Wallet API
+  description: |
+    Wallet management API for the Aegis digital payment platform.
+    Covers balance adjustment, status updates (freeze/close), and wallet detail retrieval
+    with premium flag enrichment.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8083
+    description: Local development server
+  - url: https://api.aegis.dev
+    description: Development environment
+
+paths:
+  /api/v1/wallets/{walletId}:
+    get:
+      operationId: getWallet
+      summary: Get wallet by ID
+      description: |
+        Returns a single wallet by its ID with enriched metadata including
+        premium flag (balance > 1000 EUR) and balance color indicators.
+        The wallet must belong to the authenticated user.
+      tags: [Wallets]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          description: UUID of the wallet to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Wallet found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDetailResponse'
+              example:
+                walletId: "01912345-6789-7abc-def0-123456789abc"
+                userId: "01912345-6789-7abc-def0-123456789abd"
+                balance: 1500.00
+                currency: EUR
+                status: ACTIVE
+                premium: true
+                balancePositive: true
+                createdAt: "2026-07-05T12:00:00.000Z"
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: WALLET_NOT_FOUND
+                message: "Wallet not found: 01912345-6789-7abc-def0-123456789abc"
+                details: null
+                timestamp: "2026-07-31T12:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/wallets/{walletId}/balance:
+    patch:
+      operationId: adjustBalance
+      summary: Adjust wallet balance
+      description: |
+        Adjusts the wallet balance by depositing (positive amount) or
+        withdrawing (negative amount). A WalletBalanceAdjusted event is
+        published to downstream services via Kafka.
+      tags: [Wallets]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          description: UUID of the wallet to adjust
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustBalanceRequest'
+            example:
+              amount: 200.00
+              description: "Monthly salary deposit"
+      responses:
+        '200':
+          description: Balance adjusted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Wallet not in ACTIVE status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: WALLET_NOT_ACTIVE
+                message: "Wallet must be ACTIVE to adjust balance"
+                details: null
+                timestamp: "2026-07-31T12:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/wallets/{walletId}/status:
+    patch:
+      operationId: updateWalletStatus
+      summary: Update wallet status
+      description: |
+        Updates the wallet status to FROZEN or CLOSED.
+        Business rules:
+        - Balance must be exactly 0 to freeze or close
+        - ACTIVE wallets cannot be set to ACTIVE again
+        - A WalletBalanceAdjusted or status change event may be published
+      tags: [Wallets]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          description: UUID of the wallet to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusRequest'
+            example:
+              status: FROZEN
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Business rule violation (e.g., non-zero balance)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: WALLET_OPERATION_NOT_ALLOWED
+                message: "Cannot freeze wallet with non-zero balance"
+                details: null
+                timestamp: "2026-07-31T12:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from the Auth API
+
+  schemas:
+    AdjustBalanceRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Amount to adjust (positive for deposit, negative for withdrawal)
+          example: 200.00
+        description:
+          type: string
+          description: Human-readable description of the adjustment
+          example: "Monthly salary deposit"
+          maxLength: 500
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          description: Target wallet status
+          enum: [FROZEN, CLOSED]
+          example: FROZEN
+
+    WalletDetailResponse:
+      type: object
+      properties:
+        walletId:
+          type: string
+          format: uuid
+          description: Unique wallet identifier (UUID v7)
+        userId:
+          type: string
+          format: uuid
+          description: Owner user identifier
+        balance:
+          type: number
+          format: double
+          description: Current wallet balance
+        currency:
+          type: string
+          description: ISO 4217 currency code
+        status:
+          type: string
+          enum: [ACTIVE, FROZEN, CLOSED]
+          description: Wallet status
+        premium:
+          type: boolean
+          description: True if balance > 1000 and currency is EUR
+        balancePositive:
+          type: boolean
+          description: True if balance >= 0 (for UI color coding)
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp (UTC)
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          nullable: true
+          description: Additional error context
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred (UTC)
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_ERROR
+            message: "amount: Must not be zero"
+            details:
+              amount: "Must not be zero"
+            timestamp: "2026-07-31T12:00:00.000Z"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: INTERNAL_ERROR
+            message: "An unexpected error occurred."
+            details: null
+            timestamp: "2026-07-31T12:00:00.000Z"

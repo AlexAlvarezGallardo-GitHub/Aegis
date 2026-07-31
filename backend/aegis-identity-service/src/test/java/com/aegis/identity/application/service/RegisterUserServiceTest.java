@@ -108,8 +108,6 @@ class RegisterUserServiceTest {
     @Test
     void shouldRejectWeakPassword() {
         when(userRepository.existsByEmail(any(Email.class))).thenReturn(false);
-        when(passwordHasher.hash(any())).thenThrow(
-                new WeakPasswordException("PASSWORD_TOO_SHORT", "Password too short"));
 
         RegisterUserUseCase.Command command = new RegisterUserUseCase.Command(
                 "user@example.com", "weak", "John", "Doe", "corr-123");
@@ -117,5 +115,6 @@ class RegisterUserServiceTest {
         assertThrows(WeakPasswordException.class, () -> service.register(command));
 
         verify(userRepository, never()).save(any());
+        verify(eventPublisher, never()).publish(any(UserRegistered.class));
     }
 }

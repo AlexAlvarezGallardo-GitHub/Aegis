@@ -1,13 +1,9 @@
 package com.aegis.identity.application.service;
 
-import com.aegis.identity.application.dto.AuthenticateUserCommand;
-import com.aegis.identity.application.dto.AuthenticationResponse;
-import com.aegis.identity.application.mapper.AuthMapper;
 import com.aegis.identity.domain.event.UserAccountLocked;
 import com.aegis.identity.domain.event.UserAuthenticated;
 import com.aegis.identity.domain.exception.InvalidCredentialsException;
 import com.aegis.identity.domain.model.Email;
-import com.aegis.identity.domain.model.TokenPair;
 import com.aegis.identity.domain.model.User;
 import com.aegis.identity.domain.model.UserStatus;
 import com.aegis.identity.domain.port.inbound.AuthenticateUserUseCase;
@@ -62,24 +58,12 @@ public class AuthenticateUserService implements AuthenticateUserUseCase {
             throw new InvalidCredentialsException();
         }
 
-        TokenPair tokenPair = tokenProvider.generateTokenPair(
+        String accessToken = tokenProvider.generateAccessToken(
                 user.getUserId(),
                 user.getEmail().value()
         );
 
         boolean emailVerified = user.getStatus() != UserStatus.PENDING_VERIFICATION;
-        return new Result(tokenPair, emailVerified);
-    }
-
-    public AuthenticationResponse authenticateAndReturnResponse(AuthenticateUserCommand command) {
-        Command useCaseCommand = new Command(
-                command.email(),
-                command.password(),
-                command.correlationId()
-        );
-
-        Result result = authenticate(useCaseCommand);
-
-        return AuthMapper.toResponse(result.tokenPair(), result.emailVerified());
+        return new Result(accessToken, emailVerified);
     }
 }

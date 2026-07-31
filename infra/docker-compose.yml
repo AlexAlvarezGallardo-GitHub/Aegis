@@ -1,11 +1,11 @@
 services:
   # ── Databases ──────────────────────────────────────────
   postgres-identity:
-    image: postgres:16-alpine
+    image: postgres:16.4-alpine
     container_name: aegis-postgres-identity
     environment:
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: aegis_secret
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
       POSTGRES_DB: aegis_identity
     ports:
       - "5432:5432"
@@ -20,16 +20,73 @@ services:
       retries: 5
 
   postgres-wallet:
-    image: postgres:16-alpine
+    image: postgres:16.4-alpine
     container_name: aegis-postgres-wallet
     environment:
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: aegis_secret
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
       POSTGRES_DB: aegis_wallet
     ports:
       - "5433:5432"
     volumes:
       - postgres_wallet_data:/var/lib/postgresql/data
+    networks:
+      - aegis-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-reporting:
+    image: postgres:16.4-alpine
+    container_name: aegis-postgres-reporting
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_DB: aegis_reporting
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_reporting_data:/var/lib/postgresql/data
+    networks:
+      - aegis-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-audit:
+    image: postgres:16.4-alpine
+    container_name: aegis-postgres-audit
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_DB: aegis_audit
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_audit_data:/var/lib/postgresql/data
+    networks:
+      - aegis-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-fraud:
+    image: postgres:16.4-alpine
+    container_name: aegis-postgres-fraud
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_DB: aegis_fraud
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_fraud_data:/var/lib/postgresql/data
     networks:
       - aegis-network
     healthcheck:
@@ -89,7 +146,7 @@ services:
       retries: 5
 
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: provectuslabs/kafka-ui:v0.7.5
     container_name: aegis-kafka-ui
     depends_on:
       kafka:
@@ -115,7 +172,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-identity:5432/aegis_identity
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       postgres-identity:
@@ -136,7 +193,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-wallet:5432/aegis_wallet
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: aegis_secret
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       postgres-wallet:
@@ -168,6 +225,69 @@ services:
     networks:
       - aegis-network
 
+  aegis-reporting:
+    build:
+      context: ../backend
+      dockerfile: aegis-reporting-service/Dockerfile
+    container_name: aegis-reporting
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-reporting:5432/aegis_reporting
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres-reporting:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - aegis-network
+
+  aegis-audit:
+    build:
+      context: ../backend
+      dockerfile: aegis-audit-service/Dockerfile
+    container_name: aegis-audit
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-audit:5432/aegis_audit
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres-audit:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - aegis-network
+
+  aegis-fraud:
+    build:
+      context: ../backend
+      dockerfile: aegis-fraud-service/Dockerfile
+    container_name: aegis-fraud
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-fraud:5432/aegis_fraud
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres-fraud:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - aegis-network
+
   # ── Frontend ────────────────────────────────────────────
   aegis-frontend:
     build:
@@ -183,26 +303,47 @@ services:
 
   # ── Admin Tools ─────────────────────────────────────────
   dbgate:
-    image: dbgate/dbgate:latest
+    image: dbgate/dbgate:6.2.0
     container_name: aegis-dbgate
     ports:
       - "3000:3000"
     environment:
-      CONNECTIONS: identity,wallet,redis
+      CONNECTIONS: identity,wallet,reporting,audit,fraud,redis
       LABEL_identity: Aegis Identity DB
       SERVER_identity: postgres-identity
       PORT_identity: 5432
       USER_identity: aegis
-      PASSWORD_identity: aegis_secret
+      PASSWORD_identity: ${DBGATE_PASSWORD_IDENTITY:-aegis_secret}
       DATABASE_identity: aegis_identity
       ENGINE_identity: "postgres@dbgate-plugin-postgres"
       LABEL_wallet: Aegis Wallet DB
       SERVER_wallet: postgres-wallet
       PORT_wallet: 5432
       USER_wallet: aegis
-      PASSWORD_wallet: aegis_secret
+      PASSWORD_wallet: ${DBGATE_PASSWORD_WALLET:-aegis_secret}
       DATABASE_wallet: aegis_wallet
       ENGINE_wallet: "postgres@dbgate-plugin-postgres"
+      LABEL_reporting: Aegis Reporting DB
+      SERVER_reporting: postgres-reporting
+      PORT_reporting: 5432
+      USER_reporting: aegis
+      PASSWORD_reporting: ${DBGATE_PASSWORD_REPORTING:-aegis_secret}
+      DATABASE_reporting: aegis_reporting
+      ENGINE_reporting: "postgres@dbgate-plugin-postgres"
+      LABEL_audit: Aegis Audit DB
+      SERVER_audit: postgres-audit
+      PORT_audit: 5432
+      USER_audit: aegis
+      PASSWORD_audit: ${DBGATE_PASSWORD_AUDIT:-aegis_secret}
+      DATABASE_audit: aegis_audit
+      ENGINE_audit: "postgres@dbgate-plugin-postgres"
+      LABEL_fraud: Aegis Fraud DB
+      SERVER_fraud: postgres-fraud
+      PORT_fraud: 5432
+      USER_fraud: aegis
+      PASSWORD_fraud: ${DBGATE_PASSWORD_FRAUD:-aegis_secret}
+      DATABASE_fraud: aegis_fraud
+      ENGINE_fraud: "postgres@dbgate-plugin-postgres"
       LABEL_redis: Aegis Redis
       SERVER_redis: redis
       PORT_redis: 6379
@@ -211,6 +352,12 @@ services:
       postgres-identity:
         condition: service_healthy
       postgres-wallet:
+        condition: service_healthy
+      postgres-reporting:
+        condition: service_healthy
+      postgres-audit:
+        condition: service_healthy
+      postgres-fraud:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -224,3 +371,6 @@ networks:
 volumes:
   postgres_data:
   postgres_wallet_data:
+  postgres_reporting_data:
+  postgres_audit_data:
+  postgres_fraud_data:

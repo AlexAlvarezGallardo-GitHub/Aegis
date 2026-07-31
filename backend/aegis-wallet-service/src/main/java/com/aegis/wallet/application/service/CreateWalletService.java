@@ -53,6 +53,13 @@ public class CreateWalletService implements CreateWalletUseCase {
         );
     }
 
+    /**
+     * Convenience method for the controller to create a wallet and return a response DTO.
+     *
+     * @param command the create wallet command from the web layer
+     * @param userId  the authenticated user id from the request header
+     * @return the wallet response DTO
+     */
     public WalletResponse createAndReturnResponse(CreateWalletCommand command, UUID userId) {
         Command useCaseCommand = new Command(
                 userId,

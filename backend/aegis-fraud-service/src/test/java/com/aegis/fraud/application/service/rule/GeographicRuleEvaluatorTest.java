@@ -37,4 +37,22 @@ class GeographicRuleEvaluatorTest {
 
         assertFalse(result.matched());
     }
+
+    @Test
+    void shouldNotMatchWhenNoCountryData() {
+        FraudRule rule = FraudRule.create("GEOGRAPHIC_ANOMALY", FraudRule.RuleType.GEOGRAPHIC, 0, 30);
+        RuleEvaluation result = evaluator.evaluate(rule, context(null, null));
+
+        assertFalse(result.matched());
+        assertEquals(0, result.score());
+        assertTrue(result.details().contains("No country data"));
+    }
+
+    @Test
+    void shouldMatchCaseInsensitive() {
+        FraudRule rule = FraudRule.create("GEOGRAPHIC_ANOMALY", FraudRule.RuleType.GEOGRAPHIC, 0, 30);
+        RuleEvaluation result = evaluator.evaluate(rule, context("es", "ES"));
+
+        assertFalse(result.matched());
+    }
 }

@@ -1,6 +1,5 @@
 package com.aegis.identity.infrastructure.security;
 
-import com.aegis.identity.domain.model.TokenPair;
 import com.aegis.identity.domain.model.UserId;
 import com.aegis.identity.domain.port.outbound.TokenProvider;
 import io.jsonwebtoken.Claims;
@@ -23,22 +22,12 @@ public class JwtTokenProvider implements TokenProvider {
 
     private final SecretKey secretKey;
     private final long accessTokenExpirationMs;
-    private final long refreshTokenExpirationMs;
 
     public JwtTokenProvider(
             @Value("${aegis.jwt.secret}") String secret,
-            @Value("${aegis.jwt.access-token-expiration-ms:900000}") long accessTokenExpirationMs,
-            @Value("${aegis.jwt.refresh-token-expiration-ms:604800000}") long refreshTokenExpirationMs) {
+            @Value("${aegis.jwt.access-token-expiration-ms:900000}") long accessTokenExpirationMs) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessTokenExpirationMs = accessTokenExpirationMs;
-        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
-    }
-
-    @Override
-    public TokenPair generateTokenPair(UserId userId, String email) {
-        String accessToken = generateAccessToken(userId, email);
-        String refreshToken = generateRefreshToken(userId, email);
-        return new TokenPair(accessToken, refreshToken);
     }
 
     @Override
@@ -50,21 +39,6 @@ public class JwtTokenProvider implements TokenProvider {
                 .subject(userId.value().toString())
                 .claim("email", email)
                 .claim("type", "access")
-                .issuedAt(now)
-                .expiration(expiry)
-                .signWith(secretKey)
-                .compact();
-    }
-
-    @Override
-    public String generateRefreshToken(UserId userId, String email) {
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + refreshTokenExpirationMs);
-
-        return Jwts.builder()
-                .subject(userId.value().toString())
-                .claim("email", email)
-                .claim("type", "refresh")
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey)
@@ -93,24 +67,8 @@ public class JwtTokenProvider implements TokenProvider {
     }
 
     @Override
-    public UserId validateRefreshToken(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-            String tokenType = claims.get("type", String.class);
-            if (!"refresh".equals(tokenType)) {
-                throw new JwtException("Invalid token type: expected refresh");
-            }
-
-            return UserId.of(java.util.UUID.fromString(claims.getSubject()));
-        } catch (JwtException | IllegalArgumentException e) {
-            log.warn("Invalid refresh token: {}", e.getMessage());
-            throw new io.jsonwebtoken.security.SecurityException("Invalid refresh token", e);
-        }
+    public long getAccessTokenExpirySeconds() {
+        return accessTokenExpirationMs / 1000;
     }
 
     public boolean validateToken(String token) {

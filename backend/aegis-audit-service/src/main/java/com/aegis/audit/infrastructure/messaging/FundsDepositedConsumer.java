@@ -1,15 +1,14 @@
 package com.aegis.audit.infrastructure.messaging;
 
+import com.aegis.audit.application.service.AuditRecordService;
 import com.aegis.audit.domain.event.FundsDepositedEvent;
 import com.aegis.audit.domain.model.AuditRecord;
-import com.aegis.audit.infrastructure.persistence.AuditRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Kafka consumer that listens for {@code wallet.funds.deposited} events.
@@ -23,10 +22,10 @@ public class FundsDepositedConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(FundsDepositedConsumer.class);
 
-    private final AuditRecordRepository auditRecordRepository;
+    private final AuditRecordService auditRecordService;
 
-    public FundsDepositedConsumer(AuditRecordRepository auditRecordRepository) {
-        this.auditRecordRepository = auditRecordRepository;
+    public FundsDepositedConsumer(AuditRecordService auditRecordService) {
+        this.auditRecordService = auditRecordService;
     }
 
     /**
@@ -38,14 +37,13 @@ public class FundsDepositedConsumer {
     @KafkaListener(
             topics = "${aegis.kafka.topics.funds-deposited}",
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "fundsDepositedListenerContainerFactory"
     )
     public void consume(FundsDepositedEvent event) {
         log.info("Received FundsDepositedEvent: eventId={}, walletId={}, amount={} {}",
                 event.eventId(), event.walletId(), event.amount(), event.currency());
 
-        AuditRecord record = new AuditRecord(
-                UUID.randomUUID(),
+        AuditRecord record = AuditRecord.create(
                 event.walletId(),
                 event.userId(),
                 event.amount(),
@@ -58,8 +56,8 @@ public class FundsDepositedConsumer {
                 event.correlationId()
         );
 
-        auditRecordRepository.save(record);
+        auditRecordService.save(record);
 
-        log.info("AuditRecord persisted: id={}, walletId={}", record.getId(), record.getWalletId());
+        log.info("AuditRecord persisted: id={}, walletId={}", record.id(), record.walletId());
     }
 }

@@ -1,5 +1,7 @@
 package com.aegis.fraud.domain.model;
 
+import com.aegis.common.util.UuidV7Generator;
+
 import java.util.UUID;
 
 public record FraudRule(
@@ -19,6 +21,6 @@ public record FraudRule(
     }
 
     public static FraudRule create(String name, RuleType type, int threshold, int weight) {
-        return new FraudRule(UUID.randomUUID(), name, type, threshold, weight, true);
+        return new FraudRule(UuidV7Generator.generate(), name, type, threshold, weight, true);
     }
 }

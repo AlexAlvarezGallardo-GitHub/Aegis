@@ -11,6 +11,28 @@ port-type: inbound
 
 Inbound port (interface) for wallet creation.
 
+```mermaid
+sequenceDiagram
+    participant Ctrl as WalletController
+    participant Port as CreateWalletUseCase (port)
+    participant Svc as CreateWalletService (impl)
+    participant Repo as WalletRepository
+    participant Wallet as Wallet (domain)
+    participant Event as EventPublisher
+
+    Ctrl->>Port: createWallet(command)
+    Port->>Svc: delegate
+    Svc->>Repo: countByUserId(userId)
+    alt wallet limit exceeded (> 5)
+        Svc-->>Ctrl: throw WalletLimitExceededException
+    end
+    Svc->>Svc: validate currency (ISO 4217)
+    Svc->>Wallet: Wallet.create(userId, currency)
+    Svc->>Repo: save(wallet)
+    Svc->>Event: publish(WalletCreated)
+    Svc-->>Ctrl: WalletResponse
+```
+
 ## Method
 
 ```java

@@ -1,8 +1,10 @@
 package com.aegis.fraud.web.controller;
 
-import com.aegis.fraud.application.dto.AssessmentRequest;
 import com.aegis.fraud.application.dto.AssessmentResponse;
+import com.aegis.fraud.application.dto.FraudAssessmentCommand;
+import com.aegis.fraud.application.mapper.AssessmentMapper;
 import com.aegis.fraud.domain.port.inbound.AssessFraudUseCase;
+import com.aegis.fraud.web.dto.AssessmentRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+/**
+ * REST controller for fraud assessment operations.
+ */
 @RestController
 @RequestMapping("/api/v1/fraud")
 public class FraudController {
@@ -24,22 +29,25 @@ public class FraudController {
         this.assessFraudUseCase = assessFraudUseCase;
     }
 
+    /**
+     * Assesses a transaction for fraud.
+     *
+     * @param request the validated assessment request
+     * @return the assessment result
+     */
     @PostMapping("/assess")
     public ResponseEntity<AssessmentResponse> assess(@Valid @RequestBody AssessmentRequest request) {
-        var command = new AssessFraudUseCase.AssessmentCommand(
-                request.transactionId(),
-                request.transactionType(),
-                request.amount(),
-                request.currency(),
-                request.sourceWalletId(),
-                request.destWalletId(),
-                request.userId(),
-                request.countryCode());
-
-        var assessment = assessFraudUseCase.assess(command);
+        FraudAssessmentCommand command = AssessmentMapper.toCommand(request);
+        var assessment = assessFraudUseCase.assess(AssessmentMapper.toUseCaseCommand(command));
         return ResponseEntity.ok(AssessmentResponse.from(assessment));
     }
 
+    /**
+     * Retrieves a fraud assessment by its identifier.
+     *
+     * @param assessmentId the assessment identifier
+     * @return the assessment result
+     */
     @GetMapping("/assessments/{assessmentId}")
     public ResponseEntity<AssessmentResponse> getAssessment(@PathVariable UUID assessmentId) {
         var assessment = assessFraudUseCase.findById(assessmentId);

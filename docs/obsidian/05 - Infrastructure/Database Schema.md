@@ -6,6 +6,27 @@ status: implemented
 
 # Database Schema
 
+```mermaid
+graph TB
+    subgraph "aegis_identity"
+        Users["users<br/>id, email, password_hash<br/>status, failed_login_attempts<br/>locked_until, version"]
+        OutboxI["outbox_events<br/>id, aggregate_id, event_type<br/>payload, topic, status"]
+    end
+    subgraph "aegis_wallet"
+        Wallets["wallets<br/>id, user_id, name<br/>currency, balance<br/>reserved_balance, status, version"]
+        Ledger["ledger_entries<br/>id, wallet_id, type<br/>amount, currency<br/>description, reference_id"]
+        OutboxW["outbox_events<br/>id, aggregate_id, event_type<br/>payload, topic, status"]
+    end
+    Wallets -->|"1:N"| Ledger
+    Users --> OutboxI
+    Wallets --> OutboxW
+    style Users fill:#afa,stroke:#333
+    style Wallets fill:#afa,stroke:#333
+    style Ledger fill:#fdb,stroke:#333
+    style OutboxI fill:#bbf,stroke:#333
+    style OutboxW fill:#bbf,stroke:#333
+```
+
 ## Identity Database (`aegis_identity`)
 
 ### `users`

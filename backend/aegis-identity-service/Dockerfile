@@ -9,6 +9,9 @@ COPY aegis-common/pom.xml aegis-common/pom.xml
 COPY aegis-identity-service/pom.xml aegis-identity-service/pom.xml
 COPY aegis-bff-service/pom.xml aegis-bff-service/pom.xml
 COPY aegis-wallet-service/pom.xml aegis-wallet-service/pom.xml
+COPY aegis-reporting-service/pom.xml aegis-reporting-service/pom.xml
+COPY aegis-audit-service/pom.xml aegis-audit-service/pom.xml
+COPY aegis-fraud-service/pom.xml aegis-fraud-service/pom.xml
 
 # ── 2. Download external dependencies ──────────────────
 #     cached — only invalidated if any pom.xml changes

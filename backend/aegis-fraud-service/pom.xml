@@ -19,7 +19,6 @@
         <dependency>
             <groupId>com.aegis</groupId>
             <artifactId>aegis-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

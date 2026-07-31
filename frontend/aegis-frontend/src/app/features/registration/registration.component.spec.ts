@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RegistrationComponent } from './registration.component';
 import { RegistrationService } from './registration.service';
@@ -16,10 +17,9 @@ describe('RegistrationComponent', () => {
       imports: [
         RegistrationComponent,
         ReactiveFormsModule,
-        HttpClientTestingModule,
         NoopAnimationsModule
       ],
-      providers: [RegistrationService]
+      providers: [RegistrationService, provideHttpClient(withInterceptors([])), provideHttpClientTesting()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegistrationComponent);

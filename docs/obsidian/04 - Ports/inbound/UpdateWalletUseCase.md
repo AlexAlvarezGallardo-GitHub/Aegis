@@ -11,6 +11,28 @@ port-type: inbound
 
 Inbound port (interface) for updating wallet name/alias.
 
+```mermaid
+sequenceDiagram
+    participant Ctrl as WalletController
+    participant Port as UpdateWalletUseCase (port)
+    participant Svc as UpdateWalletService (impl)
+    participant Repo as WalletRepository
+    participant Wallet as Wallet (domain)
+    participant Event as EventPublisher
+
+    Ctrl->>Port: updateWallet(walletId, request)
+    Port->>Svc: delegate
+    Svc->>Repo: findById(walletId)
+    alt wallet not found
+        Repo-->>Svc: empty → throw WalletNotFoundException
+    end
+    Svc->>Svc: validate ownership (userId match)
+    Svc->>Wallet: updateName(newName)
+    Svc->>Repo: save(wallet)
+    Svc->>Event: publish(WalletUpdated)
+    Svc-->>Ctrl: WalletResponse
+```
+
 ## Method
 
 ```java

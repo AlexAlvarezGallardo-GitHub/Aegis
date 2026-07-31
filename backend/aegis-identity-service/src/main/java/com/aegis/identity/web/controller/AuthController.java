@@ -1,11 +1,9 @@
 package com.aegis.identity.web.controller;
 
-import com.aegis.identity.application.dto.AuthenticateUserCommand;
 import com.aegis.identity.application.dto.AuthenticationResponse;
-import com.aegis.identity.application.mapper.AuthMapper;
-import com.aegis.identity.application.service.AuthenticateUserService;
-import com.aegis.identity.application.service.RefreshTokenService;
+import com.aegis.identity.domain.port.inbound.AuthenticateUserUseCase;
 import com.aegis.identity.domain.port.inbound.RefreshTokenUseCase;
+import com.aegis.identity.domain.port.outbound.TokenProvider;
 import com.aegis.identity.web.dto.LoginRequest;
 import com.aegis.identity.web.dto.RefreshTokenRequest;
 import jakarta.validation.Valid;
@@ -22,13 +20,16 @@ import java.util.UUID;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-    private final AuthenticateUserService authenticateUserService;
-    private final RefreshTokenService refreshTokenService;
+    private final AuthenticateUserUseCase authenticateUserUseCase;
+    private final RefreshTokenUseCase refreshTokenUseCase;
+    private final TokenProvider tokenProvider;
 
-    public AuthController(AuthenticateUserService authenticateUserService,
-                          RefreshTokenService refreshTokenService) {
-        this.authenticateUserService = authenticateUserService;
-        this.refreshTokenService = refreshTokenService;
+    public AuthController(AuthenticateUserUseCase authenticateUserUseCase,
+                          RefreshTokenUseCase refreshTokenUseCase,
+                          TokenProvider tokenProvider) {
+        this.authenticateUserUseCase = authenticateUserUseCase;
+        this.refreshTokenUseCase = refreshTokenUseCase;
+        this.tokenProvider = tokenProvider;
     }
 
     @PostMapping("/login")
@@ -40,13 +41,19 @@ public class AuthController {
                 ? correlationId
                 : UUID.randomUUID().toString();
 
-        AuthenticateUserCommand command = new AuthenticateUserCommand(
+        AuthenticateUserUseCase.Command command = new AuthenticateUserUseCase.Command(
                 request.email(),
                 request.password(),
                 effectiveCorrelationId
         );
 
-        AuthenticationResponse response = authenticateUserService.authenticateAndReturnResponse(command);
+        AuthenticateUserUseCase.Result result = authenticateUserUseCase.authenticate(command);
+
+        AuthenticationResponse response = AuthenticationResponse.ofAccessTokenOnly(
+                result.accessToken(),
+                result.emailVerified(),
+                tokenProvider.getAccessTokenExpirySeconds()
+        );
 
         return ResponseEntity.ok(response);
     }
@@ -65,9 +72,13 @@ public class AuthController {
                 effectiveCorrelationId
         );
 
-        RefreshTokenUseCase.Result result = refreshTokenService.refresh(command);
+        RefreshTokenUseCase.Result result = refreshTokenUseCase.refresh(command);
 
-        AuthenticationResponse response = AuthMapper.toResponse(result.tokenPair(), true);
+        AuthenticationResponse response = AuthenticationResponse.of(
+                result.tokenPair(),
+                true,
+                tokenProvider.getAccessTokenExpirySeconds()
+        );
 
         return ResponseEntity.ok(response);
     }

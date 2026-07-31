@@ -11,6 +11,35 @@ topic: aegis.wallet.wallet-created
 
 Published when a new wallet is created.
 
+```mermaid
+graph LR
+    Wallet[Wallet Service] -->|publishes| Topic[aegis.wallet.wallet-created]
+    Topic --> Report[Reporting Service]
+    Topic --> Audit[Audit Service]
+    style Wallet fill:#bbf,stroke:#333
+    style Topic fill:#fdb,stroke:#333
+    style Report fill:#bfb,stroke:#333
+    style Audit fill:#bfb,stroke:#333
+```
+
+```mermaid
+sequenceDiagram
+    participant Wallet as Wallet (Domain)
+    participant Svc as CreateWalletService
+    participant Pub as KafkaEventPublisher
+    participant DB as PostgreSQL (Outbox)
+    participant Kafka as Kafka Topic
+    participant Report as Reporting Consumer
+    participant Audit as Audit Consumer
+
+    Wallet->>Svc: create()
+    Svc->>Pub: publish(WalletCreated)
+    Pub->>DB: INSERT outbox_event (payload=WalletCreated JSON)
+    DB-->>Kafka: OutboxRelayScheduler polls & sends
+    Kafka->>Report: Consume (group=reporting-group)
+    Kafka->>Audit: Consume (group=audit-group)
+```
+
 ## Schema
 
 | Field | Type | Description |

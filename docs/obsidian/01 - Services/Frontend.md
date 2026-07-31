@@ -9,14 +9,52 @@ port: 4200
 
 # Frontend
 
-**Purpose**: Angular 18+ SPA with Material Design — the user-facing interface for the Aegis platform.
+**Purpose**: Angular 22 SPA with Material Design — the user-facing interface for the Aegis platform.
+
+```mermaid
+graph TB
+    subgraph "Angular 22 SPA"
+        direction TB
+        Features["Features<br/>Dashboard, Wallet, Auth, Registration"]
+        Shared["Shared<br/>Layout, DataDisplay, Guards, Interceptors"]
+        Core["Core<br/>ThemeService, AuthGuard, HTTP Interceptors"]
+        Features --> Shared --> Core
+    end
+    Browser["Browser"] -->|HTTP| Angular["Angular SPA :4200"]
+    Angular -->|/api/* via proxy| BFF["BFF Service :8082"]
+    style Angular fill:#bbf,stroke:#333
+    style Features fill:#fdb,stroke:#333
+    style Shared fill:#fdb,stroke:#333
+    style Core fill:#fdb,stroke:#333
+```
+
+```mermaid
+sequenceDiagram
+    participant User as User (Browser)
+    participant Angular as Angular SPA
+    participant Proxy as proxy.conf.json
+    participant BFF as BFF Service
+    participant Identity as Identity Service
+    participant Wallet as Wallet Service
+
+    User->>Angular: Navigate to /wallets
+    Angular->>Angular: AuthGuard checks session
+    Angular->>Proxy: GET /api/bff/wallets
+    Proxy->>BFF: forward to :8082
+    BFF->>BFF: extract JWT from session
+    BFF->>Wallet: GET /api/v1/wallets (X-User-Id)
+    Wallet-->>BFF: wallet list
+    BFF-->>Angular: 200 wallets
+    Angular-->>User: render WalletListComponent
+```
 
 ## Tech Stack
 
 | Technology | Version |
 |------------|---------|
-| Angular | 18+ |
-| Angular Material | Latest |
+| Angular | 22 |
+| Angular Material | 22 |
+| TypeScript | 6 |
 | Reactive Forms | — |
 | Chart.js / ng2-charts | Dashboard |
 | Design Tokens | Custom SCSS |

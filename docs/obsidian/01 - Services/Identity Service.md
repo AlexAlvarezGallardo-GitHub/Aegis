@@ -12,6 +12,51 @@ database: aegis_identity
 
 **Purpose**: User registration, authentication, account management.
 
+```mermaid
+graph TB
+    subgraph "Hexagonal Architecture"
+        direction TB
+        Web["Web Layer<br/>RegistrationController<br/>AuthController"]
+        App["Application Layer<br/>RegisterUserService<br/>AuthenticateUserService<br/>RefreshTokenService"]
+        Domain["Domain Layer<br/>User, UserId, Email<br/>UserRegistered, UserAuthenticated"]
+        Infra["Infrastructure Layer<br/>UserRepositoryAdapter<br/>KafkaEventPublisher"]
+        Web --> App --> Domain
+        Domain --> Infra
+    end
+    Client["Client (BFF/Angular)"] -->|HTTP| Web
+    Infra -->|JPA| PG[(PostgreSQL)]
+    Infra -->|Outbox| Kafka[("Kafka<br/>(identity events)")]
+    Kafka --> Wallet[Wallet Service]
+    Kafka --> Audit[Audit Service]
+```
+
+```mermaid
+sequenceDiagram
+    participant Client as Client/BFF
+    participant Ctrl as RegistrationController
+    participant Svc as RegisterUserService
+    participant User as User (Domain)
+    participant Repo as UserRepository
+    participant Event as EventPublisher
+    participant DB as PostgreSQL
+    participant Kafka as Kafka (Outbox)
+
+    Client->>Ctrl: POST /api/v1/users/register
+    Ctrl->>Svc: register(command)
+    Svc->>Repo: findByEmail(email)
+    alt email already exists
+        Repo-->>Svc: found → throw DuplicateEmailException
+    end
+    Svc->>Svc: hashPassword(password)
+    Svc->>User: User.create(email, passwordHash)
+    Svc->>Repo: save(user)
+    Repo->>DB: INSERT users
+    Repo->>DB: INSERT outbox_event (UserRegistered)
+    Svc-->>Ctrl: UserRegistrationResponse
+    Ctrl-->>Client: 201 Created
+    DB-->>Kafka: Outbox relay
+```
+
 ## Hexagonal Structure
 
 ### Domain (`com.aegis.identity.domain`)

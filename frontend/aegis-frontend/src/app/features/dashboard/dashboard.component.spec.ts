@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter, Routes } from '@angular/router';
 import { By } from '@angular/platform-browser';
@@ -133,12 +134,13 @@ describe('DashboardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         DashboardComponent,
-        HttpClientTestingModule,
         NoopAnimationsModule,
       ],
       providers: [
         { provide: DashboardService, useValue: mockService },
         provideRouter(stubRoutes),
+        provideHttpClient(withInterceptors([])),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 

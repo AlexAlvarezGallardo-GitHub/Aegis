@@ -20,7 +20,7 @@ public class TransactionEventConsumer {
         this.assessFraudUseCase = assessFraudUseCase;
     }
 
-    @KafkaListener(topics = "payment.transfer.requested", groupId = "fraud-group")
+    @KafkaListener(topics = "${aegis.kafka.topics.payment-transfer-requested}", groupId = "fraud-group")
     public void onTransferRequested(TransferRequestedEvent event) {
         log.info("Received TransferRequestedEvent for transaction {}", event.transactionId());
         assessFraudUseCase.assess(new AssessFraudUseCase.AssessmentCommand(

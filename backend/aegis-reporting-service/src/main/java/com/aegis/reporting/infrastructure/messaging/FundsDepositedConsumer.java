@@ -1,14 +1,12 @@
 package com.aegis.reporting.infrastructure.messaging;
 
+import com.aegis.reporting.application.service.BalanceProjectionService;
 import com.aegis.reporting.domain.event.FundsDepositedEvent;
 import com.aegis.reporting.domain.model.BalanceProjection;
-import com.aegis.reporting.infrastructure.persistence.BalanceProjectionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 /**
  * Kafka consumer that listens for {@code FundsDepositedEvent} messages on the
@@ -19,14 +17,14 @@ public class FundsDepositedConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(FundsDepositedConsumer.class);
 
-    private final BalanceProjectionRepository repository;
+    private final BalanceProjectionService balanceProjectionService;
 
-    public FundsDepositedConsumer(BalanceProjectionRepository repository) {
-        this.repository = repository;
+    public FundsDepositedConsumer(BalanceProjectionService balanceProjectionService) {
+        this.balanceProjectionService = balanceProjectionService;
     }
 
     @KafkaListener(
-            topics = "wallet.funds.deposited",
+            topics = "${aegis.kafka.topics.funds-deposited}",
             groupId = "${spring.kafka.consumer.group-id}",
             clientIdPrefix = "reporting"
     )
@@ -34,13 +32,9 @@ public class FundsDepositedConsumer {
         log.info("Received FundsDepositedEvent eventId={} walletId={} amount={} {}",
                 event.eventId(), event.walletId(), event.amount(), event.currency());
 
-        BalanceProjection projection = repository.findByWalletId(event.walletId())
-                .map(existing -> {
-                    existing.updateBalance(event.newBalance(), event.timestamp());
-                    return existing;
-                })
-                .orElseGet(() -> new BalanceProjection(
-                        UUID.randomUUID(),
+        BalanceProjection projection = balanceProjectionService.findByWalletId(event.walletId())
+                .map(existing -> existing.withUpdatedBalance(event.newBalance(), event.timestamp()))
+                .orElseGet(() -> BalanceProjection.create(
                         event.walletId(),
                         event.userId(),
                         event.newBalance(),
@@ -48,9 +42,9 @@ public class FundsDepositedConsumer {
                         event.timestamp()
                 ));
 
-        repository.save(projection);
+        balanceProjectionService.save(projection);
 
         log.info("Balance projection saved walletId={} balance={} {}",
-                event.walletId(), projection.getBalance(), projection.getCurrency());
+                event.walletId(), projection.balance(), projection.currency());
     }
 }

@@ -24,10 +24,12 @@ graph LR
         F_Assessment[fraud.assessment.completed]
     end
     subgraph Consumers
-        W_Deposit --> Report[Reporting group]
-        W_Deposit --> Audit[Audit group]
-        F_Assessment --> Audit
+        Report[Reporting group]
+        Audit[Audit group]
     end
+    W_Deposit --> Report
+    W_Deposit --> Audit
+    F_Assessment --> Audit
     style Report fill:#bfb,stroke:#333
     style Audit fill:#bfb,stroke:#333
     style I_Reg fill:#fdb,stroke:#333
@@ -68,6 +70,24 @@ graph LR
 | `reporting-group` | [[01 - Services/Reporting Service\|Reporting Service]] | `wallet.funds.deposited` |
 | `audit-group` | [[01 - Services/Audit Service\|Audit Service]] | `wallet.funds.deposited`, `fraud.assessment.completed` |
 | `fraud-group` | [[01 - Services/Fraud Service\|Fraud Service]] | `payment.transfer.requested` |
+
+## Configuration
+
+Topic names are **configuration-driven**, not hardcoded (see ADR-002). Each service defines its topics in `application.yml` under `aegis.kafka.topics`:
+
+- Producers (outbox relay): `KafkaTopicsProperties` resolves event type → topic via `topicFor(eventType)`
+- Consumers: `@KafkaListener(topics = "${aegis.kafka.topics.<key>}")`
+- Producers: `@Value("${aegis.kafka.topics.<key>}")`
+
+Example (wallet):
+```yaml
+aegis:
+  kafka:
+    topics:
+      WALLET_CREATED: aegis.wallet.created
+      WALLET_BALANCE_ADJUSTED: aegis.wallet.balance.adjusted
+      FUNDS_DEPOSITED: wallet.funds.deposited
+```
 
 ## Naming Convention
 

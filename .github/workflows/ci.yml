@@ -12,7 +12,7 @@ env:
 
 jobs:
   backend-build:
-    name: Backend build + tests
+    name: Backend build + tests + coverage + checkstyle
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,11 +21,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: 'maven'
-      - run: mvn compile -am
-        working-directory: backend
-      - run: mvn test -am
-        working-directory: backend
-      - run: mvn checkstyle:check -am
+      - run: mvn verify -am
         working-directory: backend
 
   backend-integration-tests:
@@ -72,3 +68,59 @@ jobs:
         working-directory: frontend/aegis-frontend
       - run: npx ng test --watch=false --browsers=ChromeHeadless
         working-directory: frontend/aegis-frontend
+
+  e2e-tests:
+    name: E2E tests (Playwright install check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm ci
+      - name: Verify Playwright config compiles
+        working-directory: e2e
+        run: npx playwright test --list
+
+  docker-build:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build]
+    strategy:
+      matrix:
+        include:
+          - service: aegis-identity
+            context: backend
+            dockerfile: aegis-identity-service/Dockerfile
+          - service: aegis-wallet
+            context: backend
+            dockerfile: aegis-wallet-service/Dockerfile
+          - service: aegis-bff
+            context: backend
+            dockerfile: aegis-bff-service/Dockerfile
+          - service: aegis-frontend
+            context: frontend/aegis-frontend
+            dockerfile: Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          tags: ${{ matrix.service }}:ci-${{ github.sha }}
+
+  security-scan:
+    name: Secret scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

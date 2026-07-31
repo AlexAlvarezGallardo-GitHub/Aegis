@@ -11,6 +11,41 @@ port-type: inbound
 
 Inbound port (interface) for wallet deactivation.
 
+```mermaid
+sequenceDiagram
+    participant Ctrl as WalletController
+    participant Port as DeactivateWalletUseCase (port)
+    participant Svc as DeactivateWalletService (impl)
+    participant Repo as WalletRepository
+    participant Wallet as Wallet (domain)
+    participant Event as EventPublisher
+
+    Ctrl->>Port: deactivateWallet(walletId)
+    Port->>Svc: delegate
+    Svc->>Repo: findById(walletId)
+    alt wallet not found
+        Repo-->>Svc: empty → throw WalletNotFoundException
+    end
+    Svc->>Svc: validate ownership (userId match)
+    alt balance != 0
+        Svc-->>Ctrl: throw WalletOperationNotAllowedException (NON_ZERO_BALANCE)
+    end
+    alt wallet is FROZEN
+        Svc-->>Ctrl: throw WalletOperationNotAllowedException (FROZEN_WALLET)
+    end
+    alt wallet already CLOSED
+        Svc-->>Ctrl: throw WalletOperationNotAllowedException (ALREADY_CLOSED)
+    end
+    Svc->>Repo: countActiveWalletsByUserId(userId)
+    alt only one active wallet
+        Svc-->>Ctrl: throw WalletDeactivationException (LAST_ACTIVE_WALLET)
+    end
+    Svc->>Wallet: deactivate(targetStatus)
+    Svc->>Repo: save(wallet)
+    Svc->>Event: publish(WalletDeactivated)
+    Svc-->>Ctrl: WalletResponse
+```
+
 ## Method
 
 ```java

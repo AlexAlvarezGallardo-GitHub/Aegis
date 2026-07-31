@@ -36,6 +36,11 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+aegis:
+  kafka:
+    topics:
+      funds-deposited: wallet.funds.deposited
+
 logging:
   level:
     com.aegis: DEBUG
