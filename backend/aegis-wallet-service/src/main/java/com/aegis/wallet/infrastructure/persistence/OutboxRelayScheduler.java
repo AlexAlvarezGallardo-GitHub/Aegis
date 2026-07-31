@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -55,8 +54,7 @@ public class OutboxRelayScheduler {
                     outboxRepository.save(event);
                     continue;
                 }
-                CompletableFuture.supplyAsync(() -> kafkaTemplate.send(topic, event.getId().toString(), event.getPayload()))
-                        .get(KAFKA_SEND_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                kafkaTemplate.send(topic, event.getId().toString(), event.getPayload())
                         .get(KAFKA_SEND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 event.markPublished();
                 outboxRepository.save(event);

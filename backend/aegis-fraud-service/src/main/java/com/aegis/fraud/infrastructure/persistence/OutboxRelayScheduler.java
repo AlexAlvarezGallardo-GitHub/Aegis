@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Polls the transactional outbox for pending events and publishes them to Kafka.
@@ -19,6 +20,8 @@ import java.util.List;
 public class OutboxRelayScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(OutboxRelayScheduler.class);
+
+    private static final long KAFKA_SEND_TIMEOUT_SECONDS = 5;
 
     private final OutboxEventJpaRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -58,7 +61,8 @@ public class OutboxRelayScheduler {
                     outboxRepository.save(event);
                     continue;
                 }
-                kafkaTemplate.send(topic, event.getId().toString(), event.getPayload()).get();
+                kafkaTemplate.send(topic, event.getId().toString(), event.getPayload())
+                        .get(KAFKA_SEND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 event.markPublished();
                 outboxRepository.save(event);
                 log.debug("Published outbox event: id={}, type={}, topic={}",
