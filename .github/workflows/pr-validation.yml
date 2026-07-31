@@ -35,6 +35,9 @@ jobs:
       fraud: ${{ steps.changes.outputs.fraud }}
       reporting: ${{ steps.changes.outputs.reporting }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Detect changes
         id: changes
         uses: ./.github/actions/detect-changes

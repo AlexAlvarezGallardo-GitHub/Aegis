@@ -29,6 +29,9 @@ jobs:
       workflows: ${{ steps.changes.outputs.workflows }}
       any: ${{ steps.changes.outputs.any }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Detect changes
         id: changes
         uses: ./.github/actions/detect-changes
