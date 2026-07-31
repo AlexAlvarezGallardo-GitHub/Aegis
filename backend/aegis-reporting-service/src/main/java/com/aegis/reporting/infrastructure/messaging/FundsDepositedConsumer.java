@@ -26,7 +26,7 @@ public class FundsDepositedConsumer {
     }
 
     @KafkaListener(
-            topics = "wallet.funds.deposited",
+            topics = "${aegis.kafka.topics.funds-deposited}",
             groupId = "${spring.kafka.consumer.group-id}",
             clientIdPrefix = "reporting"
     )

@@ -69,6 +69,24 @@ graph LR
 | `audit-group` | [[01 - Services/Audit Service\|Audit Service]] | `wallet.funds.deposited`, `fraud.assessment.completed` |
 | `fraud-group` | [[01 - Services/Fraud Service\|Fraud Service]] | `payment.transfer.requested` |
 
+## Configuration
+
+Topic names are **configuration-driven**, not hardcoded (see ADR-002). Each service defines its topics in `application.yml` under `aegis.kafka.topics`:
+
+- Producers (outbox relay): `KafkaTopicsProperties` resolves event type → topic via `topicFor(eventType)`
+- Consumers: `@KafkaListener(topics = "${aegis.kafka.topics.<key>}")`
+- Producers: `@Value("${aegis.kafka.topics.<key>}")`
+
+Example (wallet):
+```yaml
+aegis:
+  kafka:
+    topics:
+      WALLET_CREATED: aegis.wallet.created
+      WALLET_BALANCE_ADJUSTED: aegis.wallet.balance.adjusted
+      FUNDS_DEPOSITED: wallet.funds.deposited
+```
+
 ## Naming Convention
 
 ```

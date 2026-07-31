@@ -1,5 +1,6 @@
 package com.aegis.identity.infrastructure.persistence;
 
+import com.aegis.identity.infrastructure.config.KafkaTopicsProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,11 +35,16 @@ class OutboxRelaySchedulerTest {
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
 
+    @Mock
+    private KafkaTopicsProperties topicsProperties;
+
     private OutboxRelayScheduler scheduler;
 
     @BeforeEach
     void setUp() {
-        scheduler = new OutboxRelayScheduler(outboxRepository, kafkaTemplate, 50);
+        lenient().when(topicsProperties.topicFor("USER_REGISTERED"))
+                .thenReturn("aegis.identity.user-registered");
+        scheduler = new OutboxRelayScheduler(outboxRepository, kafkaTemplate, topicsProperties, 50);
     }
 
     @Nested
@@ -208,8 +214,8 @@ class OutboxRelaySchedulerTest {
     class TopicConfiguration {
 
         @Test
-        @DisplayName("Should use hardcoded topic name 'aegis.identity.user-registered'")
-        void shouldUseHardcodedTopicName() throws Exception {
+        @DisplayName("Should use configured topic name 'aegis.identity.user-registered'")
+        void shouldUseConfiguredTopicName() throws Exception {
             // Arrange
             UUID eventId = UUID.randomUUID();
             OutboxEventJpaEntity event = new OutboxEventJpaEntity(
@@ -265,7 +271,7 @@ class OutboxRelaySchedulerTest {
         void shouldRespectConfiguredBatchSize() {
             // Arrange
             OutboxRelayScheduler customBatchScheduler = new OutboxRelayScheduler(
-                    outboxRepository, kafkaTemplate, 10);
+                    outboxRepository, kafkaTemplate, topicsProperties, 10);
 
             when(outboxRepository.findByStatusOrderByCreatedAtAsc(eq("PENDING"), any(PageRequest.class)))
                     .thenReturn(Collections.emptyList());

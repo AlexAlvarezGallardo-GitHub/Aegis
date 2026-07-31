@@ -42,6 +42,7 @@ aegis:
   kafka:
     topics:
       fraud-assessment-completed: fraud.assessment.completed
+      payment-transfer-requested: payment.transfer.requested
 
 logging:
   level:
