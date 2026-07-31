@@ -5,6 +5,9 @@ import com.aegis.fraud.domain.model.FraudAssessment;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Port for persisting and retrieving fraud assessments.
+ */
 public interface FraudAssessmentRepository {
 
     FraudAssessment save(FraudAssessment assessment);

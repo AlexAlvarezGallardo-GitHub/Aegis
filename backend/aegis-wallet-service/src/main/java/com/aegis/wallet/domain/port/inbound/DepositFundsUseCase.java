@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Port for depositing funds into a wallet.
+ */
 public interface DepositFundsUseCase {
 
     DepositResult deposit(DepositCommand command);

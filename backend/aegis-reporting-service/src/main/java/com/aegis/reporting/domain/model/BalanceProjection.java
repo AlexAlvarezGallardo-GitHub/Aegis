@@ -57,11 +57,11 @@ public class BalanceProjection {
     /**
      * Updates the projected balance and the last-updated timestamp.
      *
-     * @param newBalance  the new wallet balance
-     * @param lastUpdated the instant at which the balance changed
+     * @param newBalance the new wallet balance
+     * @param updatedAt  the instant at which the balance changed
      */
-    public void updateBalance(BigDecimal newBalance, Instant lastUpdated) {
+    public void updateBalance(BigDecimal newBalance, Instant updatedAt) {
         this.balance = newBalance;
-        this.lastUpdated = lastUpdated;
+        this.lastUpdated = updatedAt;
     }
 }
