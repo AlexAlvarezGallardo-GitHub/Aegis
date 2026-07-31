@@ -23,7 +23,8 @@ public class TimeBasedRuleEvaluator implements FraudRuleEvaluator {
         boolean offHours = hour >= OFF_HOURS_START || hour < OFF_HOURS_END;
         boolean matched = offHours;
         String details = matched
-                ? "Transaction at " + context.timestamp() + " outside normal hours (UTC " + OFF_HOURS_START + ":00-" + OFF_HOURS_END + ":00)"
+                ? "Transaction at " + context.timestamp()
+                + " outside normal hours (UTC " + OFF_HOURS_START + ":00-" + OFF_HOURS_END + ":00)"
                 : "Transaction within normal hours";
         int score = matched ? rule.weight() : 0;
         return new RuleEvaluation(rule.name(), score, matched, details);

@@ -5,6 +5,9 @@ import com.aegis.fraud.domain.model.FraudAssessment;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Port for assessing a transaction against the fraud rules engine.
+ */
 public interface AssessFraudUseCase {
 
     FraudAssessment assess(AssessmentCommand command);
