@@ -13,10 +13,18 @@
 
 ## Architecture
 
-```
-BFF → WalletController → CreateWalletService / UpdateWalletService / DepositFundsService
-  → Wallet aggregate (domain) → WalletRepositoryAdapter → PostgreSQL (aegis_wallet)
-  → EventPublisher → Outbox → Kafka (wallet.funds.deposited, aegis.wallet.*)
+```mermaid
+graph LR
+    BFF["BFF Service"] --> Ctrl["WalletController"]
+    Ctrl --> Svc["CreateWalletService / UpdateWalletService / DepositFundsService"]
+    Svc --> Wallet["Wallet aggregate (domain)"]
+    Wallet --> Repo["WalletRepositoryAdapter"]
+    Repo --> DB[("PostgreSQL<br/>aegis_wallet")]
+    Wallet --> Event["EventPublisher"]
+    Event --> Outbox["Transactional Outbox"]
+    Outbox --> Kafka[("Kafka<br/>wallet.funds.deposited, aegis.wallet.*")]
+    style DB fill:#afa,stroke:#333
+    style Kafka fill:#fdb,stroke:#333
 ```
 
 ## Tech Stack

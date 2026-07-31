@@ -12,10 +12,16 @@
 
 ## Architecture
 
-```
-Angular SPA → BFF WalletController / BffAuthController
-  → SessionJwtAuthenticationFilter → SessionJwtStore → Redis
-  → BffService (WebClient) → Identity Service / Wallet Service
+```mermaid
+graph LR
+    Angular["Angular SPA"] --> Controllers["BffWalletController / BffAuthController"]
+    Controllers --> Filter["SessionJwtAuthenticationFilter"]
+    Filter --> Store["SessionJwtStore"]
+    Store --> Redis[("Redis<br/>session store")]
+    Controllers --> BffSvc["BffService (WebClient)"]
+    BffSvc --> Identity["Identity Service :8081"]
+    BffSvc --> Wallet["Wallet Service :8083"]
+    style Redis fill:#fdb,stroke:#333
 ```
 
 ## Tech Stack

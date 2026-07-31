@@ -12,11 +12,18 @@
 
 ## Architecture
 
-```
-Angular/BFF → RegistrationController/AuthController
-  → RegisterUserService / AuthenticateUserService / RefreshTokenService
-    → User aggregate (domain) → UserRepositoryAdapter → PostgreSQL (aegis_identity)
-    → EventPublisher → Outbox → Kafka
+```mermaid
+graph LR
+    Client["Angular/BFF"] --> Controllers["RegistrationController / AuthController"]
+    Controllers --> Svc["RegisterUserService / AuthenticateUserService / RefreshTokenService"]
+    Svc --> User["User aggregate (domain)"]
+    User --> Repo["UserRepositoryAdapter"]
+    Repo --> DB[("PostgreSQL<br/>aegis_identity")]
+    User --> Event["EventPublisher"]
+    Event --> Outbox["Transactional Outbox"]
+    Outbox --> Kafka[("Kafka")]
+    style DB fill:#afa,stroke:#333
+    style Kafka fill:#fdb,stroke:#333
 ```
 
 ## Tech Stack
