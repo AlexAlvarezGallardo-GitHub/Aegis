@@ -10,37 +10,37 @@ status: implemented
 
 ```mermaid
 graph TB
-    User((User)) -->|HTTPS| BFF[BFF Service :8082]
-    BFF --> Identity[Identity Service :8081]
-    BFF --> Wallet[Wallet Service :8083]
-    Wallet -->|wallet.funds.deposited| Kafka[Apache Kafka]
-    Kafka --> Report[Reporting Service :8087]
-    Kafka --> Audit[Audit Service :8088]
-    Fraud[Fraud Service :8089] -->|fraud.assessment.completed| Kafka
-    Fraud -->|consumes payment.*| Kafka
-    Identity --> PG1[(PostgreSQL identity)]
-    Wallet --> PG2[(PostgreSQL wallet)]
-    Report --> PG3[(PostgreSQL reporting)]
-    Audit --> PG4[(PostgreSQL audit)]
-    Fraud --> PG5[(PostgreSQL fraud)]
     subgraph Frontend
-        BFF
+        BFF["BFF Service<br/>:8082"]
     end
     subgraph Services
-        Identity
-        Wallet
-        Report
-        Audit
-        Fraud
+        Identity["Identity Service<br/>:8081"]
+        Wallet["Wallet Service<br/>:8083"]
+        Fraud["Fraud Service<br/>:8089"]
+        Report["Reporting Service<br/>:8087"]
+        Audit["Audit Service<br/>:8088"]
     end
     subgraph Infrastructure
-        Kafka
-        PG1
-        PG2
-        PG3
-        PG4
-        PG5
+        Kafka["Apache Kafka"]
+        PG1[("PostgreSQL<br/>identity")]
+        PG2[("PostgreSQL<br/>wallet")]
+        PG3[("PostgreSQL<br/>reporting")]
+        PG4[("PostgreSQL<br/>audit")]
+        PG5[("PostgreSQL<br/>fraud")]
     end
+    User((User)) -->|HTTPS| BFF
+    BFF --> Identity
+    BFF --> Wallet
+    Wallet -->|wallet.funds.deposited| Kafka
+    Fraud -->|fraud.assessment.completed| Kafka
+    Fraud -->|consumes payment.*| Kafka
+    Kafka --> Report
+    Kafka --> Audit
+    Identity --> PG1
+    Wallet --> PG2
+    Report --> PG3
+    Audit --> PG4
+    Fraud --> PG5
     style User fill:#f9f,stroke:#333,stroke-width:2px
     style BFF fill:#bbf,stroke:#333
     style Identity fill:#bbf,stroke:#333

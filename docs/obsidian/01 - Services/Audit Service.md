@@ -14,18 +14,18 @@ database: aegis_audit
 
 ```mermaid
 graph LR
-    Kafka[("Kafka")] --> Consumer1[FundsDepositedConsumer]
-    Kafka --> Consumer2[FraudAssessmentConsumer]
-    Consumer1 --> Repo1[AuditRecordRepository]
-    Consumer2 --> Repo2[FraudAuditRecordRepository]
-    Repo1 --> DB[(PostgreSQL<br/>aegis_audit)]
-    Repo2 --> DB
-    subgraph "Hexagonal"
-        Consumer1
-        Consumer2
-        Repo1
-        Repo2
+    subgraph Hexagonal["Hexagonal"]
+        Consumer1["FundsDepositedConsumer"]
+        Consumer2["FraudAssessmentConsumer"]
+        Repo1["AuditRecordRepository"]
+        Repo2["FraudAuditRecordRepository"]
+        Consumer1 --> Repo1
+        Consumer2 --> Repo2
     end
+    Kafka["Kafka"] --> Consumer1
+    Kafka --> Consumer2
+    Repo1 --> DB[("PostgreSQL<br/>aegis_audit")]
+    Repo2 --> DB
     style Kafka fill:#fdb,stroke:#333
     style DB fill:#afa,stroke:#333
 ```

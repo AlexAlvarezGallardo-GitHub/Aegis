@@ -188,6 +188,8 @@ No file in the vault MAY use plain-text/ASCII diagrams (` ```text `) for archite
 
 All Mermaid diagrams MUST use ` ```mermaid ` blocks (Obsidian-native rendering), not inline diagrams. Use `graph TB`/`graph LR` for static topology and `sequenceDiagram` for flows. Color nodes with `style` directives for visual grouping: services `#bbf`, infrastructure `#fdb`, databases `#afa`.
 
+When using `subgraph` blocks, ALL nodes belonging to a subgraph MUST be declared (with their shape and label) INSIDE that subgraph, then referenced by id from outside. Never create nodes in top-level arrow statements and later list them inside a subgraph — that breaks rendering in some Mermaid versions.
+
 ## Authority
 
 All architectural principles, naming conventions, API design standards, security requirements, testing standards, and infrastructure constraints are defined in `.specify/memory/constitution.md`. That document supersedes all other development guidance.
