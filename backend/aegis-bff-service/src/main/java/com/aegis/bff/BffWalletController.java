@@ -110,6 +110,30 @@ public class BffWalletController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/{walletId}/deposits")
+    public ResponseEntity<JsonNode> depositFunds(
+            @PathVariable String walletId,
+            @RequestBody Map<String, Object> body,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+
+        String accessToken = sessionJwtStore.getAccessToken()
+                .orElseThrow(() -> new RuntimeException("Not authenticated"));
+
+        String userId = extractUserId(accessToken);
+        String effectiveCorrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
+
+        JsonNode response = restClient.post()
+                .uri("/api/v1/wallets/{walletId}/deposits", walletId)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("X-User-Id", userId)
+                .header("X-Correlation-Id", effectiveCorrId)
+                .body(body)
+                .retrieve()
+                .body(JsonNode.class);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @PatchMapping("/{walletId}/status")
     public ResponseEntity<JsonNode> updateStatus(
             @PathVariable String walletId,

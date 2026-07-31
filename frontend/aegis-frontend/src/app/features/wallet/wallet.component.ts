@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { WalletService } from './wallet.service';
-import { WalletResponse } from '../../shared/models/wallet.model';
+import { DepositReceipt, WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
 import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
@@ -53,6 +53,11 @@ export class WalletComponent implements OnInit {
   showDetailPanel = signal(false);
   selectedWallet = signal<WalletResponse | null>(null);
   searchQuery = signal('');
+  showDepositForm = signal(false);
+  isDepositing = signal(false);
+  depositSource = signal('');
+  depositReference = signal('');
+  lastDeposit = signal<DepositReceipt | null>(null);
 
   readonly fieldLabels: Record<string, string> = {
     currency: 'Currency',
@@ -147,6 +152,54 @@ export class WalletComponent implements OnInit {
           this.toastService.success(`Balance ${type === 'DEPOSIT' ? 'deposited' : 'withdrawn'} successfully`);
         },
         error: () => this.toastService.warning('Failed to adjust balance')
+      });
+  }
+
+  depositFunds(amountStr: string): void {
+    const wallet = this.selectedWallet();
+    if (!wallet) return;
+
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      this.toastService.warning('Please enter a valid positive amount');
+      return;
+    }
+    if (!this.depositSource().trim()) {
+      this.toastService.warning('Please specify the source of funds');
+      return;
+    }
+    if (!this.depositReference().trim()) {
+      this.toastService.warning('Please enter a deposit reference');
+      return;
+    }
+
+    this.isDepositing.set(true);
+    this.lastDeposit.set(null);
+
+    this.walletService.depositFunds(wallet.walletId, {
+      amount,
+      currency: wallet.currency,
+      source: this.depositSource(),
+      reference: this.depositReference(),
+    }).pipe(finalize(() => this.isDepositing.set(false)))
+      .subscribe({
+        next: (receipt) => {
+          this.wallets.update(list =>
+            list.map(w => w.walletId === receipt.walletId
+              ? { ...w, balance: receipt.newBalance }
+              : w)
+          );
+          this.selectedWallet.update(w => w ? { ...w, balance: receipt.newBalance, updatedAt: receipt.timestamp } : null);
+          this.lastDeposit.set(receipt);
+          this.depositSource.set('');
+          this.depositReference.set('');
+          this.showDepositForm.set(false);
+          this.toastService.success(`$${receipt.amount.toLocaleString()} deposited successfully (ref: ${receipt.reference})`);
+        },
+        error: (err) => {
+          const msg = err.status === 409 ? 'Duplicate deposit reference' : 'Failed to deposit';
+          this.toastService.warning(msg);
+        },
       });
   }
 

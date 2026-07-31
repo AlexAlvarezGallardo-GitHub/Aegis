@@ -8,6 +8,32 @@ status: implemented
 
 All domain event topics in the Aegis platform.
 
+```mermaid
+graph LR
+    subgraph Identity
+        I_Reg[aegis.identity.user-registered]
+        I_Auth[aegis.identity.user-authenticated]
+        I_Lock[aegis.identity.user-account-locked]
+    end
+    subgraph Wallet
+        W_Create[aegis.wallet.wallet-created]
+        W_Balance[aegis.wallet.balance.adjusted]
+        W_Deposit[wallet.funds.deposited]
+    end
+    subgraph Consumers
+        W_Deposit --> Report[Reporting group]
+        W_Deposit --> Audit[Audit group]
+    end
+    style Report fill:#bfb,stroke:#333
+    style Audit fill:#bfb,stroke:#333
+    style I_Reg fill:#fdb,stroke:#333
+    style I_Auth fill:#fdb,stroke:#333
+    style I_Lock fill:#fdb,stroke:#333
+    style W_Create fill:#fdb,stroke:#333
+    style W_Balance fill:#fdb,stroke:#333
+    style W_Deposit fill:#fdb,stroke:#333
+```
+
 ## Identity Service Topics
 
 | Topic | Event | Partitions | Retention |
@@ -21,9 +47,15 @@ All domain event topics in the Aegis platform.
 | Topic | Event | Partitions | Retention |
 |-------|-------|-----------|-----------|
 | `aegis.wallet.wallet-created` | [[03 - Domain Events/WalletCreated\|WalletCreated]] | 3 | 7 days |
-| `aegis.wallet.wallet-updated` | [[03 - Domain Events/WalletUpdated\|WalletUpdated]] | 3 | 7 days |
-| `aegis.wallet.wallet-deactivated` | [[03 - Domain Events/WalletDeactivated\|WalletDeactivated]] | 3 | 7 days |
-| `aegis.wallet.wallet-reactivated` | [[03 - Domain Events/WalletReactivated\|WalletReactivated]] | 3 | 7 days |
+| `aegis.wallet.balance.adjusted` | [[03 - Domain Events/WalletBalanceAdjusted\|WalletBalanceAdjusted]] | 3 | 7 days |
+| `wallet.funds.deposited` | [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | 3 | 7 days |
+
+## Consumer Groups
+
+| Group | Service | Topics Consumed |
+|-------|---------|-----------------|
+| `reporting-group` | [[01 - Services/Reporting Service\|Reporting Service]] | `wallet.funds.deposited` |
+| `audit-group` | [[01 - Services/Audit Service\|Audit Service]] | `wallet.funds.deposited` |
 
 ## Naming Convention
 

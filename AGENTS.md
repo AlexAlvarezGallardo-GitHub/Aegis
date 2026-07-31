@@ -165,6 +165,24 @@ When testing Angular components, the test-engineer MUST verify:
 - **finalize guarantee**: Use a spy and verify `isLoading` transitions: `false → true → false` always completes
 - **HTTP mock**: Use `HttpTestingController` to flush/expect requests and verify loading states
 
+## Obsidian Vault — Mermaid Diagrams
+
+Every service documentation file in `docs/obsidian/01 - Services/` MUST include:
+- A `graph` diagram showing the service's hexagonal architecture (layers → ports → infrastructure)
+- A `sequenceDiagram` showing the primary flow (request → domain → event → downstream consumers)
+
+Every domain event file in `docs/obsidian/03 - Domain Events/` MUST include:
+- A `graph LR` showing producer → topic → consumers
+- A `sequenceDiagram` showing the event publication flow (domain → outbox → kafka → consumers)
+
+Every inbound port file in `docs/obsidian/04 - Ports/inbound/` MUST include:
+- A `sequenceDiagram` showing the use case flow with validation branches, exceptions, and event publication
+
+Every infrastructure file (Kafka Topics, etc.) MUST include:
+- A `graph` diagram showing the topology (topics, partitions, consumer groups)
+
+All Mermaid diagrams MUST use ` ```mermaid ` blocks (Obsidian-native rendering), not inline diagrams. Use `graph TB`/`graph LR` for static topology and `sequenceDiagram` for flows. Color nodes with `style` directives for visual grouping: services `#bbf`, infrastructure `#fdb`, databases `#afa`.
+
 ## Authority
 
 All architectural principles, naming conventions, API design standards, security requirements, testing standards, and infrastructure constraints are defined in `.specify/memory/constitution.md`. That document supersedes all other development guidance.

@@ -11,6 +11,47 @@ port: 8082
 
 **Purpose**: Backend-for-Frontend — single entry point for the Angular SPA. Proxies auth and wallet requests, manages session-based JWT storage, and hides internal service topology from the frontend.
 
+```mermaid
+graph TB
+    subgraph Browser
+        Angular[Angular SPA]
+    end
+    subgraph "BFF Service :8082"
+        AuthCtrl[BffAuthController]
+        WalletCtrl[BffWalletController]
+        JwtFilter[SessionJwtAuthenticationFilter]
+        JwtStore[SessionJwtStore]
+    end
+    subgraph Backend
+        Identity[Identity Service :8081]
+        Wallet[Wallet Service :8083]
+    end
+    subgraph External
+        Redis[(Redis Session Store)]
+    end
+    Angular -->|POST /api/bff/auth/*| AuthCtrl
+    Angular -->|GET/POST/PATCH /api/bff/wallets/*| WalletCtrl
+    JwtFilter -->|check session| JwtStore
+    JwtStore --> Redis
+    AuthCtrl -->|proxies| Identity
+    WalletCtrl -->|proxies| Wallet
+```
+
+```mermaid
+sequenceDiagram
+    participant Client as Angular
+    participant BFF as BFF WalletController
+    participant Wallet as Wallet Service
+    participant DB as PostgreSQL
+
+    Client->>BFF: POST /api/bff/wallets/{id}/deposits
+    BFF->>BFF: extract userId from session JWT
+    BFF->>Wallet: POST /api/v1/wallets/{id}/deposits (X-User-Id, X-Correlation-Id)
+    Wallet->>DB: process deposit
+    Wallet-->>BFF: 201 DepositReceipt
+    BFF-->>Client: 201 DepositReceipt (passthrough)
+```
+
 ## Structure
 
 ### Core
@@ -39,6 +80,9 @@ port: 8082
 | POST | `/api/bff/auth/refresh` | Identity: `POST /api/v1/auth/refresh` |
 | GET | `/api/bff/wallets` | Wallet: `GET /api/v1/wallets` |
 | POST | `/api/bff/wallets` | Wallet: `POST /api/v1/wallets` |
+| POST | `/api/bff/wallets/{id}/deposits` | Wallet: `POST /api/v1/wallets/{id}/deposits` |
+| PATCH | `/api/bff/wallets/{id}/balance` | Wallet: `PATCH /api/v1/wallets/{id}/balance` |
+| PATCH | `/api/bff/wallets/{id}/status` | Wallet: `PATCH /api/v1/wallets/{id}/status` |
 
 ## Dependencies
 

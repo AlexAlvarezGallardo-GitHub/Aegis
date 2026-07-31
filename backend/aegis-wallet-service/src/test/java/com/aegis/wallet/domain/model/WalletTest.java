@@ -91,6 +91,64 @@ class WalletTest {
     }
 
     @Test
+    void depositFundsShouldIncreaseBalance() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK_TRANSFER", "TXN-123", "Test deposit");
+
+        assertEquals(0, new BigDecimal("100.00").compareTo(wallet.getBalance()));
+        assertEquals(2, wallet.getLedgerEntries().size());
+        LedgerEntry entry = wallet.getLedgerEntries().get(1);
+        assertEquals(LedgerEntryType.DEPOSIT, entry.type());
+        assertEquals("TXN-123", entry.reference());
+    }
+
+    @Test
+    void depositFundsShouldRejectNegativeAmount() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        assertThrows(IllegalArgumentException.class,
+                () -> wallet.depositFunds(new BigDecimal("-50.00"), "BANK_TRANSFER", "TXN-123", null));
+    }
+
+    @Test
+    void depositFundsShouldRejectZeroAmount() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        assertThrows(IllegalArgumentException.class,
+                () -> wallet.depositFunds(BigDecimal.ZERO, "BANK_TRANSFER", "TXN-123", null));
+    }
+
+    @Test
+    void depositFundsShouldRejectWhenWalletNotActive() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.deactivate(WalletStatus.FROZEN);
+        assertThrows(com.aegis.wallet.domain.exception.WalletOperationNotAllowedException.class,
+                () -> wallet.depositFunds(new BigDecimal("100.00"), "BANK_TRANSFER", "TXN-123", null));
+    }
+
+    @Test
+    void depositFundsShouldUseReferenceWhenDescriptionMissing() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("50.00"), "CARD", "REF-001", null);
+
+        LedgerEntry entry = wallet.getLedgerEntries().get(1);
+        assertEquals("REF-001", entry.reference());
+    }
+
+    @Test
+    void toFundsDepositedEventShouldIncludeFundsDepositedDetails() {
+        UUID userId = UUID.randomUUID();
+        Wallet wallet = Wallet.create(userId, "EUR");
+        wallet.depositFunds(new BigDecimal("200.00"), "BANK_TRANSFER", "TXN-456", null);
+
+        var event = wallet.toFundsDepositedEvent(new BigDecimal("200.00"), "BANK_TRANSFER", "TXN-456", "corr-1");
+
+        assertEquals(wallet.getWalletId().value(), event.walletId());
+        assertEquals(userId, event.userId());
+        assertEquals("BANK_TRANSFER", event.source());
+        assertEquals("TXN-456", event.reference());
+        assertEquals("FUNDS_DEPOSITED", event.eventType());
+    }
+
+    @Test
     void toCreatedEventShouldIncludeWalletDetails() {
         UUID userId = UUID.randomUUID();
         Wallet wallet = Wallet.create(userId, "EUR");

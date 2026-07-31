@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CreateWalletRequest, WalletResponse } from '../../shared/models/wallet.model';
+import { CreateWalletRequest, DepositFundsRequest, DepositReceipt, WalletResponse } from '../../shared/models/wallet.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -21,6 +21,10 @@ export class WalletService {
 
   getWallet(walletId: string): Observable<WalletResponse> {
     return this.http.get<WalletResponse>(`${this.baseUrl}/${walletId}`);
+  }
+
+  depositFunds(walletId: string, request: DepositFundsRequest): Observable<DepositReceipt> {
+    return this.http.post<DepositReceipt>(`${this.baseUrl}/${walletId}/deposits`, request);
   }
 
   adjustBalance(walletId: string, amount: number, description?: string): Observable<WalletResponse> {

@@ -8,22 +8,85 @@ status: implemented
 
 **Enterprise-grade digital payment platform** built with microservices, event-driven architecture, and hexagonal design.
 
+```mermaid
+graph TB
+    User((User)) -->|HTTPS| BFF[BFF Service :8082]
+    BFF --> Identity[Identity Service :8081]
+    BFF --> Wallet[Wallet Service :8083]
+    Wallet -->|wallet.funds.deposited| Kafka[Apache Kafka]
+    Kafka --> Report[Reporting Service :8087]
+    Kafka --> Audit[Audit Service :8088]
+    Identity --> PG1[(PostgreSQL identity)]
+    Wallet --> PG2[(PostgreSQL wallet)]
+    Report --> PG3[(PostgreSQL reporting)]
+    Audit --> PG4[(PostgreSQL audit)]
+    subgraph Frontend
+        BFF
+    end
+    subgraph Services
+        Identity
+        Wallet
+        Report
+        Audit
+    end
+    subgraph Infrastructure
+        Kafka
+        PG1
+        PG2
+        PG3
+        PG4
+    end
+    style User fill:#f9f,stroke:#333,stroke-width:2px
+    style BFF fill:#bbf,stroke:#333
+    style Identity fill:#bbf,stroke:#333
+    style Wallet fill:#bbf,stroke:#333
+    style Report fill:#bbf,stroke:#333
+    style Audit fill:#bbf,stroke:#333
+    style Kafka fill:#fdb,stroke:#333
+```
+
+## Deposit Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant BFF as BFF Service
+    participant Wallet as Wallet Service
+    participant DB as PostgreSQL
+    participant Kafka as Apache Kafka
+    participant Report as Reporting Service
+    participant Audit as Audit Service
+
+    User->>BFF: POST /api/bff/wallets/{id}/deposits
+    BFF->>Wallet: POST /api/v1/wallets/{id}/deposits
+    Wallet->>DB: Validate & update balance
+    Wallet->>DB: Create ledger entry
+    Wallet->>DB: Save outbox event
+    Wallet-->>BFF: 201 DepositReceipt
+    BFF-->>User: 201 DepositReceipt
+    DB->>Kafka: Outbox relay: FundsDeposited
+    Kafka->>Report: Consume FundsDeposited
+    Kafka->>Audit: Consume FundsDeposited
+    Report->>PG3: Upsert BalanceProjection
+    Audit->>PG4: Insert AuditRecord
+```
+
 ## Context (C4 Level 1)
 
 ```text
 [User] ──HTTPS──> [BFF Service :8082]
                       │
-           ┌──────────┼──────────┐
-           ▼          ▼          ▼
-   [Identity Svc]  [Wallet Svc]  [... future svcs]
-   :8081           :8083
-           │          │
-           ▼          ▼
-      [PostgreSQL]  [PostgreSQL]
-           │          │
-           └─────┬────┘
-                 ▼
-           [Apache Kafka]
+           ┌──────────┼──────────┬──────────────┐
+           ▼          ▼          ▼              ▼
+   [Identity Svc]  [Wallet Svc] [Reporting Svc] [Audit Svc]
+   :8081           :8083         :8087           :8088
+           │          │            │              │
+           ▼          ▼            ▼              ▼
+      [PostgreSQL] [PostgreSQL] [PostgreSQL]  [PostgreSQL]
+           │          │            │              │
+           └──────────┼────────────┼──────────────┘
+                      ▼            ▼
+                [Apache Kafka]  [Apache Kafka]
 ```
 
 ## Services
@@ -33,6 +96,8 @@ status: implemented
 | [[01 - Services/BFF Service\|BFF Service]] | 8082 | Spring Boot + WebClient | ✅ |
 | [[01 - Services/Identity Service\|Identity Service]] | 8081 | Spring Boot + JPA + Security | ✅ |
 | [[01 - Services/Wallet Service\|Wallet Service]] | 8083 | Spring Boot + JPA | ✅ |
+| [[01 - Services/Reporting Service\|Reporting Service]] | 8087 | Spring Boot + JPA + Kafka | ✅ |
+| [[01 - Services/Audit Service\|Audit Service]] | 8088 | Spring Boot + JPA + Kafka | ✅ |
 | [[01 - Services/Common Module\|Common Module]] | — | Shared library | ✅ |
 | [[01 - Services/Frontend\|Frontend]] | 4200 | Angular 18+ | ✅ |
 
@@ -61,9 +126,8 @@ status: implemented
 | [[03 - Domain Events/UserAuthenticated\|UserAuthenticated]] | Identity | `aegis.identity.user-authenticated` |
 | [[03 - Domain Events/UserAccountLocked\|UserAccountLocked]] | Identity | `aegis.identity.user-account-locked` |
 | [[03 - Domain Events/WalletCreated\|WalletCreated]] | Wallet | `aegis.wallet.wallet-created` |
-| [[03 - Domain Events/WalletUpdated\|WalletUpdated]] | Wallet | `aegis.wallet.wallet-updated` |
-| [[03 - Domain Events/WalletDeactivated\|WalletDeactivated]] | Wallet | `aegis.wallet.wallet-deactivated` |
-| [[03 - Domain Events/WalletReactivated\|WalletReactivated]] | Wallet | `aegis.wallet.wallet-reactivated` |
+| [[03 - Domain Events/WalletBalanceAdjusted\|WalletBalanceAdjusted]] | Wallet | `aegis.wallet.balance.adjusted` |
+| [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | Wallet | `wallet.funds.deposited` |
 
 ## Ports (Hexagonal Architecture)
 
@@ -72,8 +136,7 @@ status: implemented
 - [[04 - Ports/inbound/AuthenticateUserUseCase\|AuthenticateUserUseCase]] → [[01 - Services/Identity Service|Identity Service]]
 - [[04 - Ports/inbound/CreateWalletUseCase\|CreateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
 - [[04 - Ports/inbound/UpdateWalletUseCase\|UpdateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
-- [[04 - Ports/inbound/DeactivateWalletUseCase\|DeactivateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
-- [[04 - Ports/inbound/ReactivateWalletUseCase\|ReactivateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
+- [[04 - Ports/inbound/DepositFundsUseCase\|DepositFundsUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
 
 **Outbound (Driven)**
 - [[04 - Ports/outbound/UserRepository\|UserRepository]] → [[01 - Services/Identity Service|Identity Service]]
@@ -94,6 +157,7 @@ status: implemented
 - [[07 - Specs/UC-001 User Registration\|UC-001 User Registration]]
 - [[07 - Specs/UC-002 User Authentication\|UC-002 User Authentication]]
 - [[07 - Specs/UC-003 Create Wallet\|UC-003 Create Wallet]]
+- [[07 - Specs/UC-004 Deposit Funds\|UC-004 Deposit Funds]]
 - [[07 - Specs/UC-010 BFF\|UC-010 BFF]]
 
 ## Architecture Decisions

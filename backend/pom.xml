@@ -22,6 +22,8 @@
         <module>aegis-identity-service</module>
         <module>aegis-bff-service</module>
         <module>aegis-wallet-service</module>
+        <module>aegis-reporting-service</module>
+        <module>aegis-audit-service</module>
     </modules>
 
     <properties>

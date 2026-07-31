@@ -200,6 +200,49 @@
       <mat-divider class="detail-divider"></mat-divider>
 
       <div class="detail-section">
+        <h3 class="detail-subtitle">Deposit Funds</h3>
+        <p class="detail-hint">Deposit with source tracking and idempotency.</p>
+
+        @if (showDepositForm()) {
+          <div class="deposit-form">
+            <mat-form-field appearance="outline" class="deposit-input">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" #depositAmount placeholder="0.00" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="deposit-input">
+              <mat-label>Source</mat-label>
+              <input matInput [value]="depositSource()" (input)="depositSource.set($any($event.target).value)" placeholder="BANK_TRANSFER, CARD, ..." />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="deposit-input">
+              <mat-label>Reference</mat-label>
+              <input matInput [value]="depositReference()" (input)="depositReference.set($any($event.target).value)" placeholder="Unique transaction ID" />
+            </mat-form-field>
+            <div class="deposit-actions">
+              <button mat-stroked-button color="primary" (click)="depositFunds(depositAmount.value)" [disabled]="isDepositing()">
+                <mat-icon>arrow_downward</mat-icon> {{ isDepositing() ? 'Depositing...' : 'Deposit' }}
+              </button>
+              <button mat-stroked-button (click)="showDepositForm.set(false)">
+                Cancel
+              </button>
+            </div>
+          </div>
+        } @else {
+          <button mat-stroked-button color="primary" (click)="showDepositForm.set(true)">
+            <mat-icon>arrow_downward</mat-icon> Deposit Funds
+          </button>
+        }
+
+        @if (lastDeposit(); as deposit) {
+          <div class="deposit-receipt">
+            <span class="receipt-label">Last deposit:</span>
+            <span class="receipt-value">{{ deposit.amount | number:'1.2' }} {{ deposit.currency }} from {{ deposit.source }} (ref: {{ deposit.reference }})</span>
+          </div>
+        }
+      </div>
+
+      <mat-divider class="detail-divider"></mat-divider>
+
+      <div class="detail-section">
         <h3 class="detail-subtitle">Adjust Balance</h3>
         <div class="adjust-form">
           <mat-form-field appearance="outline" class="adjust-input">
@@ -212,7 +255,7 @@
           </mat-form-field>
           <div class="adjust-actions">
             <button mat-stroked-button color="primary" (click)="adjustBalance('DEPOSIT', amountInput.value, descInput.value)">
-              <mat-icon>arrow_downward</mat-icon> Deposit
+              <mat-icon>arrow_downward</mat-icon> Quick Deposit
             </button>
             <button mat-stroked-button color="warn" (click)="adjustBalance('WITHDRAW', amountInput.value, descInput.value)">
               <mat-icon>arrow_upward</mat-icon> Withdraw
