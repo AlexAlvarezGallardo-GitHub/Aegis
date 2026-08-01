@@ -177,6 +177,7 @@ jobs:
     if: always() && needs.docker-build-push.result == 'success'
     permissions:
       contents: read
+      actions: read
       packages: read
       security-events: write
     strategy:
@@ -216,7 +217,7 @@ jobs:
           output: 'trivy-results-${{ matrix.image }}.sarif'
       - name: Upload Trivy scan results
         if: ${{ (needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true') && always() }}
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
 
