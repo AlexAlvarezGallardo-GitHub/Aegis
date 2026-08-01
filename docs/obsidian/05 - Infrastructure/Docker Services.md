@@ -27,6 +27,9 @@ graph TB
         Identity["aegis-identity :8081"]
         Wallet["aegis-wallet :8083"]
         BFF["aegis-bff :8082"]
+        Reporting["aegis-reporting :8087"]
+        Audit["aegis-audit :8088"]
+        Fraud["aegis-fraud :8089"]
         Frontend["aegis-frontend :4200"]
     end
     subgraph "Admin"
@@ -34,10 +37,16 @@ graph TB
     end
     Identity --> PG_I
     Wallet --> PG_W
+    Reporting --> PG_R
+    Audit --> PG_A
+    Fraud --> PG_F
     BFF --> Redis
     Frontend --> BFF
     Kafka --> ZK
     KUI --> Kafka
+    Kafka --> Reporting
+    Kafka --> Audit
+    Kafka --> Fraud
     DbGate --> PG_I & PG_W & PG_R & PG_A & PG_F & Redis
     style PG_I fill:#afa,stroke:#333,color:#000
     style PG_W fill:#afa,stroke:#333,color:#000
@@ -48,20 +57,38 @@ graph TB
     style Identity fill:#bbf,stroke:#333,color:#000
     style Wallet fill:#bbf,stroke:#333,color:#000
     style BFF fill:#bbf,stroke:#333,color:#000
+    style Reporting fill:#bbf,stroke:#333,color:#000
+    style Audit fill:#bbf,stroke:#333,color:#000
+    style Fraud fill:#bbf,stroke:#333,color:#000
     style Frontend fill:#bbf,stroke:#333,color:#000
 ```
 
-## Services
+## Infrastructure Services
 
 | Service | Image | Port | Purpose |
 |---------|-------|------|---------|
-| `postgres-identity` | postgres:16-alpine | 5432 | Identity DB |
-| `postgres-wallet` | postgres:16-alpine | 5433 | Wallet DB |
-| `zookeeper` | confluentinc/cp-zookeeper | 2181 | Kafka coordinator |
-| `kafka` | confluentinc/cp-kafka | 9092 | Event broker |
-| `kafka-ui` | provectuslabs/kafka-ui | 8080 | Kafka management UI |
+| `postgres-identity` | postgres:16.4-alpine | 5432 | Identity DB |
+| `postgres-wallet` | postgres:16.4-alpine | 5433 | Wallet DB |
+| `postgres-reporting` | postgres:16.4-alpine | 5434 | Reporting DB |
+| `postgres-audit` | postgres:16.4-alpine | 5435 | Audit DB |
+| `postgres-fraud` | postgres:16.4-alpine | 5436 | Fraud DB |
+| `zookeeper` | confluentinc/cp-zookeeper:7.5.0 | 2181 | Kafka coordinator |
+| `kafka` | confluentinc/cp-kafka:7.5.0 | 9092 | Event broker |
+| `kafka-ui` | provectuslabs/kafka-ui:v0.7.5 | 8090 | Kafka management UI |
 | `redis` | redis:7-alpine | 6379 | BFF session store |
-| `dbgate` | dbgate/dbgate | 3000 | DB management UI |
+| `dbgate` | dbgate/dbgate:6.2.0 | 3000 | DB management UI |
+
+## Application Services
+
+| Service | Dockerfile | Port | Database |
+|---------|------------|------|----------|
+| `aegis-identity` | `aegis-identity-service/Dockerfile` | 8081 | `aegis_identity` |
+| `aegis-wallet` | `aegis-wallet-service/Dockerfile` | 8083 | `aegis_wallet` |
+| `aegis-bff` | `aegis-bff-service/Dockerfile` | 8082 | — (Redis) |
+| `aegis-reporting` | `aegis-reporting-service/Dockerfile` | 8087 | `aegis_reporting` |
+| `aegis-audit` | `aegis-audit-service/Dockerfile` | 8088 | `aegis_audit` |
+| `aegis-fraud` | `aegis-fraud-service/Dockerfile` | 8089 | `aegis_fraud` |
+| `aegis-frontend` | `frontend/aegis-frontend/Dockerfile` | 4200→80 | — |
 
 ## Networks
 
@@ -69,11 +96,11 @@ graph TB
 
 ## Volumes
 
-- `postgres-identity-data`
-- `postgres-wallet-data`
-- `kafka-data`
-- `zookeeper-data`
-- `redis-data`
+- `postgres_data`
+- `postgres_wallet_data`
+- `postgres_reporting_data`
+- `postgres_audit_data`
+- `postgres_fraud_data`
 
 ## Configuration Files
 
@@ -85,3 +112,6 @@ graph TB
 - [[01 - Services/Identity Service\|Identity Service]] → connects to `postgres-identity`
 - [[01 - Services/Wallet Service\|Wallet Service]] → connects to `postgres-wallet`
 - [[01 - Services/BFF Service\|BFF Service]] → connects to `redis`
+- [[01 - Services/Reporting Service\|Reporting Service]] → connects to `postgres-reporting`
+- [[01 - Services/Audit Service\|Audit Service]] → connects to `postgres-audit`
+- [[01 - Services/Fraud Service\|Fraud Service]] → connects to `postgres-fraud`
