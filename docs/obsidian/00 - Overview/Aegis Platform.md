@@ -121,7 +121,7 @@ flowchart TB
 | [[01 - Services/Audit Service\|Audit Service]] | 8088 | Spring Boot + JPA + Kafka | ✅ |
 | [[01 - Services/Fraud Service\|Fraud Service]] | 8089 | Spring Boot + JPA + Kafka | ✅ |
 | [[01 - Services/Common Module\|Common Module]] | — | Shared library | ✅ |
-| [[01 - Services/Frontend\|Frontend]] | 4200 | Angular 18+ | ✅ |
+| [[01 - Services/Frontend\|Frontend]] | 4200 | Angular 22 | ✅ |
 
 ## Domain Models
 
@@ -171,9 +171,12 @@ flowchart TB
 
 ## Infrastructure
 
+- [[05 - Infrastructure/GitOps\|GitOps]] — Declarative deployment workflow
+- [[05 - Infrastructure/Argo CD\|Argo CD]] — GitOps engine and environment promotion
+- [[05 - Infrastructure/Helm Charts\|Helm Charts]] — Charts and environment overlays
 - [[05 - Infrastructure/Docker Services\|Docker Services]] — PostgreSQL, Kafka, Redis, etc.
 - [[05 - Infrastructure/Kafka Topics\|Kafka Topics]] — Event catalog
-- [[05 - Infrastructure/Database Schema\|Database Schema]] — Flyway migrations
+- [[05 - Infrastructure/Database Schema\|Database Schema]] — Database schemas
 - [[05 - Infrastructure/Flyway Migrations\|Flyway Migrations]] — DB versioning
 
 ## Specifications
