@@ -23,8 +23,8 @@ graph LR
     Wallet --> Event["EventPublisher"]
     Event --> Outbox["Transactional Outbox"]
     Outbox --> Kafka[("Kafka<br/>wallet.funds.deposited, aegis.wallet.*")]
-    style DB fill:#afa,stroke:#333
-    style Kafka fill:#fdb,stroke:#333
+    style DB fill:#afa,stroke:#333,color:#000
+    style Kafka fill:#fdb,stroke:#333,color:#000
 ```
 
 ## Tech Stack

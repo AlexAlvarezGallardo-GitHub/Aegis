@@ -39,16 +39,16 @@ graph TB
     Kafka --> ZK
     KUI --> Kafka
     DbGate --> PG_I & PG_W & PG_R & PG_A & PG_F & Redis
-    style PG_I fill:#afa,stroke:#333
-    style PG_W fill:#afa,stroke:#333
-    style PG_R fill:#afa,stroke:#333
-    style PG_A fill:#afa,stroke:#333
-    style PG_F fill:#afa,stroke:#333
-    style Redis fill:#fdb,stroke:#333
-    style Identity fill:#bbf,stroke:#333
-    style Wallet fill:#bbf,stroke:#333
-    style BFF fill:#bbf,stroke:#333
-    style Frontend fill:#bbf,stroke:#333
+    style PG_I fill:#afa,stroke:#333,color:#000
+    style PG_W fill:#afa,stroke:#333,color:#000
+    style PG_R fill:#afa,stroke:#333,color:#000
+    style PG_A fill:#afa,stroke:#333,color:#000
+    style PG_F fill:#afa,stroke:#333,color:#000
+    style Redis fill:#fdb,stroke:#333,color:#000
+    style Identity fill:#bbf,stroke:#333,color:#000
+    style Wallet fill:#bbf,stroke:#333,color:#000
+    style BFF fill:#bbf,stroke:#333,color:#000
+    style Frontend fill:#bbf,stroke:#333,color:#000
 ```
 
 ## Services

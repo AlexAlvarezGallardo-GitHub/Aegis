@@ -36,9 +36,9 @@ graph TB
     Client["Payment/Wallet Service"] -->|POST /api/v1/fraud/assess| Ctrl
     Repo --> DB[("PostgreSQL<br/>aegis_fraud")]
     Pub --> Out["Kafka<br/>fraud.assessment.completed"]
-    style DB fill:#afa,stroke:#333
-    style Kafka fill:#fdb,stroke:#333
-    style Out fill:#fdb,stroke:#333
+    style DB fill:#afa,stroke:#333,color:#000
+    style Kafka fill:#fdb,stroke:#333,color:#000
+    style Out fill:#fdb,stroke:#333,color:#000
 ```
 
 ```mermaid

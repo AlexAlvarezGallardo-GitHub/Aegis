@@ -15,9 +15,9 @@ Published when a fraud assessment finishes for a transaction.
 graph LR
     Fraud[Fraud Service] -->|publishes| Topic[fraud.assessment.completed]
     Topic --> Audit[Audit Service]
-    style Fraud fill:#bbf,stroke:#333
-    style Topic fill:#fdb,stroke:#333
-    style Audit fill:#bfb,stroke:#333
+    style Fraud fill:#bbf,stroke:#333,color:#000
+    style Topic fill:#fdb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
 ```
 
 ```mermaid

@@ -30,15 +30,15 @@ graph LR
     W_Deposit --> Report
     W_Deposit --> Audit
     F_Assessment --> Audit
-    style Report fill:#bfb,stroke:#333
-    style Audit fill:#bfb,stroke:#333
-    style I_Reg fill:#fdb,stroke:#333
-    style I_Auth fill:#fdb,stroke:#333
-    style I_Lock fill:#fdb,stroke:#333
-    style W_Create fill:#fdb,stroke:#333
-    style W_Balance fill:#fdb,stroke:#333
-    style W_Deposit fill:#fdb,stroke:#333
-    style F_Assessment fill:#fdb,stroke:#333
+    style Report fill:#bfb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
+    style I_Reg fill:#fdb,stroke:#333,color:#000
+    style I_Auth fill:#fdb,stroke:#333,color:#000
+    style I_Lock fill:#fdb,stroke:#333,color:#000
+    style W_Create fill:#fdb,stroke:#333,color:#000
+    style W_Balance fill:#fdb,stroke:#333,color:#000
+    style W_Deposit fill:#fdb,stroke:#333,color:#000
+    style F_Assessment fill:#fdb,stroke:#333,color:#000
 ```
 
 ## Identity Service Topics

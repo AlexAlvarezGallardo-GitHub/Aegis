@@ -15,9 +15,9 @@ Published on successful user login.
 graph LR
     Identity[Identity Service] -->|publishes| Topic[aegis.identity.user-authenticated]
     Topic --> Audit[Audit Service]
-    style Identity fill:#bbf,stroke:#333
-    style Topic fill:#fdb,stroke:#333
-    style Audit fill:#bfb,stroke:#333
+    style Identity fill:#bbf,stroke:#333,color:#000
+    style Topic fill:#fdb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
 ```
 
 ```mermaid

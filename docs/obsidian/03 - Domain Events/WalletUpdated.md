@@ -17,9 +17,9 @@ Published when a wallet's name/alias is updated.
 graph LR
     Wallet[Wallet Service] -->|publishes| Topic[aegis.wallet.wallet-updated]
     Topic --> Audit[Audit Service]
-    style Wallet fill:#bbf,stroke:#333
-    style Topic fill:#fdb,stroke:#333
-    style Audit fill:#bfb,stroke:#333
+    style Wallet fill:#bbf,stroke:#333,color:#000
+    style Topic fill:#fdb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
 ```
 
 ```mermaid
