@@ -21,7 +21,7 @@ graph LR
     Controllers --> BffSvc["BffService (WebClient)"]
     BffSvc --> Identity["Identity Service :8081"]
     BffSvc --> Wallet["Wallet Service :8083"]
-    style Redis fill:#fdb,stroke:#333
+    style Redis fill:#fdb,stroke:#333,color:#000
 ```
 
 ## Tech Stack

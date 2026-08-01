@@ -16,10 +16,10 @@ graph LR
     Identity[Identity Service] -->|publishes| Topic[aegis.identity.user-registered]
     Topic --> Audit[Audit Service]
     Topic --> Notification[Notification Service]
-    style Identity fill:#bbf,stroke:#333
-    style Topic fill:#fdb,stroke:#333
-    style Audit fill:#bfb,stroke:#333
-    style Notification fill:#bfb,stroke:#333
+    style Identity fill:#bbf,stroke:#333,color:#000
+    style Topic fill:#fdb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
+    style Notification fill:#bfb,stroke:#333,color:#000
 ```
 
 ```mermaid

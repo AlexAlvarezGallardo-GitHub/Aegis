@@ -22,10 +22,10 @@ graph TB
     end
     Browser["Browser"] -->|HTTP| Angular["Angular SPA :4200"]
     Angular -->|/api/* via proxy| BFF["BFF Service :8082"]
-    style Angular fill:#bbf,stroke:#333
-    style Features fill:#fdb,stroke:#333
-    style Shared fill:#fdb,stroke:#333
-    style Core fill:#fdb,stroke:#333
+    style Angular fill:#bbf,stroke:#333,color:#000
+    style Features fill:#fdb,stroke:#333,color:#000
+    style Shared fill:#fdb,stroke:#333,color:#000
+    style Core fill:#fdb,stroke:#333,color:#000
 ```
 
 ```mermaid

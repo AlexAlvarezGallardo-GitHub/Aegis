@@ -21,8 +21,8 @@ graph LR
     end
     Kafka[("Kafka<br/>wallet.funds.deposited")] --> Consumer
     Repo --> DB[("PostgreSQL<br/>aegis_reporting")]
-    style Kafka fill:#fdb,stroke:#333
-    style DB fill:#afa,stroke:#333
+    style Kafka fill:#fdb,stroke:#333,color:#000
+    style DB fill:#afa,stroke:#333,color:#000
 ```
 
 ```mermaid

@@ -42,10 +42,10 @@ graph TB
     Fraud["Fraud Service"] -->|depends on| Common
     Audit["Audit Service"] -->|depends on| Common
     Reporting["Reporting Service"] -->|depends on| Common
-    style Common fill:#bbf,stroke:#333
-    style Domain fill:#fdb,stroke:#333
-    style Util fill:#fdb,stroke:#333
-    style Web fill:#fdb,stroke:#333
+    style Common fill:#bbf,stroke:#333,color:#000
+    style Domain fill:#fdb,stroke:#333,color:#000
+    style Util fill:#fdb,stroke:#333,color:#000
+    style Web fill:#fdb,stroke:#333,color:#000
 ```
 
 ### Module Structure

@@ -22,11 +22,11 @@ graph LR
     end
     IV2 --> IDDB
     WV1 --> WDB
-    style IDDB fill:#afa,stroke:#333
-    style WDB fill:#afa,stroke:#333
-    style IV1 fill:#fdb,stroke:#333
-    style IV2 fill:#fdb,stroke:#333
-    style WV1 fill:#fdb,stroke:#333
+    style IDDB fill:#afa,stroke:#333,color:#000
+    style WDB fill:#afa,stroke:#333,color:#000
+    style IV1 fill:#fdb,stroke:#333,color:#000
+    style IV2 fill:#fdb,stroke:#333,color:#000
+    style WV1 fill:#fdb,stroke:#333,color:#000
 ```
 
 ## Identity Service

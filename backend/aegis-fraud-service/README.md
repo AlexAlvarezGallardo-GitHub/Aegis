@@ -30,9 +30,9 @@ graph LR
     KafkaIn[("Kafka<br/>payment.*")] --> Consumer
     Svc --> KafkaOut[("Kafka<br/>fraud.assessment.completed")]
     KafkaOut --> Audit["Audit Service"]
-    style KafkaIn fill:#fdb,stroke:#333
-    style KafkaOut fill:#fdb,stroke:#333
-    style Audit fill:#bfb,stroke:#333
+    style KafkaIn fill:#fdb,stroke:#333,color:#000
+    style KafkaOut fill:#fdb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
 ```
 
 ## Tech Stack

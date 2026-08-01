@@ -41,14 +41,14 @@ graph TB
     Report --> PG3
     Audit --> PG4
     Fraud --> PG5
-    style User fill:#f9f,stroke:#333,stroke-width:2px
-    style BFF fill:#bbf,stroke:#333
-    style Identity fill:#bbf,stroke:#333
-    style Wallet fill:#bbf,stroke:#333
-    style Report fill:#bbf,stroke:#333
-    style Audit fill:#bbf,stroke:#333
-    style Fraud fill:#bbf,stroke:#333
-    style Kafka fill:#fdb,stroke:#333
+    style User fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    style BFF fill:#bbf,stroke:#333,color:#000
+    style Identity fill:#bbf,stroke:#333,color:#000
+    style Wallet fill:#bbf,stroke:#333,color:#000
+    style Report fill:#bbf,stroke:#333,color:#000
+    style Audit fill:#bbf,stroke:#333,color:#000
+    style Fraud fill:#bbf,stroke:#333,color:#000
+    style Kafka fill:#fdb,stroke:#333,color:#000
 ```
 
 ## Deposit Flow
@@ -95,19 +95,19 @@ flowchart TB
     Report --> PG3[("PostgreSQL<br/>aegis_reporting")]
     Audit --> PG4[("PostgreSQL<br/>aegis_audit")]
     Fraud --> PG5[("PostgreSQL<br/>aegis_fraud")]
-    style User fill:#f9f,stroke:#333,stroke-width:2px
-    style BFF fill:#bbf,stroke:#333
-    style Identity fill:#bbf,stroke:#333
-    style Wallet fill:#bbf,stroke:#333
-    style Fraud fill:#bbf,stroke:#333
-    style Report fill:#bbf,stroke:#333
-    style Audit fill:#bbf,stroke:#333
-    style Kafka fill:#fdb,stroke:#333
-    style PG1 fill:#afa,stroke:#333
-    style PG2 fill:#afa,stroke:#333
-    style PG3 fill:#afa,stroke:#333
-    style PG4 fill:#afa,stroke:#333
-    style PG5 fill:#afa,stroke:#333
+    style User fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    style BFF fill:#bbf,stroke:#333,color:#000
+    style Identity fill:#bbf,stroke:#333,color:#000
+    style Wallet fill:#bbf,stroke:#333,color:#000
+    style Fraud fill:#bbf,stroke:#333,color:#000
+    style Report fill:#bbf,stroke:#333,color:#000
+    style Audit fill:#bbf,stroke:#333,color:#000
+    style Kafka fill:#fdb,stroke:#333,color:#000
+    style PG1 fill:#afa,stroke:#333,color:#000
+    style PG2 fill:#afa,stroke:#333,color:#000
+    style PG3 fill:#afa,stroke:#333,color:#000
+    style PG4 fill:#afa,stroke:#333,color:#000
+    style PG5 fill:#afa,stroke:#333,color:#000
 ```
 
 ## Services

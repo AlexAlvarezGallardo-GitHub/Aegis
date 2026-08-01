@@ -20,11 +20,11 @@ graph TB
     Wallets -->|"1:N"| Ledger
     Users --> OutboxI
     Wallets --> OutboxW
-    style Users fill:#afa,stroke:#333
-    style Wallets fill:#afa,stroke:#333
-    style Ledger fill:#fdb,stroke:#333
-    style OutboxI fill:#bbf,stroke:#333
-    style OutboxW fill:#bbf,stroke:#333
+    style Users fill:#afa,stroke:#333,color:#000
+    style Wallets fill:#afa,stroke:#333,color:#000
+    style Ledger fill:#fdb,stroke:#333,color:#000
+    style OutboxI fill:#bbf,stroke:#333,color:#000
+    style OutboxW fill:#bbf,stroke:#333,color:#000
 ```
 
 ## Identity Database (`aegis_identity`)

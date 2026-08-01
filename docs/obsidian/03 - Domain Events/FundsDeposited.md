@@ -16,10 +16,10 @@ graph LR
     Wallet[Wallet Service] -->|publishes| Topic[wallet.funds.deposited]
     Topic --> Report[Reporting Service]
     Topic --> Audit[Audit Service]
-    style Wallet fill:#bbf,stroke:#333
-    style Topic fill:#fdb,stroke:#333
-    style Report fill:#bfb,stroke:#333
-    style Audit fill:#bfb,stroke:#333
+    style Wallet fill:#bbf,stroke:#333,color:#000
+    style Topic fill:#fdb,stroke:#333,color:#000
+    style Report fill:#bfb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
 ```
 
 ```mermaid

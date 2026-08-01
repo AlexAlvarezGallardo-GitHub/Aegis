@@ -26,8 +26,8 @@ graph LR
     Kafka --> Consumer2
     Repo1 --> DB[("PostgreSQL<br/>aegis_audit")]
     Repo2 --> DB
-    style Kafka fill:#fdb,stroke:#333
-    style DB fill:#afa,stroke:#333
+    style Kafka fill:#fdb,stroke:#333,color:#000
+    style DB fill:#afa,stroke:#333,color:#000
 ```
 
 ```mermaid
