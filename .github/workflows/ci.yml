@@ -290,14 +290,14 @@ jobs:
       - name: Update image tags
         working-directory: aegis-gitops
         run: |
-          sed -i "s|newTag: .*|newTag: ${{ github.sha }}|g" overlays/dev/kustomization.yaml
+          sed -i "s|^  tag: .*|  tag: ${{ github.sha }}|g" overlays/dev/*-values.yaml
           git diff --stat
       - name: Commit and push
         working-directory: aegis-gitops
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add overlays/dev/kustomization.yaml
+          git add overlays/dev/*-values.yaml
           if git diff --cached --quiet; then
             echo "No image tag changes to push."
             exit 0
