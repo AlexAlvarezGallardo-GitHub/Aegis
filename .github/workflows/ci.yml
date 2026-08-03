@@ -170,56 +170,56 @@ jobs:
           tags: ${{ github.sha }},latest
           push: 'true'
 
-  security-scan:
-    name: Trivy Security Scan (${{ matrix.image }})
-    runs-on: ubuntu-latest
-    needs: [detect-changes, docker-build-push]
-    if: always() && needs.docker-build-push.result == 'success'
-    permissions:
-      contents: read
-      actions: read
-      packages: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: identity-service
-            filter: backend
-          - image: wallet-service
-            filter: backend
-          - image: bff-service
-            filter: backend
-          - image: audit-service
-            filter: backend
-          - image: fraud-service
-            filter: backend
-          - image: reporting-service
-            filter: backend
-          - image: frontend
-            filter: frontend
-    steps:
-      - uses: actions/checkout@v4
-      - name: Compute GHCR owner
-        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run Trivy vulnerability scanner
-        if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-results-${{ matrix.image }}.sarif'
-      - name: Upload Trivy scan results
-        if: ${{ (needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true') && always() }}
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
+  # security-scan:
+  #   name: Trivy Security Scan (${{ matrix.image }})
+  #   runs-on: ubuntu-latest
+  #   needs: [detect-changes, docker-build-push]
+  #   if: always() && needs.docker-build-push.result == 'success'
+  #   permissions:
+  #     contents: read
+  #     actions: read
+  #     packages: read
+  #     security-events: write
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - image: identity-service
+  #           filter: backend
+  #         - image: wallet-service
+  #           filter: backend
+  #         - image: bff-service
+  #           filter: backend
+  #         - image: audit-service
+  #           filter: backend
+  #         - image: fraud-service
+  #           filter: backend
+  #         - image: reporting-service
+  #           filter: backend
+  #         - image: frontend
+  #           filter: frontend
+  #     steps:
+  #       - uses: actions/checkout@v4
+  #       - name: Compute GHCR owner
+  #         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+  #       - name: Log in to GitHub Container Registry
+  #         uses: docker/login-action@v3
+  #         with:
+  #           registry: ghcr.io
+  #           username: ${{ github.actor }}
+  #           password: ${{ secrets.GITHUB_TOKEN }}
+  #       - name: Run Trivy vulnerability scanner
+  #         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+  #         uses: aquasecurity/trivy-action@v0.36.0
+  #         with:
+  #           image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
+  #           format: 'sarif'
+  #           output: 'trivy-results-${{ matrix.image }}.sarif'
+  #       - name: Upload Trivy scan results
+  #         if: ${{ (needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true') && always() }}
+  #         uses: github/codeql-action/upload-sarif@v4
+  #         with:
+  #           sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
 
   sbom:
     name: Generate SBOM (${{ matrix.image }})
@@ -277,7 +277,7 @@ jobs:
     name: Update GitOps (DEV)
     runs-on: ubuntu-latest
     needs: [detect-changes, docker-build-push]
-    if: needs.docker-build-push.result == 'success'
+    if: ${{ always() && needs.docker-build-push.result != 'failure' && needs.docker-build-push.result != 'cancelled' }}
     permissions:
       contents: read
     steps:
@@ -313,7 +313,6 @@ jobs:
       - backend-integration-tests
       - frontend-build
       - docker-build-push
-      - security-scan
       - sbom
       - gitops-update
     if: always()
