@@ -47,6 +47,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/actuator/health/**"
+                        ).permitAll()
+                        .requestMatchers(
                                 "/api/bff/auth/login",
                                 "/api/bff/auth/refresh",
                                 "/api/bff/auth/mock-login",
