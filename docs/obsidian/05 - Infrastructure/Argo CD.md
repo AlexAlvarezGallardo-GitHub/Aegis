@@ -139,4 +139,22 @@ Infrastructure components follow the Kustomize `base/` + `overlays/<env>/` patte
 
 Every chart configures liveness and readiness probes (`/actuator/health` for backends, `/` for frontend). Probes use `initialDelaySeconds` (40s liveness / 20s readiness) to accommodate slow Spring Boot startup. Backend services must expose actuator AND permit `/actuator/health/**` without auth in their SecurityConfig. Argo CD uses these probes for application health assessment.
 
+## Dev Monitoring (Health Check Script)
+
+`scripts/check-dev-health.ps1` provides a one-command health check of the DEV environment (minikube). It validates:
+
+1. **Argo CD applications** — all must be `Healthy/Synced`
+2. **Pods** in `aegis-dev` — Running, ready, restart count (fails if > 3 restarts)
+3. **Resource usage** — `kubectl top pods` (requires the minikube `metrics-server` addon)
+4. **Health endpoints** — `/actuator/health` of identity (8081), bff (8082), wallet (8083)
+
+Exit code `0` = healthy, `1` = something failed. Usable locally or in CI.
+
+```powershell
+./scripts/check-dev-health.ps1
+./scripts/check-dev-health.ps1 -Namespace aegis-dev -SkipHealthEndpoints
+```
+
+**History**: this script detected a real incident — a docs-only PR bumped GitOps image tags to a non-existent image SHA, causing all service pods to `ErrImagePull`. The root cause (gitops-update running without image changes) was fixed in CI by gating tag bumps on backend/frontend changes.
+
 Related: [[05 - Infrastructure/GitOps\|GitOps]], [[05 - Infrastructure/Helm Charts\|Helm Charts]].
