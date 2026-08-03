@@ -6,11 +6,11 @@ status: implemented
 
 # Argo CD
 
-Argo CD is the GitOps engine of the Aegis platform. It is bootstrapped via GitOps, watches the `Aegis-GitOps` repository, and continuously reconciles the Kubernetes cluster with the declared state. No manual `kubectl apply` is used.
+Argo CD is the GitOps engine of the Aegis platform. It is bootstrapped via GitOps, watches the `Aegis-GitOps` repository, and continuously reconciles the Kubernetes cluster with the declared state. After the one-time bootstrap of `app-of-apps-dev`, no manual `kubectl apply` is used.
 
 ## Bootstrap
 
-Argo CD installs itself from the upstream manifests and then self-manages its own configuration, RBAC and applications.
+Argo CD installs itself from the upstream manifests. The `app-of-apps-dev` Application is the single bootstrap point — applied once, then every child Application is auto-discovered from `applications/dev/`.
 
 ```mermaid
 sequenceDiagram
@@ -21,37 +21,34 @@ sequenceDiagram
 
     Ops->>K8s: kubectl apply -k infrastructure/argocd/install
     K8s->>Argo: Deploy Argo CD (upstream manifests)
-    Ops->>Argo: kubectl -n argocd apply -f applications/aegis-app-of-apps.yaml
-    Argo->>GitOps: Poll applications/
-    GitOps-->>Argo: Child applications
+    Ops->>Argo: kubectl -n argocd apply -f applications/app-of-apps-dev.yaml
+    Argo->>GitOps: Poll applications/dev/
+    GitOps-->>Argo: Child applications (auto-discovered)
     Argo->>Argo: Self-manage config, RBAC, apps
 ```
 
-## App of Apps
+## App of Apps (per environment)
 
-The root `aegis-app-of-apps` manages every child application, including itself.
+The root `app-of-apps-dev` manages every child Application in `applications/dev/` (services + infrastructure). Each active environment gets its own app-of-apps. `pre`, `stage` and `prod` app-of-apps are created when those environments go live.
 
 ```mermaid
 graph TB
-    Root[aegis-app-of-apps] --> Dev[DEV Applications]
-    Root --> Pre[PRE Applications]
-    Root --> Stage[STAGE Applications]
-    Root --> Prod[PROD Applications]
-    Root --> Mon[Monitoring]
-    Root --> Log[Logging]
-
-    Dev --> DevS[identity, wallet, bff, frontend]
-    Pre --> PreS[identity, wallet, bff, frontend]
-    Stage --> StageS[identity, wallet, bff, frontend]
-    Prod --> ProdS[identity, wallet, bff, frontend]
+    Root[app-of-apps-dev] --> BFF[bff-dev]
+    Root --> DB[database]
+    Root --> FE[frontend-dev]
+    Root --> ID[identity-dev]
+    Root --> KAFKA[kafka]
+    Root --> REDIS[redis]
+    Root --> WAL[wallet-dev]
 
     style Root fill:#fdb,color:#000
-    style Dev fill:#bbf,color:#000
-    style Pre fill:#bbf,color:#000
-    style Stage fill:#bbf,color:#000
-    style Prod fill:#bbf,color:#000
-    style Mon fill:#bbf,color:#000
-    style Log fill:#bbf,color:#000
+    style BFF fill:#bbf,color:#000
+    style DB fill:#bbf,color:#000
+    style FE fill:#bbf,color:#000
+    style ID fill:#bbf,color:#000
+    style KAFKA fill:#bbf,color:#000
+    style REDIS fill:#bbf,color:#000
+    style WAL fill:#bbf,color:#000
 ```
 
 ## Sync Flow
@@ -76,13 +73,14 @@ sequenceDiagram
 
 ## Applications
 
-Each service is deployed per environment. The application points at its Helm chart with the overlay values for that environment:
+Each service and infrastructure component is a separate Application, auto-discovered by `app-of-apps-dev`. Service applications point at their Helm chart with the overlay values; infrastructure applications point at a kustomize overlay.
 
+Service application (`identity`):
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: identity-pre
+  name: identity-dev
   namespace: argocd
 spec:
   project: default
@@ -92,38 +90,53 @@ spec:
     path: charts/identity
     helm:
       valueFiles:
-        - ../../overlays/pre/identity-values.yaml
+        - ../../overlays/dev/identity-values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: aegis-pre
+    namespace: aegis-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
 ```
+
+Infrastructure application (`database`):
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: database
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AlexAlvarezGallardo-GitHub/Aegis-GitOps
+    targetRevision: main
+    path: infrastructure/database/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: aegis-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+
+Infrastructure components follow the Kustomize `base/` + `overlays/<env>/` pattern: the base is environment-agnostic (no namespace), and each overlay injects its namespace via the `namespace:` field.
 
 ## Sync Policies
 
-| Environment | Sync | Prune | Self-Heal |
-|-------------|------|-------|-----------|
-| DEV   | Auto  | Yes | Yes |
-| PRE   | Auto  | Yes | Yes |
-| STAGE | Manual/Approval | Yes | Yes |
-| PROD  | Manual/Approval | No  | Yes |
-
-## Environment Promotion
-
-Promotion is declarative: updating the image tag in `overlays/<env>/*-values.yaml` is the promotion. DEV and PRE sync automatically; STAGE and PROD require a manual sync (approval gate).
-
-```mermaid
-graph LR
-    A[DEV] -->|auto| B[PRE]
-    B -->|approval gate| C[STAGE]
-    C -->|approval gate| D[PROD]
-    style A fill:#afa,color:#000
-    style B fill:#afa,color:#000
-    style C fill:#afa,color:#000
-    style D fill:#afa,color:#000
-```
+| Environment | Status | Sync | Prune | Self-Heal |
+|-------------|--------|------|-------|-----------|
+| DEV   | Active (minikube) | Auto | Yes | Yes |
+| PRE   | Not deployed | Auto (planned) | Yes | Yes |
+| STAGE | Not deployed | Manual/Approval (planned) | Yes | Yes |
+| PROD  | Not deployed | Manual/Approval (planned) | No  | Yes |
 
 ## Health Checks
 
-Every chart configures liveness and readiness probes (`/actuator/health` for backends, `/` for frontend). Argo CD uses these for application health assessment.
+Every chart configures liveness and readiness probes (`/actuator/health` for backends, `/` for frontend). Probes use `initialDelaySeconds` (40s liveness / 20s readiness) to accommodate slow Spring Boot startup. Backend services must expose actuator AND permit `/actuator/health/**` without auth in their SecurityConfig. Argo CD uses these probes for application health assessment.
 
 Related: [[05 - Infrastructure/GitOps\|GitOps]], [[05 - Infrastructure/Helm Charts\|Helm Charts]].
