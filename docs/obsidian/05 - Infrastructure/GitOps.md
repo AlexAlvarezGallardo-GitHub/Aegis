@@ -34,12 +34,13 @@ graph TB
         ArgoApp[Argo CD Applications]
     end
 
-    subgraph Cluster[Kubernetes Cluster]
+    subgraph Cluster[Kubernetes Cluster - minikube]
         ArgoCD[Argo CD]
-        DEV[DEV Namespace]
-        PRE[PRE Namespace]
-        STAGE[STAGE Namespace]
-        PROD[PROD Namespace]
+        AppOfApps[app-of-apps-dev]
+        DEV[DEV Namespace: aegis-dev]
+        PRE[PRE Namespace - future]
+        STAGE[STAGE Namespace - future]
+        PROD[PROD Namespace - future]
     end
 
     AppCode -->|push to main| CI
@@ -48,10 +49,9 @@ graph TB
     GHCR --> ArgoCD
     Charts --> Overlays
     Overlays --> ArgoApp
+    ArgoCD -->|bootstrap + sync| AppOfApps
+    AppOfApps -->|auto-discover| DEV
     ArgoCD -->|sync| DEV
-    ArgoCD -->|sync| PRE
-    ArgoCD -->|sync| STAGE
-    ArgoCD -->|sync| PROD
 
     style AppCode fill:#bbf,color:#000
     style CI fill:#bbf,color:#000
@@ -60,10 +60,11 @@ graph TB
     style Overlays fill:#bbf,color:#000
     style ArgoApp fill:#bbf,color:#000
     style ArgoCD fill:#fdb,color:#000
+    style AppOfApps fill:#fdb,color:#000
     style DEV fill:#afa,color:#000
-    style PRE fill:#afa,color:#000
-    style STAGE fill:#afa,color:#000
-    style PROD fill:#afa,color:#000
+    style PRE fill:#ddd,color:#000
+    style STAGE fill:#ddd,color:#000
+    style PROD fill:#ddd,color:#000
 ```
 
 ## Deployment Flow
@@ -75,17 +76,42 @@ sequenceDiagram
     participant GHCR as GitHub Container Registry
     participant GitOps as Aegis-GitOps
     participant Argo as Argo CD
+    participant AppOfApps as app-of-apps-dev
     participant K8s as Kubernetes
 
     Dev->>CI: Push to main
     CI->>CI: Build & test
     CI->>GHCR: Push Docker images
-    CI->>GitOps: Update image tags (overlays/dev)
+    CI->>GitOps: Update image tags (overlays/dev/*-values.yaml)
     GitOps-->>Argo: Detect manifest change
-    Argo->>Argo: Sync application
-    Argo->>K8s: Apply manifests
+    Argo->>AppOfApps: Reconcile applications/
+    AppOfApps->>K8s: Auto-discover child apps & sync
     K8s-->>Argo: Deployment status
     Argo-->>GitOps: Sync result
+```
+
+## Auto-Deployment via App-of-Apps
+
+The root `app-of-apps-dev` Application points at `applications/dev/` (recurse: true). Any new Application manifest added to that directory is **auto-discovered and deployed** by Argo CD — no manual `kubectl apply` is needed. This is the single bootstrap point: it was applied once, and every subsequent Application flows through Git.
+
+```mermaid
+graph TB
+    AppOfApps[app-of-apps-dev] --> BFF[bff-dev]
+    AppOfApps --> DB[database]
+    AppOfApps --> FE[frontend-dev]
+    AppOfApps --> ID[identity-dev]
+    AppOfApps --> KAFKA[kafka]
+    AppOfApps --> REDIS[redis]
+    AppOfApps --> WAL[wallet-dev]
+
+    style AppOfApps fill:#fdb,color:#000
+    style BFF fill:#bbf,color:#000
+    style DB fill:#bbf,color:#000
+    style FE fill:#bbf,color:#000
+    style ID fill:#bbf,color:#000
+    style KAFKA fill:#bbf,color:#000
+    style REDIS fill:#bbf,color:#000
+    style WAL fill:#bbf,color:#000
 ```
 
 ## GitOps Repository Structure
@@ -93,7 +119,18 @@ sequenceDiagram
 ```
 Aegis-GitOps/
 ├── applications/          # Argo CD Application manifests
-│   └── dev/               # One application per service
+│   ├── app-of-apps-dev.yaml   # Root app-of-apps (auto-discovers dev apps)
+│   ├── dev/                   # One application per dev service/infra
+│   │   ├── bff.yaml
+│   │   ├── database.yaml
+│   │   ├── frontend.yaml
+│   │   ├── identity.yaml
+│   │   ├── kafka.yaml
+│   │   ├── redis.yaml
+│   │   └── wallet.yaml
+│   ├── pre/               # (future app-of-apps per environment)
+│   ├── stage/
+│   └── prod/
 ├── base/                  # Shared reference values
 ├── charts/                # Helm charts per service
 │   ├── identity/
@@ -105,17 +142,22 @@ Aegis-GitOps/
 │   ├── pre/
 │   ├── stage/
 │   └── prod/
-└── infrastructure/        # Platform infrastructure
-    └── argocd/
+└── infrastructure/        # Platform infrastructure (base/overlays pattern)
+    ├── argocd/
+    ├── database/          # postgres-identity, postgres-wallet
+    ├── kafka/             # kafka, zookeeper
+    └── redis/             # redis
 ```
 
 ## Environments
 
-| Environment | Overlay | Namespace | Promotes to |
-|-------------|---------|-----------|-------------|
-| DEV   | `overlays/dev/`   | `aegis-dev`   | PRE |
-| PRE   | `overlays/pre/`   | `aegis-pre`   | STAGE |
-| STAGE | `overlays/stage/` | `aegis-stage` | PROD |
-| PROD  | `overlays/prod/`  | `aegis-prod`  | - |
+| Environment | Overlay | Namespace | Status |
+|-------------|---------|-----------|--------|
+| DEV   | `overlays/dev/`   | `aegis-dev`   | **Active** (minikube) |
+| PRE   | `overlays/pre/`   | `aegis-pre`   | Not deployed |
+| STAGE | `overlays/stage/` | `aegis-stage` | Not deployed |
+| PROD  | `overlays/prod/`  | `aegis-prod`  | Not deployed |
+
+Each environment gets its own app-of-apps Application (`app-of-apps-<env>` pointing at `applications/<env>/`) when it becomes active. Overlays and charts for pre/stage/prod already exist in the repo and are promotion-ready.
 
 See [[05 - Infrastructure/Argo CD\|Argo CD]] for application reconciliation and [[05 - Infrastructure/Helm Charts\|Helm Charts]] for chart and overlay details.

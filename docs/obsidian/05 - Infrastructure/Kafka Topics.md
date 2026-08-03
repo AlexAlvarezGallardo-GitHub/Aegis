@@ -100,3 +100,26 @@ aegis.<service>.<event-name>
 - **Pattern**: Transactional outbox
 - **Guarantee**: At-least-once delivery
 - **Serialization**: JSON (avro planned for future)
+
+## Infrastructure (GitOps-managed)
+
+Kafka and Zookeeper run in the cluster via Argo CD under the `kafka` Application:
+
+- `infrastructure/kafka/base/` — environment-agnostic manifests
+- `infrastructure/kafka/overlays/<env>/` — namespace injection per environment
+- Components: `apache/kafka:3.8.0` (combined controller+broker, ports 9092/9093) and `confluentinc/cp-zookeeper:7.5.0` (port 2181)
+- Service DNS: `kafka:9092` (used by Spring `bootstrap-servers`)
+
+```mermaid
+graph TB
+    Kafka[kafka :9092 controller+broker] --> ZK[zookeeper :2181]
+    Identity[identity-service] --> Kafka
+    Wallet[wallet-service] --> Kafka
+    BFF[bff-service] --> Kafka
+
+    style Kafka fill:#fdb,color:#000
+    style ZK fill:#fdb,color:#000
+    style Identity fill:#bbf,color:#000
+    style Wallet fill:#bbf,color:#000
+    style BFF fill:#bbf,color:#000
+```

@@ -58,8 +58,8 @@ graph LR
 | Parameter | DEV | PRE | STAGE | PROD |
 |-----------|-----|-----|-------|------|
 | Replicas | 1 | 2 | 2 | 3 (HPA 3-10) |
-| CPU request | 100m | 250m | 250m | 500m |
-| Memory request | 128Mi | 256Mi | 256Mi | 512Mi |
+| CPU request | 250m | 250m | 250m | 500m |
+| Memory request | 384Mi | 256Mi | 256Mi | 512Mi |
 | HPA | No | No | No | Yes |
 | PDB | No | No | Yes (1) | Yes (2) |
 | Affinity | No | No | No | Yes (anti-affinity) |
@@ -74,6 +74,17 @@ Each chart renders these Kubernetes resources:
 - **Ingress**: optional, enabled via `.Values.ingress.enabled`.
 - **HorizontalPodAutoscaler**: optional, enabled via `.Values.autoscaling.enabled`.
 - **PodDisruptionBudget**: optional, enabled via `.Values.podDisruptionBudget.enabled`.
+
+## Probes
+
+Every backend chart configures liveness and readiness probes against `{{ .Values.probe.path }}` (default `/actuator/health`) with delays tuned for slow Spring Boot startup:
+
+| Probe | initialDelaySeconds | periodSeconds | failureThreshold |
+|-------|---------------------|---------------|------------------|
+| Liveness | 40 | 10 | 8 |
+| Readiness | 20 | 10 | 5 |
+
+The probe delays must be present in the chart template — without them, kubelet kills a slow-starting app during its ~40-60s boot (observed on identity, wallet and bff).
 
 ## Services
 

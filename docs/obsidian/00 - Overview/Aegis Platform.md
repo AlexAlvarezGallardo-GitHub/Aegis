@@ -172,12 +172,14 @@ flowchart TB
 ## Infrastructure
 
 - [[05 - Infrastructure/GitOps\|GitOps]] — Declarative deployment workflow
-- [[05 - Infrastructure/Argo CD\|Argo CD]] — GitOps engine and environment promotion
+- [[05 - Infrastructure/Argo CD\|Argo CD]] — GitOps engine, app-of-apps auto-discovery, environment promotion
 - [[05 - Infrastructure/Helm Charts\|Helm Charts]] — Charts and environment overlays
-- [[05 - Infrastructure/Docker Services\|Docker Services]] — PostgreSQL, Kafka, Redis, etc.
+- [[05 - Infrastructure/Docker Services\|Docker Services]] — Local dev stack (PostgreSQL, Kafka, Redis) via Docker Compose
 - [[05 - Infrastructure/Kafka Topics\|Kafka Topics]] — Event catalog
 - [[05 - Infrastructure/Database Schema\|Database Schema]] — Database schemas
 - [[05 - Infrastructure/Flyway Migrations\|Flyway Migrations]] — DB versioning
+
+> **Deployment status (dev):** all services (`identity`, `wallet`, `bff`, `frontend`) and infrastructure (`database`, `kafka`, `redis`) run in a minikube cluster, managed by Argo CD through the `app-of-apps-dev` Application. See [[05 - Infrastructure/Argo CD\|Argo CD]].
 
 ## Specifications
 
