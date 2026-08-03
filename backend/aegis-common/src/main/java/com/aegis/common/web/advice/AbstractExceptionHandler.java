@@ -1,6 +1,8 @@
 package com.aegis.common.web.advice;
 
 import com.aegis.common.domain.exception.AegisException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
  * Services extend this class and add their own domain-specific handlers.</p>
  */
 public abstract class AbstractExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(AbstractExceptionHandler.class);
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
@@ -45,6 +49,7 @@ public abstract class AbstractExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
+        log.error("Unhandled exception", ex);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
                 "An unexpected error occurred.", null);
     }
