@@ -56,6 +56,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/refresh"
                         ).permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/prometheus", "/actuator/metrics/**", "/actuator/info").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -81,6 +82,7 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/prometheus", "/actuator/metrics/**", "/actuator/info").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
