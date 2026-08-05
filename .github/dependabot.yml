@@ -6,7 +6,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "java"
@@ -17,7 +17,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "javascript"
@@ -28,7 +28,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "ci"
