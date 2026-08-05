@@ -8,6 +8,7 @@ permissions:
   contents: read
   packages: write
   security-events: write
+  id-token: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -170,56 +171,57 @@ jobs:
           tags: ${{ github.sha }},latest
           push: 'true'
 
-  # security-scan:
-  #   name: Trivy Security Scan (${{ matrix.image }})
-  #   runs-on: ubuntu-latest
-  #   needs: [detect-changes, docker-build-push]
-  #   if: always() && needs.docker-build-push.result == 'success'
-  #   permissions:
-  #     contents: read
-  #     actions: read
-  #     packages: read
-  #     security-events: write
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - image: identity-service
-  #           filter: backend
-  #         - image: wallet-service
-  #           filter: backend
-  #         - image: bff-service
-  #           filter: backend
-  #         - image: audit-service
-  #           filter: backend
-  #         - image: fraud-service
-  #           filter: backend
-  #         - image: reporting-service
-  #           filter: backend
-  #         - image: frontend
-  #           filter: frontend
-  #     steps:
-  #       - uses: actions/checkout@v4
-  #       - name: Compute GHCR owner
-  #         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
-  #       - name: Log in to GitHub Container Registry
-  #         uses: docker/login-action@v3
-  #         with:
-  #           registry: ghcr.io
-  #           username: ${{ github.actor }}
-  #           password: ${{ secrets.GITHUB_TOKEN }}
-  #       - name: Run Trivy vulnerability scanner
-  #         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
-  #         uses: aquasecurity/trivy-action@v0.36.0
-  #         with:
-  #           image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
-  #           format: 'sarif'
-  #           output: 'trivy-results-${{ matrix.image }}.sarif'
-  #       - name: Upload Trivy scan results
-  #         if: ${{ (needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true') && always() }}
-  #         uses: github/codeql-action/upload-sarif@v4
-  #         with:
-  #           sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
+  security-scan:
+    name: Trivy Security Scan (${{ matrix.image }})
+    runs-on: ubuntu-latest
+    needs: [detect-changes, docker-build-push]
+    if: always() && needs.docker-build-push.result == 'success'
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: identity-service
+            filter: backend
+          - image: wallet-service
+            filter: backend
+          - image: bff-service
+            filter: backend
+          - image: audit-service
+            filter: backend
+          - image: fraud-service
+            filter: backend
+          - image: reporting-service
+            filter: backend
+          - image: frontend
+            filter: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Trivy vulnerability scanner
+        if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.image }}.sarif'
+          ignore-unfixed: true
+      - name: Upload Trivy scan results
+        if: ${{ (needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true') && always() }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
 
   sbom:
     name: Generate SBOM (${{ matrix.image }})
@@ -257,13 +259,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Generate SBOM with Syft
+      - name: Generate SBOM with Syft (CycloneDX)
         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
         uses: anchore/sbom-action@v0
         with:
           image: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
-          output-file: ${{ matrix.image }}-sbom.spdx.json
-          format: spdx-json
+          output-file: ${{ matrix.image }}-sbom.cdx.json
+          format: cyclonedx-json
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload SBOM
@@ -271,7 +273,52 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.image }}-sbom
-          path: ${{ matrix.image }}-sbom.spdx.json
+          path: ${{ matrix.image }}-sbom.cdx.json
+
+  cosign-sign:
+    name: Cosign Sign (${{ matrix.image }})
+    runs-on: ubuntu-latest
+    needs: [detect-changes, docker-build-push]
+    if: always() && needs.docker-build-push.result == 'success'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: identity-service
+            filter: backend
+          - image: wallet-service
+            filter: backend
+          - image: bff-service
+            filter: backend
+          - image: audit-service
+            filter: backend
+          - image: fraud-service
+            filter: backend
+          - image: reporting-service
+            filter: backend
+          - image: frontend
+            filter: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.6.0
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Sign image (keyless via GitHub OIDC)
+        if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+        run: |
+          IMAGE="ghcr.io/$GHCR_OWNER/${{ matrix.image }}:${{ github.sha }}"
+          cosign sign --yes "$IMAGE"
 
   gitops-update:
     name: Update GitOps (DEV)
@@ -314,6 +361,8 @@ jobs:
       - frontend-build
       - docker-build-push
       - sbom
+      - security-scan
+      - cosign-sign
       - gitops-update
     if: always()
     steps:

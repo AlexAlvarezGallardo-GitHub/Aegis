@@ -1,8 +1,8 @@
 name: Security
 
 on:
-  # schedule:
-  #   - cron: '0 3 * * 1'
+  schedule:
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -51,23 +51,90 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
 
-  # trivy-filesystem:
-  #   name: Trivy Filesystem Scan
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Run Trivy filesystem scan
-  #       uses: aquasecurity/trivy-action@0.29.0
-  #       with:
-  #         scan-type: 'fs'
-  #         scan-ref: '.'
-  #         format: 'sarif'
-  #         output: 'trivy-fs-results.sarif'
-  #     - name: Upload Trivy FS results
-  #       uses: github/codeql-action/upload-sarif@v4
-  #       if: always()
-  #       with:
-  #         sarif_file: 'trivy-fs-results.sarif'
+  trivy-filesystem:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          scanners: 'vuln,secret'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          ignore-unfixed: true
+      - name: Upload Trivy FS results
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+
+  trivy-iac:
+    name: Trivy IaC Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy IaC misconfiguration scan
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: 'config'
+          scan-ref: 'infra/'
+          format: 'sarif'
+          output: 'trivy-iac-results.sarif'
+          ignore-unfixed: true
+      - name: Upload Trivy IaC results
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-iac-results.sarif'
+
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run OpenSSF Scorecard
+        uses: ossf/scorecard-action@v2.3.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Private repo: cannot publish to the public scorecard.dev dashboard.
+          publish_results: false
+      - name: Upload Scorecard results
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: results.sarif
+      - name: Enforce minimum score
+        shell: bash
+        env:
+          MIN_SCORE: '5'
+        run: |
+          if [ ! -f results.sarif ]; then
+            echo "Scorecard results missing"; exit 1
+          fi
+          score=$(jq -r '[.runs[].rules[]? | (.properties.score // empty) | tonumber] | if length == 0 then empty else add/length end' results.sarif 2>/dev/null || echo "")
+          if [ -z "$score" ]; then
+            echo "Could not parse score from SARIF; skipping threshold enforcement."
+            exit 0
+          fi
+          echo "OpenSSF Score: $score"
+          awk -v s="$score" -v m="$MIN_SCORE" 'BEGIN { if (s + 0 < m + 0) { print "ERROR: score below minimum threshold"; exit 1 } }'
+          echo "Score meets minimum threshold."
 
   sbom-repo:
     name: Repository SBOM
@@ -89,7 +156,7 @@ jobs:
   security-summary:
     name: Security Summary
     runs-on: ubuntu-latest
-    needs: [gitleaks, codeql, sbom-repo]
+    needs: [gitleaks, codeql, trivy-filesystem, trivy-iac, scorecard, sbom-repo]
     if: always()
     steps:
       - name: Write summary

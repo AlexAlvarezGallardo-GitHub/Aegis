@@ -1,0 +1,23 @@
+# Gitleaks configuration for the Aegis platform.
+# Extends the default rule set and allowlists development-only placeholder values
+# that are intentionally present in source (never used in production).
+
+title = "Aegis Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+  description = "Development-only placeholder credentials and test fixtures"
+  regexes = [
+    '''aegis-dev-secret-key''',
+    '''aegis_secret''',
+    '''aegis-secret''',
+    '''change-me''',
+    '''your-.*-secret''',
+    '''password\s*[:=]\s*["']?aegis''',
+  ]
+  paths = [
+    '''.*/src/test/.*''',
+    '''.*/test/.*''',
+  ]
