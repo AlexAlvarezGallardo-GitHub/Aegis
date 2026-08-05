@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Aegis is an enterprise-grade digital payment platform built with Java 21, Spring Boot 3, Angular, Kafka, and Kubernetes. It follows microservices architecture with event-driven communication.
+Aegis is a digital payment platform reference architecture built with Java 21, Spring Boot 3, Angular, Kafka, and Kubernetes. It follows microservices architecture with event-driven communication.
 
 ## Hexagonal Architecture
 

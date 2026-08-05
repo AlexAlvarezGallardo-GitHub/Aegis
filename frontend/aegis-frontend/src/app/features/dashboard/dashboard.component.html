@@ -3,7 +3,7 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Dashboard</h1>
-      <p class="page-subtitle">Enterprise payment operations overview</p>
+      <p class="page-subtitle">Payment operations overview</p>
     </div>
     <div class="page-actions">
       <!-- Time Range Toggle -->
@@ -55,8 +55,8 @@
     <div class="error-section">
       <app-empty-state
         icon="error_outline"
-        title="Failed to load dashboard"
-        [description]="data().error || 'Unable to fetch dashboard data. Please try again.'"
+        title="Metrics temporarily unavailable"
+        [description]="data().error || 'Unable to fetch dashboard metrics. Please try again.'"
         actionLabel="Retry"
         (click)="refresh()"
       />

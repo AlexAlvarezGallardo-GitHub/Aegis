@@ -2,7 +2,7 @@
 
 ## Objective
 
-The goal of Aegis is **not simply to build an application**, but to build a **production-grade cloud platform** that demonstrates the skills expected from a Software Architect or Platform Engineer.
+The goal of Aegis is **not simply to build an application**, but to build a **production-oriented cloud platform** that demonstrates the skills expected from a Software Architect or Platform Engineer.
 
 Every technology introduced into the platform must have a clear architectural purpose and follow modern DevOps, GitOps and Cloud Native best practices.
 
@@ -204,12 +204,12 @@ Argo CD detects Git changes, deploys automatically, executes health checks, sync
 
 The final platform should demonstrate:
 
-- Enterprise-grade CI/CD
+- Production-oriented CI/CD
 - GitOps workflows
 - Kubernetes expertise
 - Secure Software Supply Chain
 - Cloud Native Architecture
-- Production-grade observability
+- Production-oriented observability
 - Infrastructure automation
 - Modern DevOps practices
 

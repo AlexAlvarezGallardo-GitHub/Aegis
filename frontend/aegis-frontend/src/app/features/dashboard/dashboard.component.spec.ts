@@ -183,11 +183,11 @@ describe('DashboardComponent', () => {
 
   describe('Error state', () => {
     it('should show error state when error occurs and no data', () => {
-      setStateAndDetect({ loading: false, data: null, error: 'Network failure' });
+      setStateAndDetect({ loading: false, data: null, error: 'Metrics temporarily unavailable' });
 
       const emptyState = fixture.debugElement.query(By.css('app-empty-state'));
       expect(emptyState).toBeTruthy();
-      expect(emptyState.attributes['title']).toContain('Failed to load dashboard');
+      expect(emptyState.attributes['title']).toContain('Metrics temporarily unavailable');
     });
 
     it('should not show loading skeletons in error state', () => {

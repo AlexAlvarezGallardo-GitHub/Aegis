@@ -6,7 +6,7 @@ status: implemented
 
 # Aegis Platform
 
-**Enterprise-grade digital payment platform** built with microservices, event-driven architecture, and hexagonal design.
+**Digital payment platform reference architecture** built with microservices, event-driven architecture, and hexagonal design.
 
 ```mermaid
 graph TB
@@ -179,7 +179,7 @@ flowchart TB
 - [[05 - Infrastructure/Database Schema\|Database Schema]] — Database schemas
 - [[05 - Infrastructure/Flyway Migrations\|Flyway Migrations]] — DB versioning
 
-> **Deployment status (dev):** all services (`identity`, `wallet`, `bff`, `frontend`) and infrastructure (`database`, `kafka`, `redis`) run in a minikube cluster, managed by Argo CD through the `app-of-apps-dev` Application. See [[05 - Infrastructure/Argo CD\|Argo CD]].
+> **Deployment status (dev):** the docker-compose DEV stack runs all services (`identity`, `wallet`, `bff`, `reporting`, `audit`, `fraud`) plus frontend and infrastructure (`postgres`, `kafka`, `redis`). A Kubernetes + Argo CD DEV structure exists in `Aegis-GitOps` but is **not verified** as an operating cluster — see [[05 - Infrastructure/Argo CD\|Argo CD]] and `docs/project-status.md`.
 
 ## Specifications
 
