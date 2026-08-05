@@ -8,6 +8,8 @@
       2. Pods del namespace aegis-dev (todos Running, sin restarts excesivos)
       3. Recursos (CPU/memoria) de los pods via kubectl top
       4. Health endpoints /actuator/health de los servicios backend
+      5. Pods del stack de observabilidad (monitoring + logging)
+      6. Prometheus targets activos (scraping de servicios y nodos)
 
     Exit code 0 si todo está OK, 1 si algo falla (usable en CI/local).
 
@@ -164,6 +166,63 @@ function Write-Summary {
     Write-Host "========================================" -ForegroundColor Cyan
 }
 
+function Get-ObservabilityHealth {
+    Write-Host "`n=== 5. Stack de observabilidad (monitoring + logging) ===" -ForegroundColor Cyan
+    foreach ($ns in @("monitoring", "logging")) {
+        try {
+            $pods = kubectl get pods -n $ns --no-headers 2>$null
+            if (-not $pods) {
+                Write-Report "WARN" "No hay pods en el namespace $ns."
+                continue
+            }
+            foreach ($line in $pods) {
+                $parts = $line -split "\s+"
+                $name = $parts[0]; $ready = $parts[1]; $status = $parts[2]
+                $allReady = $false
+                if ($ready -match "^\d+/\d+$") {
+                    $n = [int]($ready -split '/')[0]
+                    $d = [int]($ready -split '/')[1]
+                    $allReady = ($n -eq $d)
+                }
+                if ($status -eq "Running" -and $allReady) {
+                    Write-Report "OK" "pod $name -> $ready, $status ($ns)"
+                } else {
+                    Write-Report "FAIL" "pod $name -> $ready, $status ($ns)"
+                }
+            }
+        } catch {
+            Write-Report "FAIL" "No se pudo consultar pods en $ns: $($_.Exception.Message)"
+        }
+    }
+}
+
+function Test-PrometheusTargets {
+    Write-Host "`n=== 6. Prometheus targets (scraping) ===" -ForegroundColor Cyan
+    try {
+        $pod = kubectl get pods -n monitoring -l app=prometheus -o jsonpath='{.items[0].metadata.name}' 2>$null
+        if (-not $pod) {
+            Write-Report "WARN" "prometheus pod no encontrado"
+            return
+        }
+        $json = kubectl exec -n monitoring $pod -- sh -c "wget -qO- --timeout=4 http://localhost:9090/api/v1/targets 2>&1" 2>$null
+        if (-not $json) {
+            Write-Report "FAIL" "prometheus targets -> sin respuesta"
+            return
+        }
+        $targets = ($json | ConvertFrom-Json).data.activeTargets
+        if (-not $targets) {
+            Write-Report "WARN" "prometheus targets -> sin targets activos"
+            return
+        }
+        $up = @($targets | Where-Object { $_.health -eq "up" }).Count
+        $total = @($targets).Count
+        $upText = if ($up -gt 0) { "OK" } else { "FAIL" }
+        Write-Report $upText "prometheus targets -> $up/$total up"
+    } catch {
+        Write-Report "FAIL" "prometheus targets -> error: $($_.Exception.Message)"
+    }
+}
+
 # --- Main ---
 if (-not (Test-KubectlAvailable)) { exit 1 }
 
@@ -171,6 +230,8 @@ Get-ArgoAppsHealth
 Get-PodsHealth
 Get-ResourceUsage
 Get-HealthEndpoints
+Get-ObservabilityHealth
+Test-PrometheusTargets
 Write-Summary
 
 if ($script:Failed) { exit 1 } else { exit 0 }

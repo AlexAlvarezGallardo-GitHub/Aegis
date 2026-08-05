@@ -2,6 +2,9 @@ server:
   port: 8082
 
 spring:
+  task:
+    scheduling:
+      observation-enabled: false
   application:
     name: aegis-bff
   profiles:
@@ -20,3 +23,24 @@ aegis:
     url: http://localhost:8083
   jwt:
     secret: "aegis-dev-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+      transport: http
