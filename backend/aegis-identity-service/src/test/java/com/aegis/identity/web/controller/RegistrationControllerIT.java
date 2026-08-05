@@ -50,6 +50,7 @@ class RegistrationControllerIT {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
         registry.add("spring.flyway.enabled", () -> "true");
+        registry.add("aegis.jwt.secret", () -> "test-secret-that-is-at-least-256-bits-long-for-hs256-algorithm");
     }
 
     @Autowired
