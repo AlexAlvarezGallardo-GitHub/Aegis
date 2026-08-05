@@ -211,7 +211,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Trivy vulnerability scanner
         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ghcr.io/${{ env.GHCR_OWNER }}/${{ matrix.image }}:${{ github.sha }}
           format: 'sarif'
