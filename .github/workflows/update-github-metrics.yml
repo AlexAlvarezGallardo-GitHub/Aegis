@@ -1,0 +1,110 @@
+name: Update GitHub Metrics
+
+# Generates real repository metrics for the engineering portfolio dashboard.
+# The portfolio site (specs/011-engineering-portfolio) reads this file at build
+# time - no sample data, no fabricated numbers. Every value here is fetched
+# from the GitHub REST API.
+#
+# Output: portfolio/public/data/github-metrics.json
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-github-metrics
+  cancel-in-progress: true
+
+jobs:
+  generate-metrics:
+    name: Generate metrics
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch repository metrics
+        id: metrics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Latest commit on default branch
+            const commits = await github.paginate(
+              github.rest.repos.listCommits,
+              { owner, repo, per_page: 100 },
+            );
+            const lastCommit = commits[0]?.commit?.committer?.date || null;
+
+            // Open and closed pull requests
+            const openPRs = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: 'open', per_page: 100 },
+            );
+            const closedPRs = await github.paginate(
+              github.rest.pulls.list,
+              { owner, repo, state: 'closed', per_page: 100 },
+            );
+
+            // Latest release (may not exist yet)
+            let latestRelease = null;
+            try {
+              const rel = await github.rest.repos.getLatestRelease({ owner, repo });
+              latestRelease = rel.data.tag_name;
+            } catch {
+              latestRelease = null;
+            }
+
+            // Latest workflow run for the CI workflow
+            let ciStatus = 'no runs yet';
+            let lastCiRun = null;
+            try {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner,
+                repo,
+                workflow_id: 'ci.yml',
+                per_page: 1,
+              });
+              const run = runs.data.workflow_runs?.[0];
+              if (run) {
+                ciStatus = run.conclusion || run.status || 'unknown';
+                lastCiRun = run.created_at || null;
+              }
+            } catch {
+              ciStatus = 'workflow not found';
+            }
+
+            const metrics = {
+              repository: repo,
+              lastCommit,
+              commitCount: commits.length,
+              openPullRequests: openPRs.length,
+              closedPullRequests: closedPRs.length,
+              latestRelease,
+              ciStatus,
+              lastCiRun,
+              generatedAt: new Date().toISOString(),
+            };
+
+            const fs = require('fs');
+            const out = 'portfolio/public/data/github-metrics.json';
+            fs.mkdirSync(require('path').dirname(out), { recursive: true });
+            fs.writeFileSync(out, JSON.stringify(metrics, null, 2) + '\n');
+            console.log(JSON.stringify(metrics, null, 2));
+
+      - name: Commit and push metrics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add portfolio/public/data/github-metrics.json
+          if git diff --cached --quiet; then
+            echo "No metric changes to commit."
+            exit 0
+          fi
+          git commit -m "chore(infra): refresh github metrics for portfolio"
+          git push
