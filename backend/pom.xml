@@ -33,7 +33,7 @@
         <testcontainers.version>1.20.4</testcontainers.version>
         <flyway.version>10.21.0</flyway.version>
         <springdoc.version>2.6.0</springdoc.version>
-        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
     </properties>
 
     <dependencyManagement>
