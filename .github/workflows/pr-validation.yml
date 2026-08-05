@@ -170,7 +170,7 @@ jobs:
           echo "PR body has all required sections."
 
   backend-build:
-    name: Backend Build (${{ matrix.service.module }})
+    name: Backend Build 
     runs-on: ubuntu-latest
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
