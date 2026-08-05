@@ -1,0 +1,11 @@
+{
+  "repository": "Aegis",
+  "lastCommit": "2026-08-05T13:19:08+02:00",
+  "commitCount": 106,
+  "openPullRequests": 27,
+  "closedPullRequests": 54,
+  "latestRelease": null,
+  "ciStatus": "failure",
+  "lastCiRun": "2026-08-05T11:21:55Z",
+  "generatedAt": "2026-08-05T13:30:00Z"
+}

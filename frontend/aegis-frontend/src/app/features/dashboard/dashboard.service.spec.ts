@@ -3,7 +3,6 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { DashboardService } from './dashboard.service';
 import { DashboardData } from '../../shared/models/dashboard.model';
-import * as envModule from '../../../environments/environment';
 
 /**
  * Builds a minimal valid DashboardData payload for testing.
@@ -132,30 +131,27 @@ describe('DashboardService', () => {
     expect(lastUpdated).toBeGreaterThanOrEqual(before - 1000);
   });
 
-  it('should handle HTTP errors in dev mode and return generated fake data', fakeAsync(() => {
+  it('should handle HTTP errors and set error state without fabricating data', fakeAsync(() => {
     const req = httpMock.expectOne(isDashboardRequest);
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
     tick();
 
     const state = service.state();
-    expect(state.data).toBeTruthy();
+    expect(state.data).toBeNull();
     expect(state.loading).toBeFalse();
-    expect(state.data!.kpis.length).toBe(12);
-    expect(state.data!.kpis[0].numericValue).toBeGreaterThan(0);
-    expect(state.data!.recentActivity.length).toBeGreaterThan(0);
-    expect(state.data!.fraudAlerts.length).toBeGreaterThan(0);
-    expect(['operational', 'degraded']).toContain(state.data!.systemHealth.overall);
+    expect(state.error).toBe('Metrics temporarily unavailable');
     flush();
   }));
 
-  it('should handle network error in dev mode and return generated fake data', fakeAsync(() => {
+  it('should handle network errors and set error state without fabricating data', fakeAsync(() => {
     const req = httpMock.expectOne(isDashboardRequest);
     req.error(new ProgressEvent('network error'));
     tick();
 
     const state = service.state();
-    expect(state.data).toBeTruthy();
-    expect(state.data!.kpis[0].numericValue).toBeGreaterThan(0);
+    expect(state.data).toBeNull();
+    expect(state.loading).toBeFalse();
+    expect(state.error).toBe('Metrics temporarily unavailable');
     flush();
   }));
 
@@ -297,37 +293,22 @@ describe('DashboardService', () => {
     flush();
   }));
 
-  it('should propagate HTTP errors and set error state in production mode', fakeAsync(() => {
-    // Flush the initial request from the dev-mode service first
+  it('should keep a stale empty state with an error after a failed refresh', fakeAsync(() => {
     httpMock.expectOne(isDashboardRequest).flush(buildDashboardData());
     tick();
 
-    // Override environment.production to true for this test
-    const env = envModule.environment as { production: boolean };
-    const originalProduction = env.production;
-    env.production = true;
+    service.refresh();
+    tick();
 
-    // Create a fresh service instance with production=true
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      providers: [DashboardService, provideHttpClient(withInterceptors([])), provideHttpClientTesting()],
-    });
-    const prodService = TestBed.inject(DashboardService);
-    const prodHttpMock = TestBed.inject(HttpTestingController);
-
-    const req = prodHttpMock.expectOne(isDashboardRequest);
+    const req = httpMock.expectOne(isDashboardRequest);
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
     tick();
 
-    const state = prodService.state();
+    const state = service.state();
     expect(state.data).toBeNull();
     expect(state.loading).toBeFalse();
-    expect(state.error).toBeTruthy();
+    expect(state.error).toBe('Metrics temporarily unavailable');
 
-    prodHttpMock.verify();
-
-    // Restore environment
-    env.production = originalProduction;
     flush();
   }));
 });

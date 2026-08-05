@@ -1,11 +1,11 @@
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Enterprise%20Ready-00C853?style=for-the-badge&labelColor=1a1a2e">
-  <img alt="Enterprise Ready" src="https://img.shields.io/badge/Enterprise%20Ready-00C853?style=for-the-badge&labelColor=1a1a2e">
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Reference%20Architecture-00C853?style=for-the-badge&labelColor=1a1a2e">
+  <img alt="Reference Architecture" src="https://img.shields.io/badge/Reference%20Architecture-00C853?style=for-the-badge&labelColor=1a1a2e">
 </picture>
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/AI%20Agent%20Orchestrated-7C3AED?style=for-the-badge&labelColor=1a1a2e">
-  <img alt="AI Agent Orchestrated" src="https://img.shields.io/badge/AI%20Agent%20Orchestrated-7C3AED?style=for-the-badge&labelColor=1a1a2e">
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/AI%20Assisted%20Engineering-7C3AED?style=for-the-badge&labelColor=1a1a2e">
+  <img alt="AI Assisted Engineering" src="https://img.shields.io/badge/AI%20Assisted%20Engineering-7C3AED?style=for-the-badge&labelColor=1a1a2e">
 </picture>
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Spec%20Driven-0288D1?style=for-the-badge&labelColor=1a1a2e">
@@ -32,19 +32,37 @@
 
 # **Aegis** — Digital Payment Platform
 
-> **Built by orchestrating specialized AI agents. Designed for fintech scale. Delivered with enterprise rigor.**
+> **A financial platform reference architecture built with enterprise engineering practices. Designed, specified, implemented, tested, and documented through an AI-assisted engineering workflow.**
 
-This is not just another payment platform. Aegis is the **proof of a new development paradigm**: a system architected, specified, implemented, tested, and documented **by orchestrating a team of specialized AI agents** under human direction. The result is production-grade code that would take a traditional team weeks — delivered in days, with the same or higher quality standards.
+Aegis is a microservices-based digital payment platform that demonstrates production-oriented software engineering: hexagonal architecture, event-driven communication, transactional outbox, containerized deployments, and GitOps-ready CI/CD.
 
-This repository demonstrates **my ability to abstract across languages, frameworks, and architectural paradigms** — focusing on what truly matters: understanding the business domain, translating it into a rigorous specification, and using AI agents as a force multiplier to execute. I don't write code; **I orchestrate value creation**.
+This repository demonstrates **the ability to abstract across languages, frameworks, and architectural paradigms** — focusing on what truly matters: understanding the business domain, translating it into a rigorous specification, and using AI-assisted workflows as a force multiplier to execute. Aegis was designed and implemented through an AI-assisted engineering workflow, retaining human ownership of architecture, validation and technical decisions.
 
 ---
 
-## The Vision: Agent-Driven Software Engineering
+## Engineering Evidence
+
+Every claim in this repository is backed by a link. Nothing here is asserted without evidence.
+
+| Evidence | Where |
+|----------|-------|
+| **Canonical service catalog** | [`docs/architecture/service-catalog.md`](docs/architecture/service-catalog.md) |
+| **Capability × environment matrix** | [`docs/project-status.md`](docs/project-status.md) |
+| CI pipeline (build, unit, integration, coverage) | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| Security pipeline (CodeQL, Trivy, SBOM, Scorecard) | [`.github/workflows/security.yml`](.github/workflows/security.yml) |
+| Real GitHub metrics (portfolio dashboard) | [`portfolio/public/data/github-metrics.json`](portfolio/public/data/github-metrics.json) |
+| Architecture decisions (ADRs) | [`docs/adr/`](docs/adr/) |
+| OpenAPI contracts | `specs/*/contracts/` |
+| Domain documentation (vault) | [`docs/obsidian/`](docs/obsidian/) |
+| GitOps repository | [Aegis-GitOps](https://github.com/AlexAlvarezGallardo-GitHub/Aegis-GitOps) |
+
+---
+
+## The Vision: AI-Assisted Engineering Workflow
 
 Traditional development is linear: analyst → architect → developer → tester → devops. Each handoff loses context, introduces delay, and costs money.
 
-Aegis was built with a **different model**:
+Aegis was built with a **different model** — an AI-assisted engineering workflow where specialized agents work within defined conventions under human direction:
 
 ```mermaid
 flowchart TB
@@ -69,7 +87,7 @@ flowchart TB
      (code-reviewer, security-reviewer)"]
     IM["Issue Manager Agent
      (issue-manager)"]
-    PROD["Production-Ready Service"]
+    PROD["Validated Service"]
 
     SA --> AR --> PL
     PL --> SB & FB & TE & IE
@@ -106,7 +124,7 @@ flowchart TB
     end
 ```
 
-Each agent is a specialist. Each one has a defined role, skill set, and quality bar. Together they form a **virtual engineering team** that I direct, review, and integrate.
+Each agent is a specialist. Each one has a defined role, skill set, and quality bar. Together they form a **virtual engineering team** that I direct, review, and integrate — while I retain ownership of architecture, validation, and technical decisions.
 
 ---
 
@@ -114,12 +132,12 @@ Each agent is a specialist. Each one has a defined role, skill set, and quality 
 
 | Traditional Approach | Aegis Approach | Impact |
 |---------------------|----------------|--------|
-| Requirements in Jira, lost in translation | AI agent writes structured spec from conversation | Zero ambiguity, living documentation |
-| Architect draws diagrams, developers interpret | Architect agent validates every line of code against the constitution | Architectural compliance is automatic |
-| Dev writes code, another reviews, another tests | All agents work in parallel with built-in quality gates | 10x faster iteration without quality sacrifice |
-| Context switching between Java, Angular, K8s, CI/CD | One human directs agents specialized in each domain | I focus on business outcomes, not syntax |
-| Documentation is an afterthought | Spec-driven: contracts, schemas, ADRs are generated alongside code | Always up-to-date, always consistent |
-| Onboarding takes months | Repository IS the documentation — specs, decisions, rationale, all in one place | New team members are productive in days |
+| Requirements in Jira, lost in translation | Structured spec written from conversation | Living documentation in `specs/` |
+| Architect draws diagrams, developers interpret | Architectural rules enforced by automated checks in CI | Compliance is verifiable, not assumed |
+| Dev writes code, another reviews, another tests | Specialized AI-assisted workflows with built-in quality gates | Iteration speed with recorded validation |
+| Context switching between Java, Angular, K8s, CI/CD | One engineer directs workflows specialized in each domain | Focus on business outcomes, not syntax |
+| Documentation is an afterthought | Spec-driven: contracts, schemas, ADRs generated alongside code | Always up-to-date, always consistent |
+| Onboarding takes months | Repository IS the documentation — specs, decisions, rationale, all in one place | New contributors become productive quickly |
 
 ---
 
@@ -131,9 +149,9 @@ Each agent is a specialist. Each one has a defined role, skill set, and quality 
 
 3. **I make technical decisions with evidence** — Every technology choice is backed by a `research.md` document comparing alternatives with rationale. BCrypt vs Argon2id? Outbox vs CDC vs Kafka Transactions? UUID v7 vs v4 vs Snowflake? All documented and decided before implementation.
 
-4. **I orchestrate, I don't type** — I describe what needs to be built, and specialized AI agents generate the code. I review, refine, and integrate. My time is spent on architecture, quality, and business value — not on boilerplate.
+4. **I direct AI-assisted engineering workflows** — I describe what needs to be built, and specialized AI-assisted workflows generate the code. I review, refine, and integrate. My time is spent on architecture, quality, and business value — not on boilerplate. Human ownership of technical decisions is retained throughout.
 
-5. **I deliver production quality** — The Identity Service (the first service) includes: 100% domain logic test coverage, integration tests with real PostgreSQL and Kafka via Testcontainers, transactional outbox pattern, Flyway migrations, OpenAPI contract, Kafka event schema, and an Angular frontend with Material Design.
+5. **I deliver verifiable quality** — The Identity Service (the first service) includes domain logic test coverage, integration tests with real PostgreSQL and Kafka via Testcontainers, transactional outbox pattern, Flyway migrations, OpenAPI contract, Kafka event schema, and an Angular frontend with Material Design. Coverage figures and CI results are published and linked from the [evidence index](docs/project-status.md).
 
 ---
 
@@ -145,21 +163,18 @@ flowchart TB
     BFF["BFF Service
      port 8082
      Redis session store"]
-    GW["API Gateway"]
     ID["Identity Service"]
     WA["Wallet Service"]
-    PAY["Payment Service"]
     KAFKA["Kafka
      Event Bus"]
     FR["Fraud Service"]
-    NO["Notification Service"]
     AU["Audit Service"]
+    RE["Reporting Service"]
 
     ANG -- HttpOnly cookie --> BFF
-    BFF --> GW
-    GW --> ID & WA & PAY
-    ID & WA & PAY --> KAFKA
-    KAFKA --> FR & NO & AU
+    BFF --> ID & WA
+    ID & WA --> KAFKA
+    KAFKA --> FR & AU & RE
 ```
 
 ### Hexagonal Architecture (Ports & Adapters)
@@ -219,7 +234,7 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 
 - **Primary channel**: Apache Kafka with `aegis.<service>.<event>` topic naming
 - **Well-versioned schemas**: JSON Schema with explicit `schemaVersion`
-- **Synchronous calls**: Permitted only through the API Gateway with circuit breakers
+- **Synchronous calls**: Restricted to the BFF edge service (proxying to Identity and Wallet); an API Gateway with circuit breakers is planned
 - **Bounded contexts**: Each service owns its data — no shared databases, no direct access
 
 ---
@@ -228,7 +243,7 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 
 | Layer | Technology | Why |
 |-------|-----------|-----|
-| **Language** | Java 21 | Production-grade, battle-tested for fintech, records & pattern matching |
+| **Language** | Java 21 | Widely adopted in fintech, records & pattern matching |
 | **Backend** | Spring Boot 3.3.5 | Industry standard, massive ecosystem, mature |
 | **Persistence** | Spring Data JPA + PostgreSQL 16 | ACID compliance, relational integrity for financial data |
 | **DB Migrations** | Flyway 10.21.0 | Version-controlled schema evolution, rollback support |
@@ -236,7 +251,7 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 | **Security** | Spring Security + BCrypt (≥10) | Non-negotiable for financial systems |
 | **Session Store** | Redis 7 + Spring Session | Distributed HttpOnly cookie sessions for BFF |
 | **API Docs** | OpenAPI 3 (spec-first) | Contract-first, auto-generated, always current |
-| **Frontend** | Angular 22 + Material 22, TypeScript 6 | Enterprise-grade SPA framework, accessible by default |
+| **Frontend** | Angular 22 + Material 22, TypeScript 6 | Widely adopted SPA framework, accessible by default |
 | **Build** | Maven multi-module + Checkstyle | Reproducible, quality-gated builds |
 | **Containerization** | Docker (multi-stage, distroless) | Minimal attack surface, fast deploys |
 | **Orchestration** | Kubernetes + Helm | Self-healing, auto-scaling in production |
@@ -247,18 +262,34 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 
 ## Services
 
+> **Canonical catalog:** [`docs/architecture/service-catalog.md`](docs/architecture/service-catalog.md). Aegis currently contains **6 deployable backend services, 1 frontend application and 1 shared Java library** — this number is the single source of truth.
+
 | Service | Status | Description |
 |---------|--------|-------------|
-| **Identity Service** `aegis-identity-service` | ✅ **Built & tested** | User registration, authentication, RBAC — full hexagonal stack |
-| **BFF Service** `aegis-bff-service` | ✅ **Built & tested** | Backend for Frontend — HttpOnly session cookies, JWT proxy, CSRF protection |
-| **Common** `aegis-common` | ✅ **Built** | UUID v7 generator, shared base exceptions, utilities |
-| **Wallet Service** | ✅ **Built & tested** | Digital wallets, balance management, transactions |
+| **Identity Service** `aegis-identity-service` | ✅ **Implemented · Validated** | User registration, authentication, RBAC — full hexagonal stack |
+| **BFF Service** `aegis-bff-service` | ✅ **Implemented · Validated** | Backend for Frontend — HttpOnly session cookies, JWT proxy, CSRF protection |
+| **Wallet Service** `aegis-wallet-service` | ✅ **Implemented · Validated** | Digital wallets, balance management, deposits |
+| **Fraud Service** `aegis-fraud-service` | ✅ **Implemented · Validated** | Real-time fraud assessment, rule engine |
+| **Audit Service** `aegis-audit-service` | ✅ **Implemented · Validated** | Immutable audit trail from domain events |
+| **Reporting Service** `aegis-reporting-service` | 🟡 **Implemented · Partial** | Event consumers and projections — reporting capabilities incomplete |
+| **Common** `aegis-common` | ✅ **Implemented** | UUID v7 generator, shared base exceptions, utilities |
 | **Payment Service** | 📋 Planned | Payment processing, reconciliation, 3DS |
-| **Fraud Service** | 📋 Planned | Real-time fraud scoring, rule engine, ML pipeline |
 | **Notification Service** | 📋 Planned | Email, SMS, push with templating and delivery tracking |
-| **Audit Service** | 📋 Planned | Immutable, cryptographically-linked audit trail |
-| **Reporting Service** | 📋 Planned | Analytics, dashboards, exports |
-| **Gateway Service** | 📋 Planned | API Gateway, rate limiting, circuit breakers |
+| **API Gateway** | 📋 Planned | API Gateway, rate limiting, circuit breakers (BFF currently fills the edge role) |
+
+> See [`docs/project-status.md`](docs/project-status.md) for the full capability × environment matrix.
+
+## Environments
+
+| Environment | Status |
+|-------------|--------|
+| **Local** | Functional (docker-compose dev stack) |
+| **DEV** | Functional (docker-compose) / Prepared (GitOps structure) |
+| **PRE** | Prepared structure |
+| **STAGE** | Prepared structure |
+| **PROD** | Prepared structure |
+
+> PRE, STAGE and PROD demonstrate the intended promotion structure but are not currently operating production environments. There is no customer traffic, no regulatory certification, no real banking or KYC provider, and no commercial SLA.
 
 ---
 
@@ -266,8 +297,8 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 
 | Layer | Tools | Standard |
 |-------|-------|----------|
-| **Unit tests** | JUnit 5 + Mockito | 100% coverage on domain logic, ≥ 80% overall |
-| **Integration tests** | Testcontainers (real PostgreSQL 16 + Kafka 7.5) | Every adapter tested against real infrastructure |
+| **Unit tests** | JUnit 5 + Mockito | Domain logic covered; per-module coverage reported via JaCoCo |
+| **Integration tests** | Testcontainers (real PostgreSQL 16 + Kafka 7.5) | Adapters tested against real infrastructure |
 | **End-to-end tests** | Testcontainers + MockMvc | Full HTTP request → database → Kafka flow |
 | **Frontend tests** | Jasmine + Karma | Component rendering, service mocking, form validation |
 
@@ -366,6 +397,8 @@ aegis/
 │           ├── auth-api.yaml
 │           ├── user-authenticated-event.json
 │           └── user-account-locked-event.json
+├── portfolio/                          # Engineering portfolio website (spec 011)
+│   └── public/data/github-metrics.json # Real GitHub metrics (workflow-generated)
 └── docs/
     ├── design-system/                 # Brand, colors, typography, components
     └── AGENTS-README.md               # AI agent workflow documentation
@@ -374,6 +407,15 @@ aegis/
 ---
 
 ## Getting Started
+
+> **First time?** Copy the environment template and generate your own dev secrets before starting anything:
+>
+> ```bash
+> copy infra\.env.example infra\.env   # Windows
+> # cp infra/.env.example infra/.env   # Linux/macOS
+> ```
+>
+> `infra/.env` is gitignored — it holds **development-only** credentials (PostgreSQL, JWT). Never commit it or reuse its values outside local dev. For local development the defaults in `.env.example` are fine.
 
 ### Option A: Local Development (Docker Compose with hot-reload)
 
@@ -399,6 +441,9 @@ cd backend
 mvn clean install -DskipTests
 
 # 3. Start Identity Service (terminal 1)
+#    Manual runs need the secrets in your shell (load them from infra/.env):
+#    PowerShell:   $env:SPRING_DATASOURCE_PASSWORD="<db-password>"; $env:JWT_SECRET="<32+ chars>"
+#    bash:         export SPRING_DATASOURCE_PASSWORD=<db-password> export JWT_SECRET=<32+ chars>
 mvn spring-boot:run -pl aegis-identity-service -Dspring-boot.run.profiles=dev
 
 # 4. Start BFF Service (terminal 2)
@@ -441,12 +486,12 @@ docker compose -f infra/docker-compose.yml up -d --build
 
 This repository is **not** about Java 21, or Spring Boot, or Angular. It's not about Kafka or hexagonal architecture. Those are just tools.
 
-This is about **a new way of building software**: where one person with deep business understanding, architectural vision, and the ability to direct specialized AI agents can deliver what previously required a team of 5-10 people.
+This is about **how software can be built**: one engineer with business understanding, architectural vision, and the ability to direct specialized AI-assisted workflows can design and deliver a coherent, documented, tested platform.
 
-I don't just write code. **I design systems, orchestrate agents, and deliver production value** — regardless of the language, framework, or domain.
+Aegis is designed and implemented through an **AI-assisted engineering workflow with human ownership** of architecture, validation and technical decisions. Every important claim in this repository is linked to verifiable evidence — see the [project status matrix](docs/project-status.md).
 
 ---
 
 <p align="center">
-  <sub>Built by orchestrating AI agents · Enterprise-grade from day one · Business-first, technology-second</sub>
+  <sub>Financial platform reference architecture · AI-assisted engineering with human validation · Business-first, technology-second</sub>
 </p>
