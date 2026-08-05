@@ -22,7 +22,7 @@ aegis:
   wallet-service:
     url: http://localhost:8083
   jwt:
-    secret: "aegis-dev-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+    secret: "${JWT_SECRET}"
 
 management:
   metrics:

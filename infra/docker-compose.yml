@@ -5,7 +5,7 @@ services:
     container_name: aegis-postgres-identity
     environment:
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in infra/.env (copy .env.example)}
       POSTGRES_DB: aegis_identity
     ports:
       - "5432:5432"
@@ -24,7 +24,7 @@ services:
     container_name: aegis-postgres-wallet
     environment:
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in infra/.env (copy .env.example)}
       POSTGRES_DB: aegis_wallet
     ports:
       - "5433:5432"
@@ -43,7 +43,7 @@ services:
     container_name: aegis-postgres-reporting
     environment:
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in infra/.env (copy .env.example)}
       POSTGRES_DB: aegis_reporting
     ports:
       - "5434:5432"
@@ -62,7 +62,7 @@ services:
     container_name: aegis-postgres-audit
     environment:
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in infra/.env (copy .env.example)}
       POSTGRES_DB: aegis_audit
     ports:
       - "5435:5432"
@@ -81,7 +81,7 @@ services:
     container_name: aegis-postgres-fraud
     environment:
       POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in infra/.env (copy .env.example)}
       POSTGRES_DB: aegis_fraud
     ports:
       - "5436:5432"
@@ -172,7 +172,8 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-identity:5432/aegis_identity
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD must be set in infra/.env (copy .env.example)}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in infra/.env (copy .env.example)}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       postgres-identity:
@@ -193,7 +194,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-wallet:5432/aegis_wallet
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD must be set in infra/.env (copy .env.example)}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       postgres-wallet:
@@ -214,6 +215,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       AEGIS_IDENTITY_SERVICE_URL: http://aegis-identity:8081
       AEGIS_WALLET_SERVICE_URL: http://aegis-wallet:8083
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in infra/.env (copy .env.example)}
       SPRING_DATA_REDIS_HOST: redis
     depends_on:
       redis:
@@ -236,7 +238,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-reporting:5432/aegis_reporting
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD must be set in infra/.env (copy .env.example)}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       postgres-reporting:
@@ -257,7 +259,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-audit:5432/aegis_audit
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD must be set in infra/.env (copy .env.example)}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       postgres-audit:
@@ -278,7 +280,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-fraud:5432/aegis_fraud
       SPRING_DATASOURCE_USERNAME: aegis
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-aegis_secret}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD must be set in infra/.env (copy .env.example)}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       postgres-fraud:
@@ -313,35 +315,35 @@ services:
       SERVER_identity: postgres-identity
       PORT_identity: 5432
       USER_identity: aegis
-      PASSWORD_identity: ${DBGATE_PASSWORD_IDENTITY:-aegis_secret}
+      PASSWORD_identity: ${DBGATE_PASSWORD_IDENTITY:?DBGATE_PASSWORD_IDENTITY must be set in infra/.env (copy .env.example)}
       DATABASE_identity: aegis_identity
       ENGINE_identity: "postgres@dbgate-plugin-postgres"
       LABEL_wallet: Aegis Wallet DB
       SERVER_wallet: postgres-wallet
       PORT_wallet: 5432
       USER_wallet: aegis
-      PASSWORD_wallet: ${DBGATE_PASSWORD_WALLET:-aegis_secret}
+      PASSWORD_wallet: ${DBGATE_PASSWORD_WALLET:?DBGATE_PASSWORD_WALLET must be set in infra/.env (copy .env.example)}
       DATABASE_wallet: aegis_wallet
       ENGINE_wallet: "postgres@dbgate-plugin-postgres"
       LABEL_reporting: Aegis Reporting DB
       SERVER_reporting: postgres-reporting
       PORT_reporting: 5432
       USER_reporting: aegis
-      PASSWORD_reporting: ${DBGATE_PASSWORD_REPORTING:-aegis_secret}
+      PASSWORD_reporting: ${DBGATE_PASSWORD_REPORTING:?DBGATE_PASSWORD_REPORTING must be set in infra/.env (copy .env.example)}
       DATABASE_reporting: aegis_reporting
       ENGINE_reporting: "postgres@dbgate-plugin-postgres"
       LABEL_audit: Aegis Audit DB
       SERVER_audit: postgres-audit
       PORT_audit: 5432
       USER_audit: aegis
-      PASSWORD_audit: ${DBGATE_PASSWORD_AUDIT:-aegis_secret}
+      PASSWORD_audit: ${DBGATE_PASSWORD_AUDIT:?DBGATE_PASSWORD_AUDIT must be set in infra/.env (copy .env.example)}
       DATABASE_audit: aegis_audit
       ENGINE_audit: "postgres@dbgate-plugin-postgres"
       LABEL_fraud: Aegis Fraud DB
       SERVER_fraud: postgres-fraud
       PORT_fraud: 5432
       USER_fraud: aegis
-      PASSWORD_fraud: ${DBGATE_PASSWORD_FRAUD:-aegis_secret}
+      PASSWORD_fraud: ${DBGATE_PASSWORD_FRAUD:?DBGATE_PASSWORD_FRAUD must be set in infra/.env (copy .env.example)}
       DATABASE_fraud: aegis_fraud
       ENGINE_fraud: "postgres@dbgate-plugin-postgres"
       LABEL_redis: Aegis Redis

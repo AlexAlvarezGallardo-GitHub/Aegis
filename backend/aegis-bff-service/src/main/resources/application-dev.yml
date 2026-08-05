@@ -8,7 +8,7 @@ spring:
 
 aegis:
   jwt:
-    secret: "aegis-dev-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+    secret: "${JWT_SECRET}"
 
 springdoc:
   api-docs:
