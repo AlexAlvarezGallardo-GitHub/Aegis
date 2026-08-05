@@ -213,6 +213,21 @@ jobs:
           path: backend/${{ matrix.service.module }}/target/site/jacoco/
           if-no-files-found: ignore
 
+  backend-build-check:
+    name: Backend Build
+    runs-on: ubuntu-latest
+    needs: backend-build
+    if: always()
+    steps:
+      - name: Report backend build result
+        run: |
+          RESULT="${{ needs.backend-build.result }}"
+          echo "Backend build matrix result: $RESULT"
+          if [ "$RESULT" = "failure" ] || [ "$RESULT" = "cancelled" ]; then
+            echo "::error::Backend build failed: $RESULT"
+            exit 1
+          fi
+
   frontend-build:
     name: Frontend Build
     runs-on: ubuntu-latest
