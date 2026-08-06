@@ -108,7 +108,7 @@ jobs:
       - name: Run PIT on critical modules
         working-directory: backend
         run: |
-          mvn -B -q install -DskipTests -pl aegis-common
+          mvn -B -q install -DskipTests -pl aegis-common -am
           mvn -B -pl aegis-identity-service,aegis-wallet-service,aegis-fraud-service \
             -DskipITs \
             -Pmutation-testing \
