@@ -307,7 +307,7 @@ jobs:
       - name: Compute GHCR owner
         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3.6.0
+        uses: sigstore/cosign-installer@v4.1.2
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
