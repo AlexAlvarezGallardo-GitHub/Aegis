@@ -75,7 +75,7 @@ The DLT record keeps the original:
 
 - `spring.kafka.listener` instrumentation provides consumer group lag and errors.
 - A per-topic `retry`/`dlt` message count alert is the recommended follow-up
-  (see [Observability](../observability/slo.md)).
+  (see the observability plan in `docs/obsidian/05 - Infrastructure/Observability Stack.md`).
 
 ## Poison message test
 

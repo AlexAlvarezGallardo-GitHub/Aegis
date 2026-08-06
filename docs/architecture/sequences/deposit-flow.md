@@ -86,7 +86,7 @@ The `reference` supplied by the caller is the idempotency key. Two defenses exis
    (migration `V3__unique_deposit_reference.sql`). A concurrent duplicate is
    translated to `DuplicateDepositException`.
 
-See [Idempotency](idempotency.md) for the full discussion.
+See [Idempotency](../idempotency.md) for the full discussion.
 
 ## Failure handling
 
@@ -94,7 +94,7 @@ See [Idempotency](idempotency.md) for the full discussion.
 |---------|-----------|
 | Downstream service down | BFF returns 502/503 with correlation ID; client may retry |
 | Kafka unavailable during relay | Outbox row stays `PENDING`; relay retries next poll (`aegis.outbox_pending_events` gauge reflects backlog) |
-| Consumer throws | Retried with fixed back-off, then routed to `<topic>.dlt` (see [Retries and Dead Letter Topics](retry-dlt.md)) |
+| Consumer throws | Retried with fixed back-off, then routed to `<topic>.dlt` (see [Retries and Dead Letter Topics](../retry-dlt.md)) |
 | Duplicate redelivery | Deduplicated via `processed_events` |
 
 ## Planned (not yet implemented)
