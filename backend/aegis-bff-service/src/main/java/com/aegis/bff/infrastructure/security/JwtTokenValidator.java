@@ -1,17 +1,15 @@
 package com.aegis.bff.infrastructure.security;
 
+import com.aegis.bff.domain.port.JwtSigningKey;
 import com.aegis.bff.domain.port.TokenValidator;
-import com.aegis.bff.infrastructure.config.BffProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Validates JWT tokens using the shared HMAC-SHA256 secret.
@@ -27,9 +25,8 @@ public class JwtTokenValidator implements TokenValidator {
 
     private final SecretKey secretKey;
 
-    public JwtTokenValidator(BffProperties properties) {
-        this.secretKey = Keys.hmacShaKeyFor(
-                properties.jwt().secret().getBytes(StandardCharsets.UTF_8));
+    public JwtTokenValidator(JwtSigningKey signingKey) {
+        this.secretKey = signingKey.get();
     }
 
     /**

@@ -44,6 +44,10 @@ This repository demonstrates **the ability to abstract across languages, framewo
 
 Every claim in this repository is backed by a link. Nothing here is asserted without evidence.
 
+| CI status | Security scanning | License | Coverage |
+|-----------|-------------------|---------|----------|
+| [![CI](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml) | [![Security](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml) | [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) | [![Coverage](https://raw.githubusercontent.com/AlexAlvarezGallardo-GitHub/Aegis/gh-pages/badges/coverage.svg)](.github/workflows/coverage.yml) |
+
 | Evidence | Where |
 |----------|-------|
 | **Canonical service catalog** | [`docs/architecture/service-catalog.md`](docs/architecture/service-catalog.md) |

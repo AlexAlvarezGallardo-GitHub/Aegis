@@ -40,11 +40,7 @@ class BffServiceTest {
         tokenStore = new InMemoryTokenStore();
         // Use a real TokenValidator that validates JWTs signed with our test secret
         tokenValidator = new com.aegis.bff.infrastructure.security.JwtTokenValidator(
-                new com.aegis.bff.infrastructure.config.BffProperties(
-                        new com.aegis.bff.infrastructure.config.BffProperties.ServiceUrl("http://localhost"),
-                        new com.aegis.bff.infrastructure.config.BffProperties.ServiceUrl("http://localhost"),
-                        new com.aegis.bff.infrastructure.config.BffProperties.Jwt(TEST_SECRET)
-                )
+                () -> SECRET_KEY
         );
 
         // A simple IdentityClient backed by MockWebServer

@@ -1,7 +1,7 @@
 package com.aegis.fraud.web.controller;
 
 import com.aegis.fraud.application.dto.AssessmentResponse;
-import com.aegis.fraud.application.mapper.AssessmentMapper;
+import com.aegis.fraud.web.mapper.AssessmentMapper;
 import com.aegis.fraud.domain.exception.AssessmentNotFoundException;
 import com.aegis.fraud.domain.model.FraudAssessment;
 import com.aegis.fraud.domain.model.FraudDecision;

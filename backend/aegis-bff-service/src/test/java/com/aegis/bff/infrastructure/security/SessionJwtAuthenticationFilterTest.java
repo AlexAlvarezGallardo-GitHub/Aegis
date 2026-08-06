@@ -1,8 +1,8 @@
 package com.aegis.bff.infrastructure.security;
 
 import com.aegis.bff.application.service.SessionJwtStore;
+import com.aegis.bff.domain.port.JwtSigningKey;
 import com.aegis.bff.domain.port.TokenValidator;
-import com.aegis.bff.infrastructure.config.BffProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -43,12 +43,8 @@ class SessionJwtAuthenticationFilterTest {
     void setUp() {
         SecurityContextHolder.clearContext();
         sessionJwtStore = new FakeSessionJwtStore(null);
-        BffProperties props = new BffProperties(
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.Jwt(TEST_SECRET)
-        );
-        tokenValidator = new JwtTokenValidator(props);
+        JwtSigningKey signingKey = () -> SECRET_KEY;
+        tokenValidator = new JwtTokenValidator(signingKey);
         filter = new SessionJwtAuthenticationFilter(sessionJwtStore, tokenValidator, new ObjectMapper());
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();

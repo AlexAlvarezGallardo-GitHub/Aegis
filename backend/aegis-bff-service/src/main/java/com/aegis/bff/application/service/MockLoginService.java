@@ -1,14 +1,12 @@
 package com.aegis.bff.application.service;
 
+import com.aegis.bff.domain.port.JwtSigningKey;
 import com.aegis.bff.domain.port.TokenStore;
-import com.aegis.bff.infrastructure.config.BffProperties;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -18,8 +16,8 @@ import java.util.UUID;
  * Development-only service that generates a signed JWT for local testing.
  *
  * <p>The mock token is signed with the same HMAC secret used by the Identity Service
- * so that the BFF's {@link com.aegis.bff.infrastructure.security.JwtTokenValidator}
- * accepts it without requiring a running Identity Service.</p>
+ * so that the BFF's token validator accepts it without requiring a running
+ * Identity Service.</p>
  */
 @Profile("dev")
 @Service
@@ -31,10 +29,9 @@ public class MockLoginService {
     private final TokenStore tokenStore;
     private final SecretKey secretKey;
 
-    public MockLoginService(TokenStore tokenStore, BffProperties properties) {
+    public MockLoginService(TokenStore tokenStore, JwtSigningKey signingKey) {
         this.tokenStore = tokenStore;
-        this.secretKey = Keys.hmacShaKeyFor(
-                properties.jwt().secret().getBytes(StandardCharsets.UTF_8));
+        this.secretKey = signingKey.get();
     }
 
     public Map<String, Object> mockLogin() {

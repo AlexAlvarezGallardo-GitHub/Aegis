@@ -1,0 +1,75 @@
+name: Architecture decision
+description: Propose or challenge an architectural decision for Aegis
+title: "[ADR]: "
+labels: [architecture, needs-triage]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Architectural decisions in Aegis are recorded as ADRs in `docs/adr/`,
+        following the template in `.specify/skills/create-adr`. Use this issue to
+        propose a decision that will result in (or challenge) an ADR.
+  - type: input
+    id: topic
+    attributes:
+      label: Decision topic
+      description: One-line summary of the decision.
+      placeholder: e.g. Event schema versioning strategy
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - New decision (propose new ADR)
+        - Challenge existing ADR
+        - Amend existing ADR
+    validations:
+      required: true
+  - type: input
+    id: related
+    attributes:
+      label: Related ADR(s)
+      description: If challenging/amending, which ADR number(s)?
+      placeholder: e.g. ADR-002
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: The forces at play and the problem being solved. Include constraints (compliance, scale, conventions).
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options considered
+      description: List alternatives with their trade-offs.
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Proposed decision
+      description: The chosen option and why it wins over the alternatives.
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences
+      description: What becomes easier, harder, or required after this decision.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: The decision respects the principles in .specify/memory/constitution.md.
+          required: true
+        - label: The decision will be captured as a proper ADR document.
+          required: true

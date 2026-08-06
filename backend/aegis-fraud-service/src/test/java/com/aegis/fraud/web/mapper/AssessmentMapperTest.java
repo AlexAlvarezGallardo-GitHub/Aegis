@@ -1,4 +1,4 @@
-package com.aegis.fraud.application.mapper;
+package com.aegis.fraud.web.mapper;
 
 import com.aegis.fraud.application.dto.FraudAssessmentCommand;
 import com.aegis.fraud.domain.port.inbound.AssessFraudUseCase;

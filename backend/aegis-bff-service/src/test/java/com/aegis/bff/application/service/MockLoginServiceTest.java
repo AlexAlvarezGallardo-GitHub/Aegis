@@ -1,7 +1,7 @@
 package com.aegis.bff.application.service;
 
+import com.aegis.bff.domain.port.JwtSigningKey;
 import com.aegis.bff.domain.port.TokenStore;
-import com.aegis.bff.infrastructure.config.BffProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +28,8 @@ class MockLoginServiceTest {
     @BeforeEach
     void setUp() {
         tokenStore = new InMemoryTokenStore();
-        BffProperties props = new BffProperties(
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.Jwt(TEST_SECRET)
-        );
-        service = new MockLoginService(tokenStore, props);
+        JwtSigningKey signingKey = () -> SECRET_KEY;
+        service = new MockLoginService(tokenStore, signingKey);
     }
 
     @Test
