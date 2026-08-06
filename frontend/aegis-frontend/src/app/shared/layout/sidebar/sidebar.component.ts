@@ -42,12 +42,6 @@ export class SidebarComponent {
 
   readonly sections: NavSection[] = [
     {
-      label: 'Overview',
-      items: [
-        { icon: 'dashboard', label: 'Dashboard', route: '/dashboard' },
-      ],
-    },
-    {
       label: 'Payments',
       items: [
         { icon: 'payments', label: 'Payments', route: '/payments' },

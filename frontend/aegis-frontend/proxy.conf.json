@@ -4,11 +4,6 @@
     "secure": false,
     "changeOrigin": true
   },
-  "/api/bff/dashboard": {
-    "target": "http://localhost:8082",
-    "secure": false,
-    "changeOrigin": true
-  },
   "/api/bff/wallets": {
     "target": "http://localhost:8082",
     "secure": false,
