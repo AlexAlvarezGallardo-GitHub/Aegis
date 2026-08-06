@@ -44,6 +44,26 @@ com.aegis.<service>/
 - Controllers MUST NOT contain swagger/OpenAPI annotations (`@Tag`, `@Operation`, `@ApiResponse`, `@Parameter`, etc.). These duplicate the YAML spec and add complexity without gain.
 - The `api-design` skill generates the OpenAPI contract. The `service-builder` agent must produce controllers with zero swagger imports.
 
+## GitHub Connectivity (Token Registry)
+
+- **Use `gh` CLI via bash** for all GitHub operations (issues, PRs, merges, repo queries). The built-in GitHub MCP tools are authenticated with a separate credential that frequently fails (403 / bad credentials) — prefer `gh`.
+- **Token per repo** — set it inline per command. Do NOT export/overwrite the session `GITHUB_TOKEN` globally; assign it only in the command scope: `$env:GITHUB_TOKEN = $env:AEGIS_PORTFOLIO_FINE_GRAINED`.
+- `gh` reads the `GITHUB_TOKEN` env var. The default session value may be a stale/broad token without PR permissions — always override per repo.
+
+| Repo | Env var | Type | Notes |
+|------|---------|------|-------|
+| Aegis-Portfolio | `AEGIS_PORTFOLIO_FINE_GRAINED` | fine-grained | PRs need "Pull requests: write" |
+| Aegis-GitOps | `AEGIS_GITOPS_FINE_GRAINED` | fine-grained | |
+| Aegis | `AEGIS_FINE_GRAINED` | fine-grained | may not be set in env; source from profile |
+| Deploy/GHCR | `AEGIS_DEPLOY_TOKEN` | classic (40 chars) | for GitHub Actions / container registry |
+
+Working pattern for PRs (avoid `gh pr create` GraphQL path — use REST):
+```
+$env:GITHUB_TOKEN = $env:AEGIS_PORTFOLIO_FINE_GRAINED
+gh api repos/OWNER/REPO/pulls -f title="..." -f head="BRANCH" -f base="main" -f body-file="PATH"
+gh pr merge N --repo OWNER/REPO --squash --delete-branch
+```
+
 ## Build Commands
 
 - Build all: `mvn clean install`
