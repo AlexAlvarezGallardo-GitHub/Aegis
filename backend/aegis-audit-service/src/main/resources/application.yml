@@ -37,6 +37,10 @@ aegis:
     topics:
       funds-deposited: wallet.funds.deposited
       fraud-assessment-completed: fraud.assessment.completed
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+    dlt-suffix: .dlt
 
 springdoc:
   api-docs:
