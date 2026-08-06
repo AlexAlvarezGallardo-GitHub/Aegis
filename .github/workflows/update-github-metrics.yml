@@ -6,6 +6,9 @@ name: Update GitHub Metrics
 # from the GitHub REST API.
 #
 # Output: portfolio/public/data/github-metrics.json
+#
+# main is branch-protected, so changes are delivered through an auto-merged PR
+# from the ci/011-github-metrics branch instead of a direct push.
 
 on:
   schedule:
@@ -14,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: update-github-metrics
@@ -98,6 +102,7 @@ jobs:
             console.log(JSON.stringify(metrics, null, 2));
 
       - name: Commit and push metrics
+        id: push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -106,5 +111,39 @@ jobs:
             echo "No metric changes to commit."
             exit 0
           fi
+          git checkout -b ci/011-github-metrics
           git commit -m "chore(infra): refresh github metrics for portfolio"
-          git push
+          git push --force origin ci/011-github-metrics
+          echo "metrics_changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open auto-merge pull request
+        if: steps.push.outputs.metrics_changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_EXISTS=$(gh pr list --head ci/011-github-metrics --state open --json number -q '.[0].number' || true)
+          if [ -n "$PR_EXISTS" ]; then
+            echo "PR already open: #$PR_EXISTS"
+            gh pr merge "$PR_EXISTS" --auto --squash --delete-branch
+            exit 0
+          fi
+          BODY=$(cat <<'EOF'
+          ## Summary
+
+          Regenerates real repository metrics for the engineering portfolio dashboard.
+
+          ## Changes
+
+          - Updates `portfolio/public/data/github-metrics.json` with live GitHub data.
+
+          ## Testing
+
+          - PR validation checks run automatically on this pull request.
+          EOF
+          )
+          gh pr create \
+            --base main \
+            --head ci/011-github-metrics \
+            --title "chore(infra): refresh github metrics for portfolio" \
+            --body "$BODY"
+          gh pr merge --auto --squash --delete-branch
