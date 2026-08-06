@@ -207,7 +207,7 @@ jobs:
             verify
       - name: Upload coverage
         if: ${{ (needs.detect-changes.outputs[matrix.service.filter] == 'true' || needs.detect-changes.outputs.common == 'true') && always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.service.module }}
           path: backend/${{ matrix.service.module }}/target/site/jacoco/

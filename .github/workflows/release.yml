@@ -31,7 +31,7 @@ jobs:
         working-directory: backend
         run: mvn -B verify
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-release-artifacts
           path: backend/**/target/*.jar
@@ -139,7 +139,7 @@ jobs:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.image }}-${{ github.ref_name }}-sbom
           path: ${{ matrix.image }}-${{ github.ref_name }}-sbom.spdx.json

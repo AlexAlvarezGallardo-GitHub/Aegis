@@ -148,7 +148,7 @@ jobs:
           output-file: aegis-repo-sbom.spdx.json
           format: spdx-json
       - name: Upload SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aegis-repo-sbom
           path: aegis-repo-sbom.spdx.json
