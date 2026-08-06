@@ -1,6 +1,6 @@
 package com.aegis.bff.infrastructure.security;
 
-import com.aegis.bff.infrastructure.config.BffProperties;
+import com.aegis.bff.domain.port.JwtSigningKey;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -28,11 +28,8 @@ class JwtTokenValidatorTest {
 
     @BeforeEach
     void setUp() {
-        validator = new JwtTokenValidator(new BffProperties(
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.Jwt(TEST_SECRET)
-        ));
+        JwtSigningKey signingKey = () -> SECRET_KEY;
+        validator = new JwtTokenValidator(signingKey);
     }
 
     @Nested

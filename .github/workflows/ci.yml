@@ -94,6 +94,32 @@ jobs:
         working-directory: backend
         run: mvn -B verify -Pintegration-tests
 
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: ./.github/actions/setup-java
+        with:
+          working-directory: backend
+      - name: Run PIT on critical modules
+        working-directory: backend
+        run: |
+          mvn -B -pl aegis-identity-service,aegis-wallet-service,aegis-fraud-service \
+            -am -DskipITs \
+            -Pmutation-testing \
+            org.pitest:pitest-maven:mutationCoverage
+      - name: Upload mutation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-reports
+          path: backend/**/target/pit-reports/
+          if-no-files-found: warn
+
   frontend-build:
     name: Frontend Build and Test
     runs-on: ubuntu-latest
@@ -358,6 +384,7 @@ jobs:
     needs:
       - backend-full-build
       - backend-integration-tests
+      - mutation-testing
       - frontend-build
       - docker-build-push
       - sbom

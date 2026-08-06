@@ -138,4 +138,28 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>mutation-testing</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <configuration>
+                            <targetClasses>
+                                <param>com.aegis.identity.domain.*</param>
+                                <param>com.aegis.identity.application.service.*</param>
+                            </targetClasses>
+                            <targetTests>
+                                <param>com.aegis.identity.domain.*</param>
+                                <param>com.aegis.identity.application.*</param>
+                            </targetTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

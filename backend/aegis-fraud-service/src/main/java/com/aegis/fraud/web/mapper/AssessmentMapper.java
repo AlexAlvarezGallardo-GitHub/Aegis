@@ -1,11 +1,11 @@
-package com.aegis.fraud.application.mapper;
+package com.aegis.fraud.web.mapper;
 
 import com.aegis.fraud.application.dto.FraudAssessmentCommand;
 import com.aegis.fraud.domain.port.inbound.AssessFraudUseCase;
 import com.aegis.fraud.web.dto.AssessmentRequest;
 
 /**
- * Maps web-layer DTOs to application-layer commands.
+ * Maps web-layer DTOs to application commands and domain use-case commands.
  */
 public final class AssessmentMapper {
 

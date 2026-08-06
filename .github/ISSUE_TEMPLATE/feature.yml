@@ -1,0 +1,76 @@
+name: Feature request
+description: Propose a new capability, service, or enhancement for Aegis
+title: "[Feature]: "
+labels: [enhancement, needs-triage]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Aegis is spec-driven: new capabilities start with a feature specification
+        in `specs/<number>-<short-name>/`. This issue tracks the intent; the spec
+        is the source of truth for the design.
+  - type: input
+    id: capability
+    attributes:
+      label: Capability
+      description: Short, action-oriented name for the feature (kebab-case).
+      placeholder: e.g. payment-processing
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend service
+        - Frontend
+        - Infrastructure / CI-CD
+        - GitOps / Deploy
+        - Documentation
+        - Cross-cutting
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What capability gap does this address? Why is it valuable?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the intended behavior, scope, and non-goals.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will this feature be verified as complete and correct?
+      placeholder: |
+        - [ ] OpenAPI contract updated in specs/<n>/contracts/
+        - [ ] Domain logic covered by unit tests
+        - [ ] Integration tests pass against real PostgreSQL/Kafka
+        - [ ] Frontend flow works end-to-end
+        - [ ] ADR documented where a decision is made
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and dependencies
+      description: Affected services, events, schemas, migrations, or cross-service dependencies.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: This feature is aligned with the hexagonal architecture and spec-first conventions.
+          required: true
+        - label: I searched existing issues for a duplicate before filing this request.
+          required: true

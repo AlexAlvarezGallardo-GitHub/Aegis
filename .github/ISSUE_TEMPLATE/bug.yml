@@ -1,0 +1,82 @@
+name: Bug report
+description: Report a reproducible defect in an Aegis service, frontend, or infrastructure
+title: "[Bug]: "
+labels: [bug, needs-triage]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Fill in the sections below;
+        the more detail you provide, the faster it can be reproduced and fixed.
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: Which service, module, or area is affected?
+      placeholder: e.g. aegis-wallet-service, aegis-frontend, .github/workflows/ci.yml
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical (blocker, data loss or security)
+        - High (feature unavailable, no workaround)
+        - Medium (feature degraded, workaround exists)
+        - Low (cosmetic or minor)
+      default: 2
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened, and what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Provide minimal, deterministic steps.
+      placeholder: |
+        1. Start the dev stack (`infra\build-and-run.bat dev`)
+        2. Register a user with email X
+        3. Perform action Y
+        4. Observe error Z
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, JDK/Node versions, docker-compose profile, branch/commit.
+      placeholder: e.g. Windows 11, JDK 21, dev profile, main@<sha>
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and evidence
+      description: Paste relevant log output, error messages, or screenshots.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues for a duplicate before filing this report.
+          required: true
+        - label: I verified this happens on the latest main branch.
+          required: true

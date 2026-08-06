@@ -1,9 +1,9 @@
 package com.aegis.bff.web.controller;
 
 import com.aegis.bff.application.service.SessionJwtStore;
+import com.aegis.bff.domain.port.JwtSigningKey;
 import com.aegis.bff.domain.port.TokenValidator;
 import com.aegis.bff.domain.port.WalletClient;
-import com.aegis.bff.infrastructure.config.BffProperties;
 import com.aegis.bff.infrastructure.security.JwtTokenValidator;
 import com.aegis.bff.web.dto.AdjustBalanceRequest;
 import com.aegis.bff.web.dto.CreateWalletRequest;
@@ -51,12 +51,8 @@ class BffWalletControllerTest {
     @BeforeEach
     void setUp() {
         walletClient = mock(WalletClient.class);
-        BffProperties props = new BffProperties(
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.ServiceUrl("http://localhost"),
-                new BffProperties.Jwt(TEST_SECRET)
-        );
-        tokenValidator = new JwtTokenValidator(props);
+        JwtSigningKey signingKey = () -> SECRET_KEY;
+        tokenValidator = new JwtTokenValidator(signingKey);
         sessionJwtStore = new FakeSessionJwtStore(null);
 
         // Generate a real valid JWT

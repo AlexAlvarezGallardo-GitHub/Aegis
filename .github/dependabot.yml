@@ -6,10 +6,38 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "java"
+    groups:
+      spring-boot:
+        applies-to: version-updates
+        patterns:
+          - "org.springframework.boot:*"
+        update-types:
+          - "patch"
+          - "minor"
+      spring-patches:
+        applies-to: version-updates
+        patterns:
+          - "org.springframework:*"
+        update-types:
+          - "patch"
+          - "minor"
+      maven-plugin-patches:
+        applies-to: version-updates
+        patterns:
+          - "org.apache.maven.plugins:*"
+          - "org.jacoco:*"
+        update-types:
+          - "patch"
+      testcontainers-patches:
+        applies-to: version-updates
+        patterns:
+          - "org.testcontainers:*"
+        update-types:
+          - "patch"
 
   - package-ecosystem: "npm"
     directory: "/frontend/aegis-frontend"
@@ -17,10 +45,24 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "javascript"
+    groups:
+      angular-minor:
+        applies-to: version-updates
+        patterns:
+          - "@angular/*"
+        update-types:
+          - "patch"
+          - "minor"
+      angular-dev-patches:
+        applies-to: version-updates
+        patterns:
+          - "@angular-devkit/*"
+        update-types:
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -28,7 +70,19 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "04:00"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      github-actions-patches:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+
+  # Major version bumps are intentionally NOT grouped. They require explicit
+  # review of migration notes and an architecture decision where relevant.
+  # See CONTRIBUTING.md -> Dependency Policy.

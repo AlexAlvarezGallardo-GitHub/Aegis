@@ -2,8 +2,10 @@ package com.aegis.bff;
 
 import com.aegis.bff.application.service.MockLoginService;
 import com.aegis.bff.application.service.SessionJwtStore;
+import com.aegis.bff.domain.port.JwtSigningKey;
 import com.aegis.bff.domain.port.TokenStore;
 import com.aegis.bff.web.controller.MockAuthController;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,15 +30,10 @@ class MockAuthControllerTest {
     void setUp() {
         // Use an in-memory TokenStore so we don't need a real HttpSession
         TokenStore tokenStore = new InMemoryTokenStore();
-        // MockLoginService needs BffProperties; we create a minimal stub
-        com.aegis.bff.infrastructure.config.BffProperties props =
-                new com.aegis.bff.infrastructure.config.BffProperties(
-                        new com.aegis.bff.infrastructure.config.BffProperties.ServiceUrl("http://localhost"),
-                        new com.aegis.bff.infrastructure.config.BffProperties.ServiceUrl("http://localhost"),
-                        new com.aegis.bff.infrastructure.config.BffProperties.Jwt(
-                                "aegis-dev-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm")
-                );
-        MockLoginService mockLoginService = new MockLoginService(tokenStore, props);
+        JwtSigningKey signingKey = () -> Keys.hmacShaKeyFor(
+                "aegis-dev-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+                        .getBytes(StandardCharsets.UTF_8));
+        MockLoginService mockLoginService = new MockLoginService(tokenStore, signingKey);
         mockMvc = MockMvcBuilders.standaloneSetup(new MockAuthController(mockLoginService)).build();
     }
 

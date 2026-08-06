@@ -1,0 +1,38 @@
+# Code Owners
+#
+# Each pattern line below maps a path to one or more owners. Changes to any
+# matching path require approval from the listed owners before merging.
+#
+# Global default: the repository owner is the fallback owner for everything.
+* @AlexAlvarezGallardo-GitHub
+
+# Backend services
+/backend/ @AlexAlvarezGallardo-GitHub
+/backend/aegis-common/ @AlexAlvarezGallardo-GitHub
+/backend/aegis-identity-service/ @AlexAlvarezGallardo-GitHub
+/backend/aegis-bff-service/ @AlexAlvarezGallardo-GitHub
+/backend/aegis-wallet-service/ @AlexAlvarezGallardo-GitHub
+/backend/aegis-audit-service/ @AlexAlvarezGallardo-GitHub
+/backend/aegis-fraud-service/ @AlexAlvarezGallardo-GitHub
+/backend/aegis-reporting-service/ @AlexAlvarezGallardo-GitHub
+
+# Frontend
+/frontend/ @AlexAlvarezGallardo-GitHub
+
+# CI/CD, governance and repository metadata
+/.github/ @AlexAlvarezGallardo-GitHub
+/.githooks/ @AlexAlvarezGallardo-GitHub
+
+# Specifications and contracts
+/specs/ @AlexAlvarezGallardo-GitHub
+
+# Documentation
+/docs/architecture/ @AlexAlvarezGallardo-GitHub
+/docs/adr/ @AlexAlvarezGallardo-GitHub
+/docs/obsidian/ @AlexAlvarezGallardo-GitHub
+
+# Infrastructure, GitOps and deployment
+/infra/ @AlexAlvarezGallardo-GitHub
+
+# Portfolio
+/portfolio/ @AlexAlvarezGallardo-GitHub

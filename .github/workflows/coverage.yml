@@ -1,0 +1,69 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Backend Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: ./.github/actions/setup-java
+        with:
+          working-directory: backend
+      - name: Run tests with coverage
+        working-directory: backend
+        run: mvn -B -q -DskipITs verify
+      - name: Generate coverage badge
+        id: jacoco
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          jacoco-csv-file: >-
+            backend/**/target/site/jacoco/jacoco.csv
+          branches-badge: true
+          coverage-badge-filename: badges/coverage.svg
+          branches-badge-filename: badges/branches.svg
+          generate-coverage-badge: true
+          generate-branches-badge: true
+          intervals: 70 80 90
+          on-missing-report: fail
+      - name: Verify coverage threshold
+        shell: bash
+        run: |
+          LINE="${{ steps.jacoco.outputs.coverage }}"
+          BRANCH="${{ steps.jacoco.outputs.branches }}"
+          echo "Line coverage: $LINE% | Branch coverage: $BRANCH%"
+          if (( $(echo "$LINE < 80" | bc -l) )); then
+            echo "::error::Line coverage $LINE% is below the 80% target."
+            exit 1
+          fi
+          echo "Coverage threshold met."
+      - name: Publish badges to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: badges
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Upload coverage reports as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/**/target/site/jacoco/
+          if-no-files-found: warn
