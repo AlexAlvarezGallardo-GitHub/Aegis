@@ -110,6 +110,9 @@ jobs:
         run: |
           mvn -B -q install -DskipTests -pl aegis-common -am
           mvn -B -pl aegis-identity-service,aegis-wallet-service,aegis-fraud-service \
+            -DskipITs -DskipTests \
+            test-compile
+          mvn -B -pl aegis-identity-service,aegis-wallet-service,aegis-fraud-service \
             -DskipITs \
             -Pmutation-testing \
             org.pitest:pitest-maven:mutationCoverage
