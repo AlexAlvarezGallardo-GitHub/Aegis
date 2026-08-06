@@ -29,7 +29,7 @@ jobs:
           - aegis-fraud-service
           - aegis-reporting-service
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Java
         uses: ./.github/actions/setup-java
         with:
@@ -42,7 +42,7 @@ jobs:
     name: Frontend Nightly Regression
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -95,7 +95,7 @@ jobs:
             context: frontend/aegis-frontend
             file: frontend/aegis-frontend/Dockerfile
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build and push nightly
         uses: ./.github/actions/docker-build-push
         with:
@@ -127,7 +127,7 @@ jobs:
           - reporting-service
           - frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compute GHCR owner
         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Log in to GitHub Container Registry

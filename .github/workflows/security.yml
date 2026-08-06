@@ -16,7 +16,7 @@ jobs:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Run Gitleaks
@@ -36,7 +36,7 @@ jobs:
       matrix:
         language: ['java-kotlin', 'javascript-typescript']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -58,7 +58,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -81,7 +81,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run Trivy IaC misconfiguration scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -104,7 +104,7 @@ jobs:
       security-events: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Run OpenSSF Scorecard
@@ -140,7 +140,7 @@ jobs:
     name: Repository SBOM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Generate repository SBOM
         uses: anchore/sbom-action@v0
         with:

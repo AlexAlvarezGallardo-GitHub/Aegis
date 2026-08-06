@@ -30,7 +30,7 @@ jobs:
       workflows: ${{ steps.changes.outputs.workflows }}
       any: ${{ steps.changes.outputs.any }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Detect changes
@@ -63,7 +63,7 @@ jobs:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Java
         uses: ./.github/actions/setup-java
         with:
@@ -85,7 +85,7 @@ jobs:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Java
         uses: ./.github/actions/setup-java
         with:
@@ -100,7 +100,7 @@ jobs:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -160,7 +160,7 @@ jobs:
             file: frontend/aegis-frontend/Dockerfile
             filter: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build and push
         if: ${{ needs.detect-changes.outputs[matrix.filter] == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
         uses: ./.github/actions/docker-build-push
@@ -200,7 +200,7 @@ jobs:
           - image: frontend
             filter: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compute GHCR owner
         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Log in to GitHub Container Registry
@@ -250,7 +250,7 @@ jobs:
           - image: frontend
             filter: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compute GHCR owner
         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Log in to GitHub Container Registry
@@ -303,7 +303,7 @@ jobs:
           - image: frontend
             filter: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compute GHCR owner
         run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
       - name: Install cosign
@@ -329,7 +329,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout GitOps repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: AlexAlvarezGallardo-GitHub/Aegis-GitOps
           token: ${{ secrets.GITOPS_TOKEN }}

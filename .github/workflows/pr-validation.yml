@@ -35,7 +35,7 @@ jobs:
       fraud: ${{ steps.changes.outputs.fraud }}
       reporting: ${{ steps.changes.outputs.reporting }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Detect changes
@@ -98,7 +98,7 @@ jobs:
     name: Commit Messages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Validate commit messages
@@ -191,7 +191,7 @@ jobs:
           - module: aegis-reporting-service
             filter: reporting
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Java
         if: ${{ needs.detect-changes.outputs[matrix.service.filter] == 'true' || needs.detect-changes.outputs.common == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
         uses: ./.github/actions/setup-java
@@ -234,7 +234,7 @@ jobs:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -252,7 +252,7 @@ jobs:
     needs: [detect-changes, frontend-build]
     if: ${{ needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
