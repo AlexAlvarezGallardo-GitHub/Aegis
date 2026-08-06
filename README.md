@@ -46,7 +46,7 @@ Every claim in this repository is backed by a link. Nothing here is asserted wit
 
 | CI status | Security scanning | License | Coverage |
 |-----------|-------------------|---------|----------|
-| [![CI](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml) | [![Security](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml) | [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) | [![Coverage](https://raw.githubusercontent.com/AlexAlvarezGallardo-GitHub/Aegis/gh-pages/badges/coverage.svg)](.github/workflows/coverage.yml) |
+| [![CI](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml) | [![Security](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml) | [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) | [![Coverage](https://raw.githubusercontent.com/AlexAlvarezGallardo-GitHub/Aegis/gh-pages/coverage.svg)](.github/workflows/coverage.yml) |
 
 | Evidence | Where |
 |----------|-------|

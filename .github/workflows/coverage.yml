@@ -34,9 +34,10 @@ jobs:
         with:
           jacoco-csv-file: >-
             backend/**/target/site/jacoco/jacoco.csv
+          badges-directory: badges
           branches-badge: true
-          coverage-badge-filename: badges/coverage.svg
-          branches-badge-filename: badges/branches.svg
+          coverage-badge-filename: coverage.svg
+          branches-badge-filename: branches.svg
           generate-coverage-badge: true
           generate-branches-badge: true
           intervals: 70 80 90
