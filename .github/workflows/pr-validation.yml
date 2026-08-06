@@ -183,6 +183,8 @@ jobs:
             '**/*.md' '**/*.yml' '**/*.yaml'
             --exclude '^(https://github\.com/AlexAlvarezGallardo-GitHub/.*/blob/|https://img\.shields\.io|mailto:)'
             --exclude '^(https?://(api|bff|wallet|identity|fraud|audit|reporting)\.aegis\.dev|https?://aegis-[a-z-]+:[0-9]+/)'
+            --exclude '^https?://localhost:[0-9]+'
+            --exclude '^PLAINTEXT://.*'
             --exclude '^https://raw\.githubusercontent\.com/AlexAlvarezGallardo-GitHub/Aegis/gh-pages/'
             --exclude-path 'node_modules/'
         env:

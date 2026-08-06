@@ -214,7 +214,7 @@ of architecture, validation and technical decisions. If you use AI tools:
 - Record the use of AI agents in the PR description where significant.
 - AI-generated code must pass the same quality gates as hand-written code.
 
-See [`docs/ai-engineering-governance.md`](docs/ai-engineering-governance.md) for details.
+See the [AI-Assisted Engineering Workflow](README.md#the-vision-ai-assisted-engineering-workflow) section in the README for details.
 
 ---
 
