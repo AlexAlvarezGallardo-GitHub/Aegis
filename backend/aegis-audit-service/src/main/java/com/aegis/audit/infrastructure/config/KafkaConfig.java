@@ -11,8 +11,13 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +28,12 @@ import java.util.Map;
  * Two listener container factories are defined, one per event type, so each
  * topic's messages are deserialized to the correct domain event type.
  * </p>
+ * <p>
+ * A {@link DefaultErrorHandler} with a {@link DeadLetterPublishingRecoverer} is
+ * attached to both factories. Consumers retry transient failures up to
+ * {@code aegis.kafka.retry.max-attempts} times with a fixed back-off; when the
+ * attempts are exhausted the failed record is published to the dead letter
+ * topic (<code>&lt;topic&gt;.dlt</code>).</p>
  */
 @Configuration
 @EnableKafka
@@ -33,6 +44,15 @@ public class KafkaConfig {
 
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
+
+    @Value("${aegis.kafka.retry.max-attempts:3}")
+    private long maxAttempts;
+
+    @Value("${aegis.kafka.retry.backoff-ms:1000}")
+    private long backoffMs;
+
+    @Value("${aegis.kafka.dlt-suffix:.dlt}")
+    private String dltSuffix;
 
     /**
      * Creates a consumer factory that deserializes messages to
@@ -67,10 +87,11 @@ public class KafkaConfig {
      */
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, FundsDepositedEvent>
-            fundsDepositedListenerContainerFactory() {
+            fundsDepositedListenerContainerFactory(KafkaTemplate<String, Object> kafkaTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, FundsDepositedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(fundsDepositedConsumerFactory());
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
         return factory;
     }
 
@@ -81,11 +102,40 @@ public class KafkaConfig {
      */
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, FraudAssessmentCompletedEvent>
-            fraudAssessmentListenerContainerFactory() {
+            fraudAssessmentListenerContainerFactory(KafkaTemplate<String, Object> kafkaTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, FraudAssessmentCompletedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(fraudAssessmentConsumerFactory());
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
         return factory;
+    }
+
+    /**
+     * Kafka producer template used by the dead letter recoverer.
+     *
+     * @param producerFactory the autoconfigured producer factory
+     * @return the template
+     */
+    @Bean
+    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    /**
+     * Builds the error handler shared by all listener factories: retry with a
+     * fixed back-off, then publish the failed record to the topic's dead letter
+     * topic.
+     *
+     * @param kafkaTemplate the producer template for the DLT
+     * @return the configured error handler
+     */
+    @Bean
+    public DefaultErrorHandler commonErrorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
+                kafkaTemplate,
+                (record, ex) -> new org.apache.kafka.common.TopicPartition(
+                        record.topic() + dltSuffix, record.partition()));
+        return new DefaultErrorHandler(recoverer, new FixedBackOff(backoffMs, maxAttempts - 1));
     }
 
     private Map<String, Object> baseProps() {
