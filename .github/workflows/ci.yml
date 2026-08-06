@@ -108,8 +108,9 @@ jobs:
       - name: Run PIT on critical modules
         working-directory: backend
         run: |
+          mvn -B -q install -DskipTests -pl aegis-common
           mvn -B -pl aegis-identity-service,aegis-wallet-service,aegis-fraud-service \
-            -am -DskipITs \
+            -DskipITs \
             -Pmutation-testing \
             org.pitest:pitest-maven:mutationCoverage
       - name: Upload mutation reports
