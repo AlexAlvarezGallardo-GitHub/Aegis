@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Ledger reconciliation** job (`LedgerReconciliationService`): recomputes each
+  wallet balance from its immutable ledger entries, reports drift via
+  `aegis.wallet.reconciliation_discrepancies` gauge.
 - **Deposit reversal** (`POST /api/v1/wallets/{id}/deposits/{depositId}/reversal`):
   immutable `REVERSAL` ledger entries referencing the original deposit (ADR-004);
   wallet balance reduced; a deposit can be reversed at most once.

@@ -39,6 +39,9 @@ aegis:
     outbox:
       polling-interval-ms: 1000
       batch-size: 50
+    reconciliation:
+      interval-ms: 60000
+      discrepancy-limit: 0
   kafka:
     topics:
       WALLET_CREATED: aegis.wallet.created
