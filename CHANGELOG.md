@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ADR-004**: ledger design (single-entry per-aggregate ledger, immutability, compensations).
+- Docs for the financial model: `wallet-balance.md` (monetary precision, balance types) and
+  `compensations.md` (reversal/compensation design).
+
+### Added (Sprint 3)
+
 - Kafka **retry + dead letter topics (DLT)** for the Audit, Reporting and Fraud
   consumers (`DefaultErrorHandler` + `DeadLetterPublishingRecoverer`, `*.dlt`).
 - Consumer **deduplication** via `processed_events` table (`eventId` unique,
