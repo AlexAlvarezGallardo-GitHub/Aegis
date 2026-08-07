@@ -31,6 +31,9 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
 aegis:
   kafka:
