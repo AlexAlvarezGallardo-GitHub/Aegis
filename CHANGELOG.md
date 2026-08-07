@@ -55,6 +55,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docs for the financial model: `wallet-balance.md` (monetary precision, balance types) and
   `compensations.md` (reversal/compensation design).
 
+### Changed
+
+- **README aligned with the repository**: project structure updated to the real layout
+  (frontend `features/` + `shared/`, BFF controllers/clients, all specs 001-011, `e2e/`,
+  `load/`, `evidence/`, full `docs/` and `infra/` trees), E2E row now reflects Playwright
+  (not MockMvc), load tests via k6, five PostgreSQL access ports, and the CI/CD workflow set.
+
 ### Added (Sprint 3)
 
 - Kafka **retry + dead letter topics (DLT)** for the Audit, Reporting and Fraud
