@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ADRs 005-013**: Kafka event backbone, transactional outbox, idempotency
+  strategy, event versioning, retry/DLT, BFF, OpenTelemetry and secrets management.
+
 - **Resilience testing**: `OutboxRelaySchedulerResilienceTest` (Kafka down keeps
   events PENDING, successful send marks PUBLISHED, missing topic handled) and
   `docs/architecture/resilience-testing.md`.
