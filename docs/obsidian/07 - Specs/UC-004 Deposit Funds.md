@@ -1,41 +1,73 @@
 ---
 type: spec
-tags: [spec, uc-004, wallet, deposit]
-status: draft
-feature-branch: feature/004-deposit-funds
+tags: [spec, wallet, deposit]
+status: implemented
+uc: UC-004
+branch: feature/004-deposit-funds
 ---
 
-# UC-004: Deposit Funds
+# UC-004 Deposit Funds
 
-**Feature Branch**: `feature/004-deposit-funds`
+**Status**: ✅ Implemented
 
 ## Overview
 
-Dedicated endpoint for depositing funds into wallets with source tracking, idempotency by external reference, and separate event emission for downstream consumers (reporting, audit).
+Dedicated deposit endpoint for the Wallet Service with source tracking, idempotency by external reference, and a `FundsDeposited` event for downstream consumers (Reporting balance projections, Audit trail). Deposit reversal is supported as an append-only `REVERSAL` ledger entry that emits no domain event.
 
-## Scope
+## Key Files
 
-- **Wallet Service**: `POST /api/v1/wallets/{id}/deposits`
-- **BFF Service**: Proxies deposit endpoint
-- **Reporting Service**: Consumes `FundsDeposited` to update balance projections
-- **Audit Service**: Consumes `FundsDeposited` to persist audit trail
+| Type | Location |
+|------|----------|
+| Spec | `specs/004-deposit-funds/spec.md` |
+| Plan | `specs/004-deposit-funds/plan.md` |
+| Tasks | `specs/004-deposit-funds/tasks.md` |
+| API Contract | `specs/004-deposit-funds/contracts/deposit-api.yaml` |
+| Event Schema | `specs/004-deposit-funds/contracts/events/funds-deposited.yaml` |
+
+## Architecture
+
+- **Service**: [[01 - Services/Wallet Service|Wallet Service]]
+- **Port**: [[04 - Ports/inbound/DepositFundsUseCase|DepositFundsUseCase]]
+- **Models**: [[02 - Domain Models/Wallet|Wallet]], [[02 - Domain Models/LedgerEntry|LedgerEntry]], [[02 - Domain Models/LedgerEntryType|LedgerEntryType]]
+- **Event**: [[03 - Domain Events/FundsDeposited|FundsDeposited]]
 
 ## Business Rules
 
 1. Amount must be positive (> 0)
-2. Wallet must be ACTIVE
-3. External reference must be unique (idempotency)
+2. Wallet must be `ACTIVE` (frozen/closed wallets cannot receive deposits)
+3. External reference must be unique (idempotency): partial unique index on `DEPOSIT` entries with non-null reference → `409 DUPLICATE_DEPOSIT`
+4. Source is required (BANK_TRANSFER, CARD, ...)
+5. Reversal appends an immutable `REVERSAL` entry referencing the original deposit (`reversalOf`) — no domain event is emitted
+
+## API
+
+- `POST /api/v1/wallets/{walletId}/deposits` `{ amount, currency, source, reference }` → `201 DepositReceipt` `{ depositId, walletId, newBalance, amount, currency, source, reference, timestamp }`
+- `POST /api/v1/wallets/{walletId}/deposits/{depositId}/reversal` `{ reference }` → `200` `{ reversalId, walletId, newBalance, amount, currency, timestamp }` (idempotent by reference; no domain event)
 
 ## Events
 
 | Event | Topic | Producer | Consumers |
 |-------|-------|----------|-----------|
-| [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | `wallet.funds.deposited` | Wallet | Reporting, Audit |
+| [[03 - Domain Events/FundsDeposited|FundsDeposited]] | `wallet.funds.deposited` | Wallet | Reporting, Audit |
 
-## API
+```mermaid
+sequenceDiagram
+    participant Client
+    participant BFF
+    participant Wallet as Wallet Service
+    participant DB as PostgreSQL
+    participant Kafka as Kafka (outbox)
+    participant Report as Reporting Service
+    participant Audit as Audit Service
 
-`POST /api/v1/wallets/{walletId}/deposits` — Deposits funds, returns receipt.
-
-## Implementation
-
-See `specs/004-deposit-funds/` for full spec, plan, and tasks.
+    Client->>BFF: POST /api/bff/wallets/{walletId}/deposits
+    BFF->>Wallet: POST /api/v1/wallets/{walletId}/deposits
+    Wallet->>Wallet: validate ACTIVE, amount > 0, unique reference
+    Wallet->>DB: save wallet + DEPOSIT ledger entry
+    Wallet->>DB: INSERT outbox (FundsDeposited) [same TX]
+    DB-->>Kafka: outbox relay → wallet.funds.deposited
+    Kafka->>Report: update balance projection
+    Kafka->>Audit: persist audit trail
+    Wallet-->>BFF: 201 DepositReceipt
+    BFF-->>Client: 201 DepositReceipt
+```

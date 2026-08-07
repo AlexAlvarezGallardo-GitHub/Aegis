@@ -10,7 +10,7 @@ database: aegis_fraud
 
 # Fraud Service
 
-**Purpose**: Real-time fraud detection engine evaluating transactions against configurable rules with risk scoring and approve/review/reject decisions.
+**Purpose**: Rule-based fraud detection engine (VELOCITY, AMOUNT, GEOGRAPHIC, TIME) that computes a risk score (0-100) and an APPROVE/REVIEW/REJECT decision. It consumes `payment.transfer.requested` and evaluates transactions via REST.
 
 ```mermaid
 graph TB
@@ -32,13 +32,22 @@ graph TB
         Svc --> Repo
         Svc --> Pub
     end
-    Kafka["Kafka<br/>payment.*"] --> Consumer
+    Kafka["Kafka<br/>payment.transfer.requested"] --> Consumer
     Client["Payment/Wallet Service"] -->|POST /api/v1/fraud/assess| Ctrl
     Repo --> DB[("PostgreSQL<br/>aegis_fraud")]
     Pub --> Out["Kafka<br/>fraud.assessment.completed"]
-    style DB fill:#afa,stroke:#333,color:#000
+    style Ctrl fill:#bbf,stroke:#333,color:#000
+    style Consumer fill:#bbf,stroke:#333,color:#000
+    style Svc fill:#bbf,stroke:#333,color:#000
+    style Rules fill:#bbf,stroke:#333,color:#000
+    style Scorer fill:#bbf,stroke:#333,color:#000
+    style Decision fill:#bbf,stroke:#333,color:#000
+    style Client fill:#bbf,stroke:#333,color:#000
+    style Repo fill:#fdb,stroke:#333,color:#000
+    style Pub fill:#fdb,stroke:#333,color:#000
     style Kafka fill:#fdb,stroke:#333,color:#000
     style Out fill:#fdb,stroke:#333,color:#000
+    style DB fill:#afa,stroke:#333,color:#000
 ```
 
 ```mermaid
@@ -70,19 +79,19 @@ sequenceDiagram
 ## Hexagonal Structure
 
 ### Domain (`com.aegis.fraud.domain`)
-- **Models**: `FraudAssessment`, `FraudDecision` (enum), `FraudRule`, `RuleEvaluation`
+- **Models**: `FraudAssessment`, `FraudDecision` (APPROVE, REVIEW, REJECT), `FraudRule` (`RuleType`: VELOCITY, AMOUNT, GEOGRAPHIC, TIME), `RuleEvaluation`
 - **Events**: [[03 - Domain Events/FraudAssessmentCompleted\|FraudAssessmentCompleted]]
 - **Exceptions**: `AssessmentNotFoundException`
 - **Inbound Ports**: [[04 - Ports/inbound/AssessFraudUseCase\|AssessFraudUseCase]]
-- **Outbound Ports**: `FraudRuleRepository`, `FraudAssessmentRepository`, `EventPublisher`
+- **Outbound Ports**: `FraudRuleRepository`, `FraudAssessmentRepository`, [[04 - Ports/outbound/EventPublisher\|EventPublisher]]
 
 ### Application (`com.aegis.fraud.application`)
 - **Services**: `AssessFraudService`, `RiskScorer`, `DecisionMaker`
-- **Rules Engine**: `FraudRuleEvaluator` (interface), `VelocityRuleEvaluator`, `AmountThresholdRuleEvaluator`, `GeographicRuleEvaluator`, `TimeBasedRuleEvaluator`
+- **Rules Engine**: `FraudRuleEvaluator` (interface), `VelocityRuleEvaluator`, `AmountThresholdRuleEvaluator`, `GeographicRuleEvaluator`, `TimeBasedRuleEvaluator`, `TransactionContext`
 - **DTOs**: `AssessmentRequest`, `AssessmentResponse`
 
 ### Infrastructure (`com.aegis.fraud.infrastructure`)
-- **Persistence**: `FraudRuleJpaEntity`, `FraudAssessmentJpaEntity`, repository adapters
+- **Persistence**: `FraudRuleJpaEntity`, `FraudAssessmentJpaEntity`, `ProcessedEventJpaRepository`, repository adapters
 - **Messaging**: `KafkaEventPublisher`, `TransactionEventConsumer`
 - **Config**: `KafkaConfig`, `SecurityConfig`
 
@@ -95,22 +104,23 @@ sequenceDiagram
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/api/v1/fraud/assess` | Synchronous fraud assessment (score + decision) |
-| GET | `/api/v1/fraud/assessments/{id}` | Retrieve stored assessment details |
+| GET | `/api/v1/fraud/assessments/{assessmentId}` | Retrieve stored assessment details |
 
 ## Business Rules
 
 1. Risk score 0-100 (weighted rule aggregation, capped at 100)
-2. Score < 30 → **APPROVE**
-3. Score 30-70 → **REVIEW**
-4. Score > 70 → **REJECT**
-5. Rules are DB-configurable (see ADR-001 in `docs/adr/ADR-001-fraud-rules-configuration.md`)
+2. Score < `review-threshold` (30) → **APPROVE**
+3. Score > `reject-threshold` (70) → **REJECT**
+4. Otherwise → **REVIEW**
+5. Thresholds are configurable (`aegis.fraud.review-threshold`, `aegis.fraud.reject-threshold`)
+6. Rules are DB-configurable and seeded at startup (see ADR-001 in `docs/adr/ADR-001-fraud-rules-configuration.md`)
 
 ## Events
 
 | Direction | Event | Topic |
 |-----------|-------|-------|
 | Produced | [[03 - Domain Events/FraudAssessmentCompleted\|FraudAssessmentCompleted]] | `fraud.assessment.completed` |
-| Consumed | TransferRequested | `payment.transfer.requested` |
+| Consumed | `TransferRequested` | `payment.transfer.requested` |
 
 ## Dependencies
 
@@ -121,4 +131,6 @@ sequenceDiagram
 
 | File | Description |
 |------|-------------|
-| `V1__create_fraud_tables.sql` | Fraud rules + assessments (with seeded default rules) |
+| `V1__create_fraud_tables.sql` | Fraud rules + assessments (seeded with 4 default rules) |
+| `V2__create_outbox_events.sql` | Outbox table |
+| `V3__create_processed_events_table.sql` | Processed events (idempotency) |

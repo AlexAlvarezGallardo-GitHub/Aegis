@@ -94,7 +94,7 @@ sequenceDiagram
 | Prometheus | monitoring | `prom/prometheus:v2.53.0` | Metrics collection, alert rules | NodePort `30090` |
 | Grafana | monitoring | `grafana/grafana:11.1.0` | Dashboards (JVM, HTTP, Kafka, System) | NodePort `30030` |
 | Alertmanager | monitoring | `prom/alertmanager:v0.27.0` | Alert routing/notification | NodePort `30903` |
-| Tempo | monitoring | `grafana/tempo:2.5.0` | Trace storage (OTLP/HTTP :4318) | ClusterIP |
+| Tempo | monitoring | `grafana/tempo:2.5.0` | Trace storage (OTLP gRPC :4317 / HTTP :4318) | ClusterIP |
 | kube-state-metrics | monitoring | `registry.k8s.io/kube-state-metrics:v2.13.0` | Cluster state metrics (pod restarts) | ClusterIP |
 | node-exporter | monitoring | `prom/node-exporter:v1.8.2` | Host metrics (CPU, memory, disk) | hostNetwork :9100 |
 | Loki | logging | `grafana/loki:3.1.1` | Log aggregation | ClusterIP :3100 |
@@ -104,11 +104,34 @@ sequenceDiagram
 
 Every backend service exports:
 
-- **Metrics** — Spring Boot Actuator + Micrometer + Prometheus registry at `/actuator/prometheus` (JVM, HTTP server, Kafka clients).
+- **Metrics** — Spring Boot Actuator + Micrometer + Prometheus registry at `/actuator/prometheus` (JVM, HTTP server, Kafka clients). Prometheus scrapes `/actuator/prometheus`.
 - **Logs** — structured JSON via `logstash-logback-encoder` (shared `logback-spring.xml` in `aegis-common`), with `traceId`/`spanId` in MDC for correlation.
-- **Traces** — Micrometer Tracing (OpenTelemetry bridge) exporting OTLP/HTTP to `tempo.monitoring.svc:4318/v1/traces`. Endpoint overridable via `OTLP_TRACING_ENDPOINT`.
+- **Traces** — Micrometer Tracing (OpenTelemetry bridge) exporting OTLP **HTTP** to `/v1/traces`. Endpoint overridable via `OTLP_TRACING_ENDPOINT`:
+  - Local (dev): `http://localhost:4318/v1/traces`
+  - Kubernetes: `http://tempo.monitoring.svc:4318/v1/traces`
+  - Sampling is set to **1.0** (`sampling.probability`), and Kafka observation is enabled (W3C `traceparent` propagation, verified by `KafkaTracePropagationIT`).
 
 The `application` label is added via the env var `MANAGEMENT_METRICS_TAGS_APPLICATION` (Spring Boot 3.3 does not resolve `${spring.application.name}` inside `management.metrics.tags.*`), grouping all metrics per service.
+
+## Dashboards
+
+Dashboards are stored as JSON in `infra/observability/dashboards/` and provisioned into Grafana:
+
+| Dashboard | File |
+|-----------|------|
+| API (HTTP) | `api.json` |
+| Database | `database.json` |
+| Kafka | `kafka.json` |
+| Outbox | `outbox.json` |
+
+## Evidence
+
+Real runtime evidence lives in `evidence/observability/`:
+
+- `load-test-deposits.md` — 40/40 concurrent deposits succeeded; **p95 = 247 ms ≤ SLO 400 ms**
+- `grafana-tempo-traces.png`, `grafana-trace-detail.png` — Tempo trace captures
+- `trace-http-health.json`, `trace-http-prometheus.json`, `trace-outbox-relay.json` — raw OTLP trace exports
+- `evidence-dashboard.png`, `evidence-visual.html` — Grafana dashboard capture
 
 ## Search, Indexing & Noise Control
 
@@ -123,6 +146,10 @@ Micrometer Tracing propagates a single trace ID across service boundaries (HTTP 
 - **Logs → Trace**: Grafana Loki logs link to the trace in Tempo via `traceId`.
 - **Trace → Logs**: Tempo spans link back to their logs (Tempo datasource `tracesToLogs`).
 - Cross-service requests are traceable end to end (BFF → Identity/Wallet, Kafka consumers).
+
+## Data Sources
+
+Grafana datasources: **Prometheus** (default), **Loki**, **Tempo**. Tempo is also reachable directly for trace queries on `:3200`.
 
 ## Alert Rules
 

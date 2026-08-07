@@ -17,26 +17,31 @@ Aggregate root for the Identity bounded context.
 | `userId` | [[02 - Domain Models/UserId\|UserId]] | Unique identifier |
 | `email` | [[02 - Domain Models/Email\|Email]] | Validated email address |
 | `passwordHash` | [[02 - Domain Models/PasswordHash\|PasswordHash]] | BCrypt hash |
+| `firstName` | String | First name |
+| `lastName` | String | Last name |
 | `status` | [[02 - Domain Models/UserStatus\|UserStatus]] | Account state |
 | `failedLoginAttempts` | int | Counter for lockout |
 | `lockedUntil` | Instant | Lockout expiration |
-| `createdAt` | Instant | Registration timestamp |
+| `registeredAt` | Instant | Registration timestamp |
+| `updatedAt` | Instant | Last update timestamp |
+| `version` | long | Optimistic locking version |
 
 ## Factory Methods
 
-- `User.register(email, passwordHash)` → User with PENDING_VERIFICATION status
+- `User.register(rawEmail, rawPassword, firstName, lastName, hasher)` → User with PENDING_VERIFICATION status (validates raw password via [[02 - Domain Models/Password|Password]])
+- `User.rehydrate(userId, email, passwordHash, firstName, lastName, status, failedLoginAttempts, lockedUntil, registeredAt, updatedAt, version)` → reconstituted aggregate
 
 ## Business Methods
 
-- `authenticate(passwordHash)` → void (throws on invalid/locked/suspended)
-- `recordFailedAttempt()` → increments counter, locks after 5
-- `resetFailedAttempts()` → resets counter, clears lock
-- `lockAccount()` → sets LOCKED status
+- `authenticate(rawPassword, hasher, correlationId)` → returns [[03 - Domain Events/UserAuthenticated\|UserAuthenticated]] with `success` flag; locks after 5 failed attempts (15 min)
+- `toRegisteredEvent(correlationId)` → [[03 - Domain Events/UserRegistered\|UserRegistered]]
+- `toAccountLockedEvent(correlationId)` → [[03 - Domain Events/UserAccountLocked\|UserAccountLocked]]
+- `isLockedDueToFailures()` → true when status is LOCKED from failed attempts
 
 ## Domain Events Published
 
 - [[03 - Domain Events/UserRegistered\|UserRegistered]] (on register)
-- [[03 - Domain Events/UserAuthenticated\|UserAuthenticated]] (on login success)
+- [[03 - Domain Events/UserAuthenticated\|UserAuthenticated]] (on login success AND failure, `success` flag)
 - [[03 - Domain Events/UserAccountLocked\|UserAccountLocked]] (on 5th failed attempt)
 
 ## Relationships
@@ -47,6 +52,6 @@ Aggregate root for the Identity bounded context.
 
 ## Business Rules
 
-- Max 5 failed attempts before lockout
-- Lockout duration: configurable (default 30 min)
-- Cannot authenticate if LOCKED or SUSPENDED
+- Max 5 failed attempts before lockout (900 seconds)
+- Cannot authenticate if LOCKED (and not expired) or SUSPENDED
+- Raw passwords validated via [[02 - Domain Models/Password|Password]] before hashing
