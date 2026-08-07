@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Grafana dashboards** (`infra/observability/dashboards/`): API (availability, p95
+  latency, 5xx, RPS), Kafka (producer rate, consumer lag, DLT), Outbox
+  (`aegis.outbox.pending_events`) and Database (HikariCP connections, timeouts).
 - **Kafka trace propagation**: `observation-enabled` on producers/consumers/listeners
   (identity, wallet, audit, reporting, fraud) so the W3C `traceparent` header flows
   through Kafka messages for end-to-end distributed tracing (OTLP/Tempo).
