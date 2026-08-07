@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   events PENDING, successful send marks PUBLISHED, missing topic handled) and
   `docs/architecture/resilience-testing.md`.
 
+- **Postmortem** `docs/postmortems/001-duplicate-deposit-event.md` documenting the
+  simulated duplicate-deposit incident, its root cause, resolution and actions.
+
 - **Kafka trace propagation**: `observation-enabled` on producers/consumers/listeners
   (identity, wallet, audit, reporting, fraud) so the W3C `traceparent` header flows
   through Kafka messages for end-to-end distributed tracing (OTLP/Tempo).
