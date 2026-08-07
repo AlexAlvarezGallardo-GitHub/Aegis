@@ -54,5 +54,4 @@ to `wallet.funds.deposited` and asserts the record appears on
 
 - [Retries and Dead Letter Topics](retry-dlt.md)
 - [Outbox failure handling](outbox-failure.md)
-- [Load testing](../../load/README.md)
 - [SLIs and SLOs](../observability/slo.md)
