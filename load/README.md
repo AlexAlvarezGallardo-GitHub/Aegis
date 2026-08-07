@@ -75,4 +75,3 @@ state).
 
 - [SLIs and SLOs](../docs/observability/slo.md)
 - [Deposit Flow](../docs/architecture/sequences/deposit-flow.md)
-- [Resilience tests](../docs/architecture/resilience-testing.md)
