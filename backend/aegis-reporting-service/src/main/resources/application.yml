@@ -43,6 +43,10 @@ aegis:
   kafka:
     topics:
       funds-deposited: wallet.funds.deposited
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+    dlt-suffix: .dlt
 
 logging:
   level:

@@ -50,6 +50,10 @@ aegis:
     topics:
       FRAUD_ASSESSMENT_COMPLETED: fraud.assessment.completed
       payment-transfer-requested: payment.transfer.requested
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+    dlt-suffix: .dlt
 
 logging:
   level:
