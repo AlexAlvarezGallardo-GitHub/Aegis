@@ -184,6 +184,93 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/v1/wallets/{walletId}/deposits/{depositId}/reversal:
+    post:
+      operationId: reverseDeposit
+      summary: Reverse a deposit
+      description: |
+        Reverses a previously applied deposit by appending an immutable REVERSAL
+        ledger entry that references the original DEPOSIT entry. The original
+        entry is never modified; the wallet balance is reduced by the reversed
+        amount. A deposit can be reversed at most once.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: depositId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reference]
+              properties:
+                reference:
+                  type: string
+                  description: Unique idempotency reference for the reversal
+            example:
+              reference: "REV-001"
+      responses:
+        '200':
+          description: Deposit reversed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reversalId:
+                    type: string
+                    format: uuid
+                  walletId:
+                    type: string
+                    format: uuid
+                  newBalance:
+                    type: number
+                    format: decimal
+                  reversedAmount:
+                    type: number
+                    format: decimal
+                  currency:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+              example:
+                reversalId: "11111111-1111-1111-1111-111111111111"
+                walletId: "22222222-2222-2222-2222-222222222222"
+                newBalance: 0.00
+                reversedAmount: 100.00
+                currency: "EUR"
+                timestamp: "2026-08-07T10:00:00.000Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Deposit already reversed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: DEPOSIT_REVERSAL
+                message: "Deposit entry already reversed: 11111111-1111-1111-1111-111111111111"
+                details: null
+                timestamp: "2026-08-07T10:00:00.000Z"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
 components:
   securitySchemes:
     bearerAuth:
