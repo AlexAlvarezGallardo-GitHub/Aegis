@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Observability evidence**: real traces captured from the minikube + Aegis-GitOps
+  LGTM stack (`evidence/observability/`) — outbox relay, HTTP/security spans and a
+  40-deposit load test (p95 247 ms).
+
 - **GitOps promotion via PR**: the `gitops-update` CI job now opens a pull request
   in `Aegis-GitOps` (with Helm template validation) and squash-merges it, instead of
   pushing directly to `main`.
