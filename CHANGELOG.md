@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Operational docs: `docs/observability/slo.md` (SLI/SLO reference targets),
+  `docs/runbooks/` (consumer lag, outbox blocked, DLT, ledger drift, DB
+  connections, API down, database restore) and `docs/operations/backup-recovery.md`
+  (RPO ≤ 5 min, RTO ≤ 30 min).
 - **Ledger reconciliation** job (`LedgerReconciliationService`): recomputes each
   wallet balance from its immutable ledger entries, reports drift via
   `aegis.wallet.reconciliation_discrepancies` gauge.
