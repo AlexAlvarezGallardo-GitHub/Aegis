@@ -9,12 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Repository governance: `CONTRIBUTING.md`, `.github/CODEOWNERS`, issue templates and PR template.
-- Link checker (lychee) job in CI to validate internal and external links.
-- Architecture tests (ArchUnit) enforcing hexagonal layer boundaries in every backend service.
-- OpenAPI contract validation against controllers.
-- Mutation testing (PIT) coverage reporting for critical domain modules.
-- Public coverage badge wired to a dedicated `coverage.yml` workflow.
+- Kafka **retry + dead letter topics (DLT)** for the Audit, Reporting and Fraud
+  consumers (`DefaultErrorHandler` + `DeadLetterPublishingRecoverer`, `*.dlt`).
+- Consumer **deduplication** via `processed_events` table (`eventId` unique,
+  `INSERT ... ON CONFLICT DO NOTHING`) in Audit, Reporting and Fraud.
+- **Deposit idempotency** hardened with a unique partial index
+  `idx_ledger_entries_deposit_reference` and concurrent duplicate rejection.
+- **`aegis.outbox.pending_events`** Micrometer gauge in the Wallet outbox relay.
+- Architecture docs: `deposit-flow.md`, `idempotency.md`, `retry-dlt.md`,
+  `outbox-failure.md`, `event-versioning.md`, `kafka-partitioning.md`.
+- Standard event envelope documented and reflected in
+  `funds-deposited.yaml` (`occurredAt`, `causationId`, `aggregateId`, `aggregateType`).
 
 ## [0.1.0] - 2026-08-06
 
