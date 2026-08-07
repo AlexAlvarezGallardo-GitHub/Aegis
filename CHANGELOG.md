@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Kafka trace propagation**: `observation-enabled` on producers/consumers/listeners
+  (identity, wallet, audit, reporting, fraud) so the W3C `traceparent` header flows
+  through Kafka messages for end-to-end distributed tracing (OTLP/Tempo).
+- `KafkaTracePropagationIT` verifying a published message carries the `traceparent`
+  header (format `00-<trace>-<span>-<flags>`).
+- **Grafana dashboards** (`infra/observability/dashboards/`): API (availability, p95
+  latency, 5xx, RPS), Kafka (producer rate, consumer lag, DLT), Outbox
+  (`aegis.outbox.pending_events`) and Database (HikariCP connections, timeouts).
 - **Distributed tracing doc** (`docs/observability/tracing.md`): OTLP
   instrumentation, Kafka trace propagation, configuration and end-to-end
   verification steps.
