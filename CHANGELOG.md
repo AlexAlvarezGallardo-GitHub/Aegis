@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Kafka trace propagation**: `observation-enabled` on producers/consumers/listeners
+  (identity, wallet, audit, reporting, fraud) so the W3C `traceparent` header flows
+  through Kafka messages for end-to-end distributed tracing (OTLP/Tempo).
+- `KafkaTracePropagationIT` verifying a published message carries the `traceparent`
+  header (format `00-<trace>-<span>-<flags>`).
+
 - Operational docs: `docs/observability/slo.md` (SLI/SLO reference targets),
   `docs/runbooks/` (consumer lag, outbox blocked, DLT, ledger drift, DB
   connections, API down, database restore) and `docs/operations/backup-recovery.md`
