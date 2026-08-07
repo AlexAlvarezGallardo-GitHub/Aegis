@@ -67,6 +67,6 @@ kubectl exec -n monitoring deploy/tempo -- wget -qO- \
 
 ## See also
 
-- [Distributed tracing (OTLP)](../docs/observability/tracing.md)
-- [SLIs and SLOs](../docs/observability/slo.md)
-- [Load testing](../load/README.md)
+- [Distributed tracing (OTLP)](../../docs/observability/tracing.md)
+- [SLIs and SLOs](../../docs/observability/slo.md)
+- [Load testing](../../load/README.md)
