@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in `Aegis-GitOps` (with Helm template validation) and squash-merges it, instead of
   pushing directly to `main`.
 
+- **Transparency docs**: `docs/limitations.md`, `docs/technical-debt.md`,
+  `docs/ai-engineering-governance.md` and `docs/architecture/cicd-pipeline.md`.
+
 - **ADRs 005-013**: Kafka event backbone, transactional outbox, idempotency
   strategy, event versioning, retry/DLT, BFF, OpenTelemetry and secrets management.
 
