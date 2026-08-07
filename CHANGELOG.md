@@ -17,7 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Grafana dashboards** (`infra/observability/dashboards/`): API (availability, p95
   latency, 5xx, RPS), Kafka (producer rate, consumer lag, DLT), Outbox
   (`aegis.outbox.pending_events`) and Database (HikariCP connections, timeouts).
-
+- **Distributed tracing doc** (`docs/observability/tracing.md`): OTLP
+  instrumentation, Kafka trace propagation, configuration and end-to-end
+  verification steps.
 - Operational docs: `docs/observability/slo.md` (SLI/SLO reference targets),
   `docs/runbooks/` (consumer lag, outbox blocked, DLT, ledger drift, DB
   connections, API down, database restore) and `docs/operations/backup-recovery.md`
