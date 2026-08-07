@@ -3,6 +3,10 @@
 > **Status:** Captured against the running stack (minikube + Aegis-GitOps LGTM).
 > These are **real traces and load results**, not simulated data.
 
+> **Visual evidence:** open [`evidence-dashboard.png`](evidence-dashboard.png) or
+> [`evidence-visual.html`](evidence-visual.html) to see a rendered dashboard of the
+> captured traces and load metrics.
+
 ## Environment
 
 - **Cluster:** minikube (Kubernetes 1.30, Docker driver)
@@ -15,6 +19,8 @@
 
 | File | Trace | What it shows |
 |------|-------|---------------|
+| `evidence-dashboard.png` | Visual dashboard | Screenshot of the evidence dashboard (traces + load results) |
+| `evidence-visual.html` | Visual dashboard | HTML source of the evidence dashboard (open in a browser) |
 | `trace-outbox-relay.json` | Outbox relay span | `relayPendingEvents` producing to Kafka; `outcome: SUCCESS`; OTel SDK 1.37.0 |
 | `trace-http-health.json` | HTTP health request | Full Spring Security filterchain spans (12 filters, `authorize request` granted) |
 | `trace-http-prometheus.json` | Prometheus scrape | HTTP scrape span of `/actuator/prometheus` |
