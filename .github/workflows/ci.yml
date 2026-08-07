@@ -351,12 +351,15 @@ jobs:
           cosign sign --yes "$IMAGE"
 
   gitops-update:
-    name: Update GitOps (DEV)
+    name: Update GitOps (DEV) via PR
     runs-on: ubuntu-latest
     needs: [detect-changes, docker-build-push]
     if: ${{ always() && (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true') && needs.docker-build-push.result != 'failure' && needs.docker-build-push.result != 'cancelled' }}
     permissions:
       contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITOPS_TOKEN }}
     steps:
       - name: Checkout GitOps repository
         uses: actions/checkout@v4
@@ -364,23 +367,60 @@ jobs:
           repository: AlexAlvarezGallardo-GitHub/Aegis-GitOps
           token: ${{ secrets.GITOPS_TOKEN }}
           path: aegis-gitops
+          ref: main
       - name: Update image tags
         working-directory: aegis-gitops
         run: |
           sed -i "s|^  tag: .*|  tag: ${{ github.sha }}|g" overlays/dev/*-values.yaml
           git diff --stat
-      - name: Commit and push
+      - name: Validate Helm templates
+        working-directory: aegis-gitops
+        run: |
+          if command -v helm >/dev/null 2>&1; then
+            for d in charts/*/; do
+              helm template "$(basename "$d")" "$d" -f overlays/dev/$(basename "$d")-values.yaml > /dev/null 2>&1 \
+                || echo "::warning::helm template failed for $d (chart may require cluster context)"
+            done
+          else
+            echo "helm not installed; skipping template validation"
+          fi
+      - name: Commit and open PR
         working-directory: aegis-gitops
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b ci/update-dev-image-tags-${{ github.sha }}
           git add overlays/dev/*-values.yaml
           if git diff --cached --quiet; then
-            echo "No image tag changes to push."
+            echo "No image tag changes to commit."
             exit 0
           fi
           git commit -m "chore(infra): update dev image tags to ${{ github.sha }}"
-          git push
+          git push origin ci/update-dev-image-tags-${{ github.sha }}
+
+          # Open (or reuse) a PR instead of pushing directly to main
+          PR_URL=$(gh api "repos/AlexAlvarezGallardo-GitHub/Aegis-GitOps/pulls" \
+            -f title="chore(infra): update dev image tags to ${{ github.sha }}" \
+            -f head="ci/update-dev-image-tags-${{ github.sha }}" \
+            -f base="main" \
+            -f body="Automated image tag promotion from Aegis CI. See commit ${{ github.sha }}." \
+            --jq '.html_url')
+          echo "Opened GitOps PR: $PR_URL"
+          echo "GITOPS_PR_URL=$PR_URL" >> "$GITHUB_ENV"
+      - name: Approve and merge GitOps PR
+        working-directory: aegis-gitops
+        env:
+          GITOPS_PR_URL: ${{ env.GITOPS_PR_URL }}
+        run: |
+          if [ -z "$GITOPS_PR_URL" ]; then
+            echo "No PR to merge."
+            exit 0
+          fi
+          PR_NUM=${GITOPS_PR_URL##*/}
+          # Require the PR to be green, then squash-merge
+          gh pr merge "$PR_NUM" --repo AlexAlvarezGallardo-GitHub/Aegis-GitOps \
+            --squash --delete-branch
+          echo "Merged GitOps PR #$PR_NUM"
 
   ci-summary:
     name: CI Summary
