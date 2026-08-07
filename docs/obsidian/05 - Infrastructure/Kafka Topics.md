@@ -10,28 +10,40 @@ All domain event topics in the Aegis platform.
 
 ```mermaid
 graph LR
-    subgraph Identity
+    subgraph Producers
+        P_Identity[identity-service]
+        P_Wallet[wallet-service]
+        P_Fraud[fraud-service]
+    end
+    subgraph Topics
         I_Reg[aegis.identity.user-registered]
         I_Auth[aegis.identity.user-authenticated]
         I_Lock[aegis.identity.user-account-locked]
-    end
-    subgraph Wallet
-        W_Create[aegis.wallet.wallet-created]
+        W_Create[aegis.wallet.created]
         W_Balance[aegis.wallet.balance.adjusted]
         W_Deposit[wallet.funds.deposited]
-    end
-    subgraph Fraud
         F_Assessment[fraud.assessment.completed]
+        P_Transfer[payment.transfer.requested]
     end
     subgraph Consumers
-        Report[Reporting group]
-        Audit[Audit group]
+        Report[reporting-group]
+        Audit[audit-group]
+        Fraud[fraud-group]
     end
+    P_Identity --> I_Reg
+    P_Identity --> I_Auth
+    P_Identity --> I_Lock
+    P_Wallet --> W_Create
+    P_Wallet --> W_Balance
+    P_Wallet --> W_Deposit
+    P_Fraud --> F_Assessment
     W_Deposit --> Report
     W_Deposit --> Audit
     F_Assessment --> Audit
-    style Report fill:#bfb,stroke:#333,color:#000
-    style Audit fill:#bfb,stroke:#333,color:#000
+    P_Transfer --> Fraud
+    style P_Identity fill:#bbf,stroke:#333,color:#000
+    style P_Wallet fill:#bbf,stroke:#333,color:#000
+    style P_Fraud fill:#bbf,stroke:#333,color:#000
     style I_Reg fill:#fdb,stroke:#333,color:#000
     style I_Auth fill:#fdb,stroke:#333,color:#000
     style I_Lock fill:#fdb,stroke:#333,color:#000
@@ -39,6 +51,10 @@ graph LR
     style W_Balance fill:#fdb,stroke:#333,color:#000
     style W_Deposit fill:#fdb,stroke:#333,color:#000
     style F_Assessment fill:#fdb,stroke:#333,color:#000
+    style P_Transfer fill:#ddd,stroke:#333,color:#000
+    style Report fill:#bfb,stroke:#333,color:#000
+    style Audit fill:#bfb,stroke:#333,color:#000
+    style Fraud fill:#bfb,stroke:#333,color:#000
 ```
 
 ## Identity Service Topics
@@ -53,7 +69,7 @@ graph LR
 
 | Topic | Event | Partitions | Retention |
 |-------|-------|-----------|-----------|
-| `aegis.wallet.wallet-created` | [[03 - Domain Events/WalletCreated\|WalletCreated]] | 3 | 7 days |
+| `aegis.wallet.created` | [[03 - Domain Events/WalletCreated\|WalletCreated]] | 3 | 7 days |
 | `aegis.wallet.balance.adjusted` | [[03 - Domain Events/WalletBalanceAdjusted\|WalletBalanceAdjusted]] | 3 | 7 days |
 | `wallet.funds.deposited` | [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | 3 | 7 days |
 
@@ -62,6 +78,23 @@ graph LR
 | Topic | Event | Partitions | Retention |
 |-------|-------|-----------|-----------|
 | `fraud.assessment.completed` | [[03 - Domain Events/FraudAssessmentCompleted\|FraudAssessmentCompleted]] | 3 | 30 days |
+
+## Input Topic (consumed by fraud, no producer in backend)
+
+| Topic | Event | Partitions | Notes |
+|-------|-------|-----------|-------|
+| `payment.transfer.requested` | — | 3 | Entry topic expected from external systems; consumed by fraud ([[01 - Services/Fraud Service\|Fraud Service]]), produced by no backend service today |
+
+## Dead Letter Topics (DLT)
+
+Failed records are retried up to 3 attempts (backoff 1000ms) and then forwarded to a `.dlt` topic via `DeadLetterPublishingRecoverer`:
+
+| DLT Topic | Source | Consumed By |
+|-----------|--------|-------------|
+| `wallet.funds.deposited.dlt` | `wallet.funds.deposited` | auditing failure path |
+| `fraud.assessment.completed.dlt` | `fraud.assessment.completed` | auditing failure path |
+
+DLT suffix and retry are configuration-driven (`aegis.kafka.retry.max-attempts`, `aegis.kafka.retry.backoff-ms`, `aegis.kafka.dlt-suffix`).
 
 ## Consumer Groups
 
@@ -108,7 +141,8 @@ Kafka and Zookeeper run in the cluster via Argo CD under the `kafka` Application
 - `infrastructure/kafka/base/` — environment-agnostic manifests
 - `infrastructure/kafka/overlays/<env>/` — namespace injection per environment
 - Components: `apache/kafka:3.8.0` (combined controller+broker, ports 9092/9093) and `confluentinc/cp-zookeeper:7.5.0` (port 2181)
-- Service DNS: `kafka:9092` (used by Spring `bootstrap-servers`)
+- Service DNS: `kafka:9092` (used by Spring `bootstrap-servers` in k8s)
+- Bootstrap servers: `localhost:9092` locally (dev profile), `kafka:29092` in docker-compose, `kafka:9092` in k8s
 
 ```mermaid
 graph TB

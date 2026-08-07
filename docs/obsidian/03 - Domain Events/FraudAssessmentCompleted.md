@@ -25,13 +25,14 @@ sequenceDiagram
     participant Fraud as Fraud Service
     participant Svc as AssessFraudService
     participant Pub as KafkaEventPublisher
+    participant DB as PostgreSQL (Outbox)
     participant Kafka as Kafka Topic
     participant Audit as Audit Consumer
 
     Svc->>Pub: publish(FraudAssessmentCompleted)
-    Pub->>Kafka: send(topic, transactionId, event)
-    Kafka->>Audit: Consume (group=audit-group)
-    Audit->>Audit: persist FraudAuditRecord
+    Pub->>DB: INSERT outbox_event (payload=FraudAssessmentCompleted JSON)
+    DB-->>Kafka: OutboxRelayScheduler polls & sends
+    Kafka->>Audit: Consume (group=audit-group) → persist FraudAuditRecord
 ```
 
 ## Schema
@@ -51,7 +52,7 @@ sequenceDiagram
 
 ## Details
 
-- **Producer**: [[01 - Services/Fraud Service\|Fraud Service]] via `EventPublisher`
-- **Topic**: `fraud.assessment.completed` ([[05 - Infrastructure/Kafka Topics\|Kafka Topics]])
-- **Trigger**: `POST /api/v1/fraud/assess` or Kafka consumer
-- **Consumed by**: [[01 - Services/Audit Service\|Audit Service]]
+- **Producer**: [[01 - Services/Fraud Service|Fraud Service]] via [[04 - Ports/outbound/EventPublisher|EventPublisher]]
+- **Topic**: `fraud.assessment.completed` ([[05 - Infrastructure/Kafka Topics|Kafka Topics]])
+- **Trigger**: `POST /api/v1/fraud/assess`
+- **Consumed by**: [[01 - Services/Audit Service|Audit Service]] (persists [[02 - Domain Models/FraudAuditRecord|FraudAuditRecord]])
