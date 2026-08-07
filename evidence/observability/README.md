@@ -7,6 +7,12 @@
 > [`evidence-visual.html`](evidence-visual.html) to see a rendered dashboard of the
 > captured traces and load metrics.
 
+> **Grafana screenshots (real Tempo UI):**
+> - [`grafana-tempo-traces.png`](grafana-tempo-traces.png) — Explore → Tempo showing
+>   real traces of `aegis-wallet-service` (outbox relay, reconciliation, health).
+> - [`grafana-trace-detail.png`](grafana-trace-detail.png) — trace waterfall of the
+>   outbox relay span (`relay-pending-events`, 1.15 ms).
+
 ## Environment
 
 - **Cluster:** minikube (Kubernetes 1.30, Docker driver)
@@ -19,6 +25,8 @@
 
 | File | Trace | What it shows |
 |------|-------|---------------|
+| `grafana-tempo-traces.png` | Grafana Tempo Explore | Real trace list of `aegis-wallet-service` in the Grafana UI |
+| `grafana-trace-detail.png` | Grafana trace waterfall | Outbox relay span detail (1.15 ms) in the Grafana UI |
 | `evidence-dashboard.png` | Visual dashboard | Screenshot of the evidence dashboard (traces + load results) |
 | `evidence-visual.html` | Visual dashboard | HTML source of the evidence dashboard (open in a browser) |
 | `trace-outbox-relay.json` | Outbox relay span | `relayPendingEvents` producing to Kafka; `outcome: SUCCESS`; OTel SDK 1.37.0 |
