@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Load testing (k6)**: `load/k6/` scripts for login, wallet creation/listing,
+  concurrent deposits and deposit idempotency, plus `load/README.md` with run
+  instructions and reporting guidelines.
+
 - **Kafka trace propagation**: `observation-enabled` on producers/consumers/listeners
   (identity, wallet, audit, reporting, fraud) so the W3C `traceparent` header flows
   through Kafka messages for end-to-end distributed tracing (OTLP/Tempo).
