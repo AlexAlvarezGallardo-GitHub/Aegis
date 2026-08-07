@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Deposit reversal** (`POST /api/v1/wallets/{id}/deposits/{depositId}/reversal`):
+  immutable `REVERSAL` ledger entries referencing the original deposit (ADR-004);
+  wallet balance reduced; a deposit can be reversed at most once.
 - **ADR-004**: ledger design (single-entry per-aggregate ledger, immutability, compensations).
 - Docs for the financial model: `wallet-balance.md` (monetary precision, balance types) and
   `compensations.md` (reversal/compensation design).
