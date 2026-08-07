@@ -31,9 +31,13 @@ graph TB
     User((User)) -->|HTTPS| BFF
     BFF --> Identity
     BFF --> Wallet
+    Identity -->|aegis.identity.user-registered| Kafka
+    Identity -->|aegis.identity.user-authenticated| Kafka
+    Identity -->|aegis.identity.user-account-locked| Kafka
+    Wallet -->|aegis.wallet.created| Kafka
+    Wallet -->|aegis.wallet.balance.adjusted| Kafka
     Wallet -->|wallet.funds.deposited| Kafka
     Fraud -->|fraud.assessment.completed| Kafka
-    Fraud -->|consumes payment.*| Kafka
     Kafka --> Report
     Kafka --> Audit
     Identity --> PG1
@@ -133,6 +137,7 @@ flowchart TB
 | [[02 - Domain Models/PasswordHash\|PasswordHash]] | Identity | Value Object |
 | [[02 - Domain Models/UserStatus\|UserStatus]] | Identity | Enum |
 | [[02 - Domain Models/Credentials\|Credentials]] | Identity | Value Object |
+| [[02 - Domain Models/Password\|Password]] | Identity | Value Object |
 | [[02 - Domain Models/TokenPair\|TokenPair]] | Identity | Value Object |
 | [[02 - Domain Models/Wallet\|Wallet]] | Wallet | Aggregate Root |
 | [[02 - Domain Models/WalletId\|WalletId]] | Wallet | Value Object |
@@ -147,7 +152,7 @@ flowchart TB
 | [[03 - Domain Events/UserRegistered\|UserRegistered]] | Identity | `aegis.identity.user-registered` |
 | [[03 - Domain Events/UserAuthenticated\|UserAuthenticated]] | Identity | `aegis.identity.user-authenticated` |
 | [[03 - Domain Events/UserAccountLocked\|UserAccountLocked]] | Identity | `aegis.identity.user-account-locked` |
-| [[03 - Domain Events/WalletCreated\|WalletCreated]] | Wallet | `aegis.wallet.wallet-created` |
+| [[03 - Domain Events/WalletCreated\|WalletCreated]] | Wallet | `aegis.wallet.created` |
 | [[03 - Domain Events/WalletBalanceAdjusted\|WalletBalanceAdjusted]] | Wallet | `aegis.wallet.balance.adjusted` |
 | [[03 - Domain Events/FundsDeposited\|FundsDeposited]] | Wallet | `wallet.funds.deposited` |
 | [[03 - Domain Events/FraudAssessmentCompleted\|FraudAssessmentCompleted]] | Fraud | `fraud.assessment.completed` |
@@ -157,17 +162,24 @@ flowchart TB
 **Inbound (Driving)**
 - [[04 - Ports/inbound/RegisterUserUseCase\|RegisterUserUseCase]] → [[01 - Services/Identity Service|Identity Service]]
 - [[04 - Ports/inbound/AuthenticateUserUseCase\|AuthenticateUserUseCase]] → [[01 - Services/Identity Service|Identity Service]]
+- [[04 - Ports/inbound/RefreshTokenUseCase\|RefreshTokenUseCase]] → [[01 - Services/Identity Service|Identity Service]]
 - [[04 - Ports/inbound/CreateWalletUseCase\|CreateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
+- [[04 - Ports/inbound/ListWalletsUseCase\|ListWalletsUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
+- [[04 - Ports/inbound/GetWalletDetailUseCase\|GetWalletDetailUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
 - [[04 - Ports/inbound/UpdateWalletUseCase\|UpdateWalletUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
 - [[04 - Ports/inbound/DepositFundsUseCase\|DepositFundsUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
+- [[04 - Ports/inbound/ReverseDepositUseCase\|ReverseDepositUseCase]] → [[01 - Services/Wallet Service|Wallet Service]]
 - [[04 - Ports/inbound/AssessFraudUseCase\|AssessFraudUseCase]] → [[01 - Services/Fraud Service|Fraud Service]]
 
 **Outbound (Driven)**
 - [[04 - Ports/outbound/UserRepository\|UserRepository]] → [[01 - Services/Identity Service|Identity Service]]
 - [[04 - Ports/outbound/PasswordHasher\|PasswordHasher]] → [[01 - Services/Identity Service|Identity Service]]
 - [[04 - Ports/outbound/TokenProvider\|TokenProvider]] → [[01 - Services/Identity Service|Identity Service]]
-- [[04 - Ports/outbound/EventPublisher\|EventPublisher]] → [[01 - Services/Identity Service|Identity]] / [[01 - Services/Wallet Service|Wallet]]
+- [[04 - Ports/outbound/RefreshTokenRepository\|RefreshTokenRepository]] → [[01 - Services/Identity Service|Identity Service]]
+- [[04 - Ports/outbound/EventPublisher\|EventPublisher]] → [[01 - Services/Identity Service|Identity]] / [[01 - Services/Wallet Service|Wallet]] / [[01 - Services/Fraud Service|Fraud]]
 - [[04 - Ports/outbound/WalletRepository\|WalletRepository]] → [[01 - Services/Wallet Service|Wallet Service]]
+- [[04 - Ports/outbound/FraudAssessmentRepository\|FraudAssessmentRepository]] → [[01 - Services/Fraud Service|Fraud Service]]
+- [[04 - Ports/outbound/FraudRuleRepository\|FraudRuleRepository]] → [[01 - Services/Fraud Service|Fraud Service]]
 
 ## Infrastructure
 
@@ -188,6 +200,7 @@ flowchart TB
 - [[07 - Specs/UC-003 Create Wallet\|UC-003 Create Wallet]]
 - [[07 - Specs/UC-004 Deposit Funds\|UC-004 Deposit Funds]]
 - [[07 - Specs/UC-008 Fraud Detection\|UC-008 Fraud Detection]]
+- [[07 - Specs/UC-009 Manage Wallet\|UC-009 Manage Wallet]]
 - [[07 - Specs/UC-010 BFF\|UC-010 BFF]]
 
 ## Architecture Decisions

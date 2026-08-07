@@ -61,6 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (frontend `features/` + `shared/`, BFF controllers/clients, all specs 001-011, `e2e/`,
   `load/`, `evidence/`, full `docs/` and `infra/` trees), E2E row now reflects Playwright
   (not MockMvc), load tests via k6, five PostgreSQL access ports, and the CI/CD workflow set.
+- **Obsidian vault aligned with the project** (`docs/obsidian/`): removed non-existent
+  domain events and use cases (`WalletDeactivated`, `WalletReactivated`, `WalletUpdated`,
+  `DeactivateWalletUseCase`, `ReactivateWalletUseCase`), renamed `UC-004 Manage Wallet` →
+  `UC-009 Manage Wallet`, corrected Kafka topic `aegis.wallet.created`, added missing models
+  (`Password`, fraud/audit/reporting), events, inbound/outbound ports, and rewrote the
+  frontend, services, infrastructure and specs docs to reflect the real code.
 
 ### Added (Sprint 3)
 
