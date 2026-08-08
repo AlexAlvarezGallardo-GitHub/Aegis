@@ -64,7 +64,7 @@ describe('AuthComponent', () => {
 
   it('should disable submit button while loading', () => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
-    component.isLoading = true;
+    component.isLoading.set(true);
     fixture.detectChanges();
     expect(
       fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
@@ -73,7 +73,7 @@ describe('AuthComponent', () => {
 
   it('should enable submit button when form valid and not loading', () => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
-    component.isLoading = false;
+    component.isLoading.set(false);
     fixture.detectChanges();
     expect(
       fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
@@ -83,35 +83,35 @@ describe('AuthComponent', () => {
   it('should set isLoading and reset via finalize on success', fakeAsync(() => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
     component.onSubmit();
-    expect(component.isLoading).toBeTrue();
+    expect(component.isLoading()).toBeTrue();
     httpMock.expectOne('/api/bff/auth/login').flush({
       tokenType: 'Bearer', expiresIn: 900, emailVerified: true
     });
     tick();
-    expect(component.isLoading).toBeFalse();
+    expect(component.isLoading()).toBeFalse();
     flush();
   }));
 
   it('should reset isLoading via finalize on error', fakeAsync(() => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'wrong' });
     component.onSubmit();
-    expect(component.isLoading).toBeTrue();
+    expect(component.isLoading()).toBeTrue();
     httpMock.expectOne('/api/bff/auth/login').flush(
       { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.', details: null, timestamp: '2026-01-01T00:00:00Z' },
       { status: 401, statusText: 'Unauthorized' }
     );
     tick();
-    expect(component.isLoading).toBeFalse();
+    expect(component.isLoading()).toBeFalse();
     flush();
   }));
 
   it('should reset isLoading via finalize on network error', fakeAsync(() => {
     component.loginForm.patchValue({ email: 'john@example.com', password: 'password' });
     component.onSubmit();
-    expect(component.isLoading).toBeTrue();
+    expect(component.isLoading()).toBeTrue();
     httpMock.expectOne('/api/bff/auth/login').error(new ProgressEvent('network error'));
     tick();
-    expect(component.isLoading).toBeFalse();
+    expect(component.isLoading()).toBeFalse();
     flush();
   }));
 
