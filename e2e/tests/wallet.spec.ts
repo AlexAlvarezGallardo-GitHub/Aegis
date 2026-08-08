@@ -22,8 +22,8 @@ test.describe('Wallet — UC-003 / UC-004', () => {
   test('creates a wallet', async ({ page }) => {
     await login(page);
 
-    const before = await page.locator('text=Total Wallets').locator('..').getByText(/^\d+$/).first().textContent();
-    const countBefore = before ? parseInt(before, 10) : 0;
+    const stat = page.locator('.stat-card').filter({ hasText: 'Total Wallets' });
+    const before = parseInt((await stat.locator('.stat-value').textContent()) ?? '0', 10);
 
     await page.getByRole('button', { name: 'Create Wallet' }).click();
     await page.getByRole('textbox', { name: 'Currency Code' }).fill('GBP');
@@ -31,8 +31,9 @@ test.describe('Wallet — UC-003 / UC-004', () => {
 
     await expect(page.getByText(/Wallet created/i)).toBeVisible({ timeout: 10_000 });
 
-    // Stats should reflect the new wallet
-    await expect(page.getByText('Total Wallets').locator('..').getByText(String(countBefore + 1))).toBeVisible();
+    // Stats should reflect the new wallet and a GBP card should be in the grid
+    await expect(stat.locator('.stat-value')).toHaveText(String(before + 1));
+    await expect(page.locator('.wallet-card').filter({ hasText: 'GBP' }).first()).toBeVisible();
   });
 
   test('deposits funds with source and reference (UC-004)', async ({ page }) => {
@@ -49,7 +50,7 @@ test.describe('Wallet — UC-003 / UC-004', () => {
     await page.locator('input[type="number"]').first().fill('150');
     await page.getByRole('textbox', { name: 'Source' }).fill('BANK_TRANSFER');
     await page.getByRole('textbox', { name: 'Reference' }).fill(`${REF_PREFIX}-DEP`);
-    await page.getByRole('button', { name: 'Deposit' }).click();
+    await page.locator('.slide-panel').getByRole('button', { name: 'Deposit', exact: true }).click();
 
     // Receipt with source + reference is shown
     await expect(page.getByText(`Last deposit:`)).toBeVisible({ timeout: 10_000 });
@@ -74,7 +75,7 @@ test.describe('Wallet — UC-003 / UC-004', () => {
       await page.locator('input[type="number"]').first().fill('50');
       await page.getByRole('textbox', { name: 'Source' }).fill('CARD');
       await page.getByRole('textbox', { name: 'Reference' }).fill(ref);
-      await page.getByRole('button', { name: 'Deposit' }).click();
+      await page.locator('.slide-panel').getByRole('button', { name: 'Deposit', exact: true }).click();
       await page.waitForTimeout(1_500);
     }
 

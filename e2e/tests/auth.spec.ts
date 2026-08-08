@@ -11,7 +11,9 @@ test.describe('Authentication', () => {
   test('login form validates and signs in', async ({ page }) => {
     await page.goto('/login');
 
-    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
+    // The login page title is a mat-card-title (not a heading role), so we
+    // assert on a stable form control instead.
+    await expect(page.getByRole('textbox', { name: 'Email' })).toBeVisible();
 
     // Sign In is disabled while the form is empty
     const signIn = page.getByRole('button', { name: 'Sign In' });
@@ -34,7 +36,7 @@ test.describe('Authentication', () => {
     await page.getByRole('textbox', { name: 'Password' }).fill('wrong-password');
     await page.getByRole('button', { name: 'Sign In' }).click();
 
-    // Expect a toast / error surfaced by the auth flow
-    await expect(page.getByText(/invalid|error|credenciales|incorrect/i).first()).toBeVisible({ timeout: 10_000 });
+    // The HttpErrorInterceptor surfaces the 401 as a toast ("Session expired").
+    await expect(page.getByText(/Session expired|invalid|error|credenciales|incorrect/i).first()).toBeVisible({ timeout: 10_000 });
   });
 });
