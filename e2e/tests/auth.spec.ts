@@ -32,11 +32,16 @@ test.describe('Authentication', () => {
 
   test('rejects invalid credentials', async ({ page }) => {
     await page.goto('/login');
-    await page.getByRole('textbox', { name: 'Email' }).fill(EMAIL);
+    // Use a non-existent account so the failed attempt does not accumulate
+    // failed-login counters on the real E2E user (account lockout).
+    await page.getByRole('textbox', { name: 'Email' }).fill('nobody@aegis.test');
     await page.getByRole('textbox', { name: 'Password' }).fill('wrong-password');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    const signIn = page.getByRole('button', { name: 'Sign In' });
+    await signIn.click();
 
-    // The HttpErrorInterceptor surfaces the 401 as a toast ("Session expired").
-    await expect(page.getByText(/Session expired|invalid|error|credenciales|incorrect/i).first()).toBeVisible({ timeout: 10_000 });
+    // The request completes with 401: the submit button re-enables (isLoading
+    // reset via finalize) and the app stays on the login page (not signed in).
+    await expect(signIn).toBeEnabled({ timeout: 10_000 });
+    await expect(page).toHaveURL(/\/login/);
   });
 });
