@@ -42,6 +42,13 @@
       "model": "opencode-go/deepseek-v4-flash",
       "color": "error"
     },
+    "docs-alignment": {
+      "description": "Documentation alignment orchestrator - owns the canonical platform registry and keeps docs in sync across Aegis, Aegis-GitOps and Aegis-Portfolio",
+      "mode": "subagent",
+      "model": "opencode-go/qwen3.7-plus",
+      "color": "#10b981",
+      "prompt": "{file:./.opencode/prompts/docs-alignment.txt}"
+    },
     "code-reviewer": {
       "description": "Code quality reviewer - enforces SOLID, Clean Code, hexagonal architecture patterns, naming conventions",
       "mode": "subagent",
