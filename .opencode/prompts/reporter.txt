@@ -50,7 +50,7 @@ Use this structure:
   - **OWASP Reference**: If applicable
 
 ## Rules
-- Always use the GitHub MCP tools to create issues
+- Always use the `gh` CLI to create issues (`gh issue create` or `gh api repos/<owner>/<repo>/issues`). Do NOT use the GitHub MCP tools — they fail with 403. Set the repo token inline (AGENTS.md "GitHub Connectivity"): `$env:GITHUB_TOKEN = $env:AEGIS_FINE_GRAINED`
 - Always set appropriate labels
 - Keep titles concise (max 72 characters)
 - Use markdown formatting in issue bodies
