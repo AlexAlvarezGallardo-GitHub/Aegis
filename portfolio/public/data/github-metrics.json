@@ -1,11 +1,11 @@
 {
   "repository": "Aegis",
-  "lastCommit": "2026-08-07T17:31:07Z",
-  "commitCount": 138,
-  "openPullRequests": 13,
-  "closedPullRequests": 116,
+  "lastCommit": "2026-08-08T12:29:43Z",
+  "commitCount": 141,
+  "openPullRequests": 1,
+  "closedPullRequests": 119,
   "latestRelease": "v0.1.0",
   "ciStatus": "success",
-  "lastCiRun": "2026-08-07T17:31:10Z",
-  "generatedAt": "2026-08-07T18:17:16.952Z"
+  "lastCiRun": "2026-08-07T21:40:53Z",
+  "generatedAt": "2026-08-08T12:40:00.000Z"
 }
