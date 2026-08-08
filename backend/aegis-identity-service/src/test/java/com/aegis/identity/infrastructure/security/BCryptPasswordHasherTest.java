@@ -30,6 +30,13 @@ class BCryptPasswordHasherTest {
     }
 
     @Test
+    void shouldUseBcryptCost10() {
+        PasswordHash hash = hasher.hash("SecureP@ss1");
+        assertTrue(hash.hash().startsWith("$2a$10$"),
+                "expected BCrypt cost 10, got: " + hash.hash());
+    }
+
+    @Test
     void shouldMatchCorrectPassword() {
         PasswordHash hash = hasher.hash("SecureP@ss1");
         assertTrue(hasher.matches("SecureP@ss1", hash));

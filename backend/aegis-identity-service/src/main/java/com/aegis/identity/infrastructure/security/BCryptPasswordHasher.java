@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BCryptPasswordHasher implements PasswordHasher {
 
-    private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder(12);
+    private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder(10);
 
     @Override
     public PasswordHash hash(String rawPassword) {
