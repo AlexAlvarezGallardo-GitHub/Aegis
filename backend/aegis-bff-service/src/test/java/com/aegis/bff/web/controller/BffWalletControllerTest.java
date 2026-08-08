@@ -200,14 +200,16 @@ class BffWalletControllerTest {
                     {"walletId":"w1","depositId":"d1","status":"COMPLETED"}
                     """);
             when(walletClient.depositFunds(eq(validAccessToken), eq(USER_ID), eq("w1"),
-                    eq(new BigDecimal("100.00")), eq("BANK_TRANSFER"), eq("ref-1"), anyString()))
+                    eq(new BigDecimal("100.00")), eq("EUR"), eq("BANK_TRANSFER"), eq("ref-1"),
+                    anyString()))
                     .thenReturn(response);
 
             // Act & Assert
             mockMvc.perform(post("/api/bff/wallets/w1/deposits")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(
-                                    new DepositFundsRequest(new BigDecimal("100.00"), "BANK_TRANSFER", "ref-1")))
+                                    new DepositFundsRequest(
+                                            new BigDecimal("100.00"), "EUR", "BANK_TRANSFER", "ref-1")))
                             .header("X-Correlation-Id", "corr-3"))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.status").value("COMPLETED"));

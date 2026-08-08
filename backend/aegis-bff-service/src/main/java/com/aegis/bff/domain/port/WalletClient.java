@@ -60,14 +60,15 @@ public interface WalletClient {
      * @param userId        the user id
      * @param walletId      the wallet id
      * @param amount        the amount to deposit
-     * @param method        the deposit method
+     * @param currency      the 3-letter ISO 4217 currency code
+     * @param source        the source of the funds
      * @param reference     the external reference
      * @param correlationId the correlation id for tracing
      * @return the deposit result
      */
     JsonNode depositFunds(String accessToken, String userId, String walletId,
-                          java.math.BigDecimal amount, String method, String reference,
-                          String correlationId);
+                          java.math.BigDecimal amount, String currency, String source,
+                          String reference, String correlationId);
 
     /**
      * Updates the status of a wallet.
