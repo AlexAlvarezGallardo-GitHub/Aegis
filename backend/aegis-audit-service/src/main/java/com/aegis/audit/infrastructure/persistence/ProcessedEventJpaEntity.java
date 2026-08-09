@@ -26,7 +26,7 @@ public class ProcessedEventJpaEntity {
     @Column(name = "partition", nullable = false)
     private int partition;
 
-    @Column(name = "offset", nullable = false)
+    @Column(name = "kafka_offset", nullable = false)
     private long offset;
 
     @Column(name = "processed_at", nullable = false)
