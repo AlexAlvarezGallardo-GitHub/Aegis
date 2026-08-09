@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Verifies that the Kafka producer propagates the W3C {@code traceparent} header
  * so a distributed trace spans the producer → Kafka → consumer chain (OTLP/Tempo).
  */
-@SpringBootTest
+@SpringBootTest(properties = "management.tracing.sampling.probability=1.0")
 @Testcontainers
 @DisplayName("Kafka trace propagation")
 class KafkaTracePropagationIT {

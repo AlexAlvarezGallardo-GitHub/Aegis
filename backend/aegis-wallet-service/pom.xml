@@ -133,8 +133,8 @@
                                 <param>com.aegis.wallet.application.service.*</param>
                             </targetClasses>
                             <targetTests>
-                                <param>com.aegis.wallet.domain.*</param>
-                                <param>com.aegis.wallet.application.*</param>
+                                  <param>com.aegis.wallet.domain.*Test</param>
+                                  <param>com.aegis.wallet.application.*Test</param>
                             </targetTests>
                         </configuration>
                     </plugin>
