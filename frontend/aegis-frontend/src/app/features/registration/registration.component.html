@@ -1,4 +1,8 @@
 <div class="registration-container">
+  <div class="auth-brand">
+    <img src="/assets/aegis-icon.png" alt="Aegis" class="auth-logo" />
+  </div>
+
   <mat-card class="registration-card" role="region" aria-labelledby="reg-title">
     <mat-card-header>
       <mat-card-title id="reg-title">Create Your Account</mat-card-title>
@@ -6,19 +10,22 @@
     </mat-card-header>
 
     <mat-card-content>
-      @if (successResponse) {
+      @if (successResponse(); as response) {
         <div class="success-message">
           <mat-icon aria-hidden="true">check_circle</mat-icon>
           <h3>Registration Successful!</h3>
-          <p>Your account has been created with ID: {{ successResponse.userId }}</p>
-          <p>Status: {{ successResponse.status }}</p>
+          <p>Your account has been created with ID: {{ response.userId }}</p>
+          <p>Status: {{ response.status }}</p>
           <p>Please check your email for verification instructions.</p>
+          <a mat-raised-button color="primary" routerLink="/login" class="success-action">
+            Continue to Sign In
+          </a>
         </div>
       } @else {
         <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" placeholder="john@example.com">
+            <input matInput formControlName="email" type="email" placeholder="john@example.com" autocomplete="email">
             <app-aegis-form-field-error [form]="registrationForm" controlName="email" [labels]="fieldLabels" />
           </mat-form-field>
 
@@ -26,29 +33,34 @@
             label="Password"
             placeholder="Create a strong password"
             [fullWidth]="true"
+            autocomplete="new-password"
             formControlName="password"
           />
 
           <div class="name-fields">
             <mat-form-field appearance="outline">
               <mat-label>First Name</mat-label>
-              <input matInput formControlName="firstName" placeholder="John">
+              <input matInput formControlName="firstName" placeholder="John" autocomplete="given-name">
               <app-aegis-form-field-error [form]="registrationForm" controlName="firstName" [labels]="fieldLabels" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Last Name</mat-label>
-              <input matInput formControlName="lastName" placeholder="Doe">
+              <input matInput formControlName="lastName" placeholder="Doe" autocomplete="family-name">
               <app-aegis-form-field-error [form]="registrationForm" controlName="lastName" [labels]="fieldLabels" />
             </mat-form-field>
           </div>
 
           <app-aegis-loading-button
             label="Create Account"
-            [loading]="isLoading"
+            [loading]="isLoading()"
             [disabled]="registrationForm.invalid"
             [fullWidth]="true"
           />
+
+          <div class="auth-links">
+            <a mat-button color="accent" routerLink="/login">Already have an account? Sign in</a>
+          </div>
         </form>
       }
     </mat-card-content>

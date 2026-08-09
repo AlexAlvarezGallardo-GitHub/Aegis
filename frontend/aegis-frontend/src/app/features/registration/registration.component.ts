@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -22,6 +23,7 @@ import { ToastService } from '../../shared/services/toast.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -42,8 +44,8 @@ export class RegistrationComponent {
   private destroyRef = inject(DestroyRef);
 
   registrationForm: FormGroup;
-  isLoading = false;
-  successResponse: RegisterUserResponse | null = null;
+  isLoading = signal(false);
+  successResponse = signal<RegisterUserResponse | null>(null);
 
   readonly fieldLabels: Record<string, string> = {
     email: 'Email',
@@ -68,18 +70,18 @@ export class RegistrationComponent {
       return;
     }
 
-    this.isLoading = true;
-    this.successResponse = null;
+    this.isLoading.set(true);
+    this.successResponse.set(null);
 
     this.registrationService.register(this.registrationForm.value)
       .pipe(
-        finalize(() => this.isLoading = false),
+        finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (response) => {
-          this.successResponse = response;
-          this.toastService.success('Registration successful! Please check your email.', 5000);
+          this.successResponse.set(response);
+          this.toastService.success('Registration successful', { description: 'Please check your email for verification instructions.' });
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });

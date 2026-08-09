@@ -24,7 +24,7 @@
     "secure": false,
     "changeOrigin": true
   },
-  "/api": {
+  "/api/v1": {
     "target": "http://localhost:8081",
     "secure": false,
     "changeOrigin": true

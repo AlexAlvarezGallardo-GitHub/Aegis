@@ -1,0 +1,264 @@
+<div class="wallet-detail-page aegis-page-enter">
+  @if (loading()) {
+    <div class="detail-skeleton">
+      <app-loading-skeleton class="skeleton-block" />
+      <app-loading-skeleton class="skeleton-block" />
+      <app-loading-skeleton class="skeleton-block" />
+    </div>
+  } @else if (loadError() || !wallet(); as errorState) {
+    <app-empty-state
+      icon="error_outline"
+      title="Couldn't load wallet"
+      description="Something went wrong while loading this wallet."
+      actionLabel="Retry"
+      (action)="loadWallet()"
+    />
+  } @else if (wallet(); as wallet) {
+    <!-- Back navigation -->
+    <button class="back-link" (click)="backToWallets()" type="button">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      Wallets
+    </button>
+
+    <!-- Header -->
+    <header class="detail-header">
+      <div class="detail-title-block">
+        <h1 class="detail-title">{{ wallet.currency }} Wallet</h1>
+        <app-status-chip [label]="wallet.status" [variant]="getStatusVariant(wallet.status)" size="sm" [pulse]="wallet.status.toLowerCase() === 'active'" />
+      </div>
+
+      <div class="detail-actions">
+        <button mat-flat-button color="primary" class="primary-action" (click)="openDeposit()" [disabled]="isOperating()">
+          <mat-icon>arrow_downward</mat-icon>
+          <span>Deposit Funds</span>
+        </button>
+        <button mat-stroked-button (click)="openWithdraw()" [disabled]="isOperating()">
+          <mat-icon>arrow_upward</mat-icon>
+          <span>Withdraw</span>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="moreMenu" aria-label="More actions" [disabled]="isOperating()">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #moreMenu="matMenu" xPosition="before">
+          <button mat-menu-item (click)="openAdjustBalance()">
+            <mat-icon>tune</mat-icon>
+            <span>Adjust Balance</span>
+          </button>
+          <button mat-menu-item (click)="freezeWallet()">
+            <mat-icon>ac_unit</mat-icon>
+            <span>Freeze Wallet</span>
+          </button>
+          <button mat-menu-item (click)="deactivateWallet()">
+            <mat-icon>block</mat-icon>
+            <span>Deactivate Wallet</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="goToTab('audit')">
+            <mat-icon>description</mat-icon>
+            <span>View Audit Log</span>
+          </button>
+          <button mat-menu-item (click)="openTechnicalDetails()">
+            <mat-icon>info_outline</mat-icon>
+            <span>Technical details</span>
+          </button>
+        </mat-menu>
+      </div>
+    </header>
+
+    <!-- Balance overview -->
+    <section class="overview-grid" aria-label="Wallet overview">
+      <div class="balance-card">
+        <span class="overview-label">Available Balance</span>
+        <span class="balance-value mono tabular-nums">{{ wallet.balance | aegisCurrency: wallet.currency }}</span>
+        @if (lastActivity; as act) {
+          <span class="overview-sub">
+            Last activity · {{ activityTypeLabel(act.type) }} {{ act.amount > 0 ? '+' : '' }}{{ act.amount | aegisCurrency: act.currency }} · {{ act.timestamp | date: 'MMM d, y · HH:mm' }}
+          </span>
+        } @else if (wallet.updatedAt) {
+          <span class="overview-sub">Last updated: {{ wallet.updatedAt | date: 'MMM d, y · HH:mm' }}</span>
+        }
+      </div>
+      <div class="overview-card">
+        <span class="overview-label">Currency</span>
+        <span class="overview-value">{{ wallet.currency }}</span>
+      </div>
+      <div class="overview-card">
+        <span class="overview-label">Status</span>
+        <app-status-chip [label]="wallet.status" [variant]="getStatusVariant(wallet.status)" size="md" />
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <mat-tab-group
+      class="detail-tabs"
+      [selectedIndex]="tabIndex"
+      (selectedIndexChange)="onTabIndexChange($event)"
+      animationDuration="200ms"
+    >
+      <mat-tab label="Overview">
+        <div class="tab-panel">
+          <h2 class="tab-title">Recent Activity</h2>
+          @if (activities.length === 0) {
+            <app-empty-state
+              icon="history"
+              title="No recent activity"
+              description="Deposits and withdrawals will appear here."
+            />
+          } @else {
+            <ul class="activity-list">
+              @for (activity of activities; track activity.id) {
+                <li class="activity-item">
+                  <mat-icon class="activity-icon {{ activity.status === 'COMPLETED' ? 'completed' : 'rejected' }}" aria-hidden="true">{{ activityIcon(activity.type) }}</mat-icon>
+                  <div class="activity-main">
+                    <span class="activity-title">{{ activityTypeLabel(activity.type) }}</span>
+                    <span class="activity-detail">
+                      @if (activity.source) { {{ activity.source }} · }
+                      @if (activity.reference) { Reference: {{ shortId(activity.reference) }} }
+                    </span>
+                  </div>
+                  <div class="activity-side">
+                    <span class="activity-amount mono tabular-nums {{ activity.amount > 0 ? 'positive' : 'negative' }}">
+                      {{ activity.amount > 0 ? '+' : '' }}{{ activity.amount | aegisCurrency: activity.currency }}
+                    </span>
+                    <app-status-chip [label]="activity.status" [variant]="activity.status === 'COMPLETED' ? 'success' : 'error'" size="sm" />
+                    <span class="activity-date">{{ activity.timestamp | date: 'MMM d, y · HH:mm' }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Transactions">
+        <div class="tab-panel">
+          @if (activities.length === 0) {
+            <app-empty-state
+              icon="receipt_long"
+              title="No transactions yet"
+              description="Completed financial operations will be listed here."
+            />
+          } @else {
+            <div class="table-wrap">
+              <table class="tx-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (activity of activities; track activity.id) {
+                    <tr>
+                      <td>
+                        <span class="tx-type">
+                          <mat-icon aria-hidden="true">{{ activityIcon(activity.type) }}</mat-icon>
+                          {{ activityTypeLabel(activity.type) }}
+                        </span>
+                      </td>
+                      <td class="mono">{{ activity.reference ? shortId(activity.reference) : '—' }}</td>
+                      <td class="mono tabular-nums {{ activity.amount > 0 ? 'positive' : 'negative' }}">
+                        {{ activity.amount > 0 ? '+' : '' }}{{ activity.amount | aegisCurrency: activity.currency }}
+                      </td>
+                      <td><app-status-chip [label]="activity.status" [variant]="activity.status === 'COMPLETED' ? 'success' : 'error'" size="sm" /></td>
+                      <td>{{ activity.timestamp | date: 'MMM d, y · HH:mm' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Deposits & Withdrawals">
+        <div class="tab-panel">
+          <h2 class="tab-title">Funds Operations</h2>
+          <p class="tab-hint">Add funds to or remove funds from this wallet. Forms open in a dialog.</p>
+          <div class="operation-actions">
+            <button mat-flat-button color="primary" (click)="openDeposit()" [disabled]="isOperating()">
+              <mat-icon>arrow_downward</mat-icon>
+              Deposit Funds
+            </button>
+            <button mat-stroked-button (click)="openWithdraw()" [disabled]="isOperating()">
+              <mat-icon>arrow_upward</mat-icon>
+              Withdraw
+            </button>
+          </div>
+          @if (activities.length > 0) {
+            <h3 class="tab-subtitle">Recent operations</h3>
+            <ul class="activity-list">
+              @for (activity of activities; track activity.id) {
+                <li class="activity-item">
+                  <mat-icon class="activity-icon {{ activity.status === 'COMPLETED' ? 'completed' : 'rejected' }}" aria-hidden="true">{{ activityIcon(activity.type) }}</mat-icon>
+                  <div class="activity-main">
+                    <span class="activity-title">{{ activityTypeLabel(activity.type) }}</span>
+                    <span class="activity-detail">
+                      @if (activity.source) { {{ activity.source }} · }
+                      @if (activity.reference) { Reference: {{ shortId(activity.reference) }} }
+                    </span>
+                  </div>
+                  <div class="activity-side">
+                    <span class="activity-amount mono tabular-nums {{ activity.amount > 0 ? 'positive' : 'negative' }}">
+                      {{ activity.amount > 0 ? '+' : '' }}{{ activity.amount | aegisCurrency: activity.currency }}
+                    </span>
+                    <app-status-chip [label]="activity.status" [variant]="activity.status === 'COMPLETED' ? 'success' : 'error'" size="sm" />
+                    <span class="activity-date">{{ activity.timestamp | date: 'MMM d, y · HH:mm' }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Activity">
+        <div class="tab-panel">
+          <h2 class="tab-title">Activity</h2>
+          @if (activities.length === 0) {
+            <app-empty-state
+              icon="history"
+              title="No activity yet"
+              description="Financial events for this wallet will appear here."
+            />
+          } @else {
+            <ul class="activity-list">
+              @for (activity of activities; track activity.id) {
+                <li class="activity-item">
+                  <mat-icon class="activity-icon {{ activity.status === 'COMPLETED' ? 'completed' : 'rejected' }}" aria-hidden="true">{{ activityIcon(activity.type) }}</mat-icon>
+                  <div class="activity-main">
+                    <span class="activity-title">{{ activityTypeLabel(activity.type) }}</span>
+                    <span class="activity-detail">
+                      @if (activity.source) { {{ activity.source }} · }
+                      @if (activity.reference) { Reference: {{ shortId(activity.reference) }} }
+                    </span>
+                  </div>
+                  <div class="activity-side">
+                    <span class="activity-amount mono tabular-nums {{ activity.amount > 0 ? 'positive' : 'negative' }}">
+                      {{ activity.amount > 0 ? '+' : '' }}{{ activity.amount | aegisCurrency: activity.currency }}
+                    </span>
+                    <app-status-chip [label]="activity.status" [variant]="activity.status === 'COMPLETED' ? 'success' : 'error'" size="sm" />
+                    <span class="activity-date">{{ activity.timestamp | date: 'MMM d, y · HH:mm' }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Audit Log">
+        <div class="tab-panel">
+          <app-empty-state
+            icon="description"
+            title="Audit log"
+            description="Audit trail for this wallet is recorded server-side. Detailed audit records are available through the audit service."
+          />
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

@@ -4,9 +4,9 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService } from '../../../features/auth/auth.service';
 import { CommandPaletteService } from '../../services/command-palette.service';
 import { environment } from '../../../../environments/environment';
@@ -19,7 +19,6 @@ import { environment } from '../../../../environments/environment';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
-    MatBadgeModule,
     MatDividerModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,18 +34,15 @@ export class HeaderComponent {
   readonly menuToggle = output<void>();
 
   readonly userEmail = signal<string>('');
-  readonly notificationCount = signal<number>(3);
   readonly menuOpen = signal<boolean>(false);
+  readonly currentPage = signal<string>(this.readRouteTitle());
 
   constructor() {
-    this.loadUser();
-  }
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.currentPage.set(this.readRouteTitle()));
 
-  get currentPage(): string {
-    const url = this.router.url;
-    const segments = url.split('/').filter(Boolean);
-    if (segments.length === 0) return 'Dashboard';
-    return segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
+    this.loadUser();
   }
 
   get userInitials(): string {
@@ -76,6 +72,19 @@ export class HeaderComponent {
 
   navigateTo(route: string): void {
     this.router.navigate([route]);
+  }
+
+  private readRouteTitle(): string {
+    let route = this.router.routerState.snapshot.root;
+    while (route.firstChild) {
+      route = route.firstChild;
+    }
+    const title = route.data['title'] as string | undefined;
+    if (title) return title;
+
+    const segments = this.router.url.split('/').filter(Boolean);
+    if (segments.length === 0) return 'Dashboard';
+    return segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
   }
 
   private loadUser(): void {

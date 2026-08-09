@@ -1,24 +1,51 @@
 @use 'styles/tokens' as tokens;
 
 .auth-container {
+  position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   min-height: calc(100vh - var(--aegis-space-16));
   padding: var(--aegis-space-8);
   background-color: var(--aegis-color-bg);
+  overflow: hidden;
+
+  // Portfolio-inspired restrained atmosphere: subtle grid + soft gold glow
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.10) 0%, transparent 55%);
+  background-size: 56px 56px, 56px 56px, 100% 100%;
+  background-position: center top;
+}
+
+.auth-brand {
+  margin-bottom: var(--aegis-space-6);
+}
+
+.auth-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--aegis-radius-lg);
+  box-shadow: var(--aegis-shadow-gold);
 }
 
 .auth-card {
   max-width: 420px;
   width: 100%;
   padding: var(--aegis-space-8);
+  background-color: var(--aegis-surface-card);
+  border: 1px solid var(--aegis-border-default);
+  border-radius: var(--aegis-radius-xl);
+  box-shadow: var(--aegis-shadow-xl);
 
   mat-card-header {
     margin-bottom: var(--aegis-space-6);
     text-align: center;
 
     mat-card-title {
+      font-family: var(--aegis-font-display);
       font-size: var(--aegis-text-3xl);
       margin-bottom: var(--aegis-space-1);
     }

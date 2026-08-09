@@ -3,6 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 import { RegistrationComponent } from './registration.component';
 import { RegistrationService } from './registration.service';
 import { By } from '@angular/platform-browser';
@@ -19,7 +20,7 @@ describe('RegistrationComponent', () => {
         ReactiveFormsModule,
         NoopAnimationsModule
       ],
-      providers: [RegistrationService, provideHttpClient(withInterceptors([])), provideHttpClientTesting()]
+      providers: [RegistrationService, provideRouter([]), provideHttpClient(withInterceptors([])), provideHttpClientTesting()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegistrationComponent);
@@ -74,7 +75,7 @@ describe('RegistrationComponent', () => {
     component.registrationForm.patchValue({
       email: 'john@example.com', password: 'validpassword123', firstName: 'John', lastName: 'Doe'
     });
-    component.isLoading = true;
+    component.isLoading.set(true);
     fixture.detectChanges();
     expect(
       fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
@@ -85,7 +86,7 @@ describe('RegistrationComponent', () => {
     component.registrationForm.patchValue({
       email: 'john@example.com', password: 'validpassword123', firstName: 'John', lastName: 'Doe'
     });
-    component.isLoading = false;
+    component.isLoading.set(false);
     fixture.detectChanges();
     expect(
       fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement.disabled
@@ -97,12 +98,12 @@ describe('RegistrationComponent', () => {
       email: 'john@example.com', password: 'validpassword123', firstName: 'John', lastName: 'Doe'
     });
     component.onSubmit();
-    expect(component.isLoading).toBeTrue();
+    expect(component.isLoading()).toBeTrue();
     httpMock.expectOne('/api/v1/users/register').flush({
       userId: '123', email: 'john@example.com', status: 'ACTIVE', registeredAt: '2026-01-01'
     });
     tick();
-    expect(component.isLoading).toBeFalse();
+    expect(component.isLoading()).toBeFalse();
     flush();
   }));
 
@@ -111,13 +112,13 @@ describe('RegistrationComponent', () => {
       email: 'john@example.com', password: 'validpassword123', firstName: 'John', lastName: 'Doe'
     });
     component.onSubmit();
-    expect(component.isLoading).toBeTrue();
+    expect(component.isLoading()).toBeTrue();
     httpMock.expectOne('/api/v1/users/register').flush(
       { code: 'VALIDATION_ERROR', message: 'Email already exists', details: null, timestamp: '2026-01-01' },
       { status: 400, statusText: 'Bad Request' }
     );
     tick();
-    expect(component.isLoading).toBeFalse();
+    expect(component.isLoading()).toBeFalse();
     flush();
   }));
 
@@ -126,10 +127,10 @@ describe('RegistrationComponent', () => {
       email: 'john@example.com', password: 'validpassword123', firstName: 'John', lastName: 'Doe'
     });
     component.onSubmit();
-    expect(component.isLoading).toBeTrue();
+    expect(component.isLoading()).toBeTrue();
     httpMock.expectOne('/api/v1/users/register').error(new ProgressEvent('network error'));
     tick();
-    expect(component.isLoading).toBeFalse();
+    expect(component.isLoading()).toBeFalse();
     flush();
   }));
 
@@ -144,7 +145,7 @@ describe('RegistrationComponent', () => {
     tick();
     fixture.detectChanges();
 
-    expect(component.successResponse?.userId).toBe('abc-123');
+    expect(component.successResponse()?.userId).toBe('abc-123');
     expect(fixture.debugElement.query(By.css('.success-message'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('form'))).toBeFalsy();
     flush();

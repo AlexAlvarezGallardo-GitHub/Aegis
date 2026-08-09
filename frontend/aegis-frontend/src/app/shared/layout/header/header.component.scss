@@ -1,14 +1,17 @@
+@use 'sass:map';
+@use 'styles/tokens' as tokens;
+
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--aegis-space-6);
-  height: 56px;
+  height: var(--aegis-header-height);
   background-color: var(--aegis-surface-header);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--aegis-border-default);
-  z-index: 100;
+  z-index: var(--aegis-z-sticky);
   flex-shrink: 0;
 }
 
@@ -24,8 +27,8 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: var(--aegis-radius-md);
   background: transparent;
@@ -37,13 +40,65 @@
     color: var(--aegis-color-text);
   }
 
-  mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+  &:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: var(--aegis-focus-ring-offset);
   }
 
-  @media (max-width: 768px) {
+  mat-icon {
+    font-size: var(--aegis-icon-size-xl);
+    width: var(--aegis-icon-size-xl);
+    height: var(--aegis-icon-size-xl);
+  }
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
+    display: flex;
+  }
+}
+
+.mobile-brand {
+  display: none;
+  font-family: var(--aegis-font-display);
+  font-size: var(--aegis-text-lg);
+  font-weight: var(--aegis-font-weight-semibold);
+  letter-spacing: var(--aegis-tracking-wider);
+  color: var(--aegis-color-primary);
+  white-space: nowrap;
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
+    display: inline-block;
+  }
+}
+
+.mobile-search-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--aegis-radius-md);
+  background: transparent;
+  color: var(--aegis-color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--aegis-surface-hover);
+    color: var(--aegis-color-text);
+  }
+
+  &:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: var(--aegis-focus-ring-offset);
+  }
+
+  mat-icon {
+    font-size: var(--aegis-icon-size-xl);
+    width: var(--aegis-icon-size-xl);
+    height: var(--aegis-icon-size-xl);
+  }
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
     display: flex;
   }
 }
@@ -52,6 +107,7 @@
   display: flex;
   align-items: center;
   gap: var(--aegis-space-1);
+  min-width: 0;
 }
 
 .breadcrumb-root {
@@ -61,16 +117,20 @@
 }
 
 .breadcrumb-sep {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+  font-size: var(--aegis-icon-size-sm);
+  width: var(--aegis-icon-size-sm);
+  height: var(--aegis-icon-size-sm);
   color: var(--aegis-color-text-muted);
+  flex-shrink: 0;
 }
 
 .breadcrumb-current {
   font-size: var(--aegis-text-sm);
   font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // ── Center (Search) ──────────────────────────────────────────────────────────
@@ -111,9 +171,9 @@
 }
 
 .search-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+  font-size: var(--aegis-icon-size-sm);
+  width: var(--aegis-icon-size-sm);
+  height: var(--aegis-icon-size-sm);
   flex-shrink: 0;
 }
 
@@ -161,28 +221,9 @@
     color: var(--aegis-color-success);
   }
 
-  &.env-staging {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: var(--aegis-color-warning);
-  }
-
   &.env-dev {
     background-color: rgba(100, 116, 139, 0.12);
     color: var(--aegis-color-text-muted);
-  }
-}
-
-.notification-btn {
-  color: var(--aegis-color-text-muted);
-
-  &:hover {
-    color: var(--aegis-color-text);
-  }
-
-  mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
   }
 }
 
@@ -210,15 +251,15 @@
   height: 28px;
   border-radius: var(--aegis-radius-full);
   background: linear-gradient(135deg, var(--aegis-gold-500), var(--aegis-gold-700));
-  color: var(--aegis-color-navy-900);
+  color: var(--aegis-color-on-primary);
   font-size: 11px;
   font-weight: var(--aegis-font-weight-semibold);
 }
 
 .dropdown-arrow {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: var(--aegis-icon-size-md);
+  width: var(--aegis-icon-size-md);
+  height: var(--aegis-icon-size-md);
   color: var(--aegis-color-text-muted);
 }
 
@@ -236,4 +277,41 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// ── Responsive (< desktop) ───────────────────────────────────────────────────
+// Row 1: [☰] AEGIS  ·  [Search] [avatar]
+// Row 2: breadcrumb
+
+@media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
+  .header {
+    flex-wrap: wrap;
+    height: auto;
+    padding: var(--aegis-space-2) var(--aegis-space-4);
+    row-gap: var(--aegis-space-1);
+  }
+
+  .header-left {
+    order: 1;
+  }
+
+  .header-right {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .header-center {
+    display: none;
+  }
+
+  .breadcrumb {
+    order: 3;
+    width: 100%;
+    padding-left: var(--aegis-space-1);
+    padding-top: 2px;
+  }
+
+  .env-badge {
+    display: none;
+  }
 }

@@ -5,14 +5,12 @@ import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 import { filter } from 'rxjs/operators';
 
 export interface NavItem {
   icon: string;
   label: string;
   route: string;
-  badge?: string;
 }
 
 export interface NavSection {
@@ -25,7 +23,7 @@ const SIDEBAR_STORAGE_KEY = 'aegis-sidebar-collapsed';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule, MatTooltipModule, ThemeToggleComponent],
+  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule, MatTooltipModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
@@ -36,7 +34,9 @@ export class SidebarComponent {
 
   readonly collapsed = input<boolean>(this.loadCollapsedState());
   readonly isMobile = input<boolean>(false);
+  readonly mobileOpen = input<boolean>(false);
   readonly collapsedChange = output<boolean>();
+  readonly mobileClose = output<void>();
 
   readonly currentRoute = signal<string>(this.router.url);
 
@@ -60,7 +60,7 @@ export class SidebarComponent {
       label: 'Monitoring',
       items: [
         { icon: 'shield', label: 'Fraud', route: '/fraud' },
-        { icon: 'notifications_active', label: 'Alerts', route: '/alerts', badge: '3' },
+        { icon: 'notifications_active', label: 'Alerts', route: '/alerts' },
         { icon: 'monitor_heart', label: 'System Health', route: '/health' },
       ],
     },
@@ -89,6 +89,10 @@ export class SidebarComponent {
   toggle(): void {
     this.collapsedChange.emit(!this.collapsed());
     this.saveCollapsedState(!this.collapsed());
+  }
+
+  close(): void {
+    this.mobileClose.emit();
   }
 
   private loadCollapsedState(): boolean {

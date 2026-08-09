@@ -42,14 +42,16 @@ Capturas obtenidas con Playwright contra el stack en vivo, en `evidence/`:
 
 | # | Archivo | Evidencia |
 |---|---------|-----------|
-| 1 | `01-login-filled.png` | Formulario de login completo |
-| 2 | `02-wallets-premium.png` | Lista de wallets con badge **PREMIUM** |
-| 3 | `03-wallet-detail-deposit-section.png` | Nueva sección **Deposit Funds** |
-| 4 | `04-deposit-form-filled.png` | Formulario de depósito (amount/source/reference) |
-| 5 | `05-deposit-receipt.png` | Recibo: 150 EUR from BANK_TRANSFER (ref) |
-| 6 | `06-dup-reference-rejected.png` | Referencia duplicada rechazada (balance sin cambios) |
-| 7 | `07-create-wallet-form.png` | Crear wallet USD |
-| 8 | `08-two-wallets.png` | 2 wallets creadas, 2 monedas |
+| 1 | `01-login-filled.png` | Formulario de login (diseño zinc + logo Aegis) |
+| 2 | `02-wallets.png` | Lista de wallets (info de negocio, sin UUIDs) |
+| 3 | `03-wallet-detail.png` | Full-page Wallet Detail (header, balance overview, tabs) |
+| 4 | `04-deposit-modal.png` | Modal de depósito (amount/source/reference) |
+| 5 | `05-deposit-success-toast.png` | Toast compacto de depósito completado |
+| 6 | `06-dup-reference-rejected.png` | Referencia duplicada rechazada (toast) |
+| 7 | `07-create-wallet-form.png` | Crear wallet (form) |
+| 8 | `08-two-wallets.png` | Varias wallets en la lista |
+| 9–12 | `09-…`–`12-…` | Topics Kafka (backend) |
+| — | `mobile/` · `toast/` · `uuid/` | Evidencia por feature — ver [`evidence/README.md`](../evidence/README.md) |
 | 9 | `09-kafka-topics-list.png` | Topics con mensajes (wallet.funds.deposited=7, fraud=6) |
 | 10 | `10-kafka-topic-wallet-funds.png` | Topic `wallet.funds.deposited` — 7 eventos |
 | 11 | `11-kafka-wallet-funds-messages.png` | Payload de los eventos FUNDS_DEPOSITED |

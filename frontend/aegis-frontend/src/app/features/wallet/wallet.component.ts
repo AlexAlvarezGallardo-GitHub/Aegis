@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, DestroyRef, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, DestroyRef, signal, HostListener } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -7,8 +7,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { A11yModule } from '@angular/cdk/a11y';
+import { Router } from '@angular/router';
 import { WalletService } from './wallet.service';
-import { DepositReceipt, WalletResponse } from '../../shared/models/wallet.model';
+import { WalletActivity, WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
 import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
@@ -17,6 +20,7 @@ import { ToastService } from '../../shared/services/toast.service';
 import { StatusChipComponent, ChipVariant } from '../../shared/data-display/status-chip/status-chip.component';
 import { EmptyStateComponent } from '../../shared/data-display/empty-state/empty-state.component';
 import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card.component';
+import { AegisCurrencyPipe, formatMoney } from '../../shared/utils/currency.pipe';
 
 @Component({
   selector: 'app-wallet',
@@ -29,6 +33,9 @@ import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
+    MatTooltipModule,
+    A11yModule,
+    AegisCurrencyPipe,
     LoadingButtonComponent,
     FormFieldErrorComponent,
     StatusChipComponent,
@@ -43,21 +50,16 @@ export class WalletComponent implements OnInit {
   private fb = inject(FormBuilder);
   private walletService = inject(WalletService);
   private toastService = inject(ToastService);
+  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   walletForm: FormGroup;
   isLoading = false;
   isLoadingList = false;
   wallets = signal<WalletResponse[]>([]);
+  loadError = signal(false);
   showCreatePanel = signal(false);
-  showDetailPanel = signal(false);
-  selectedWallet = signal<WalletResponse | null>(null);
   searchQuery = signal('');
-  showDepositForm = signal(false);
-  isDepositing = signal(false);
-  depositSource = signal('');
-  depositReference = signal('');
-  lastDeposit = signal<DepositReceipt | null>(null);
 
   readonly fieldLabels: Record<string, string> = {
     currency: 'Currency',
@@ -77,15 +79,21 @@ export class WalletComponent implements OnInit {
     const query = this.searchQuery().toLowerCase();
     const all = this.wallets();
     if (!query) return all;
-    return all.filter(w =>
-      w.currency.toLowerCase().includes(query) ||
-      w.walletId.toLowerCase().includes(query)
-    );
+    return all.filter(w => w.currency.toLowerCase().includes(query));
   }
 
-  get totalBalance(): string {
-    const sum = this.wallets().reduce((acc, w) => acc + w.balance, 0);
-    return '$' + sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  totalBalances(): { currency: string; amount: number }[] {
+    const byCurrency = new Map<string, number>();
+    for (const w of this.wallets()) {
+      byCurrency.set(w.currency, (byCurrency.get(w.currency) ?? 0) + w.balance);
+    }
+    return [...byCurrency.entries()].map(([currency, amount]) => ({ currency, amount }));
+  }
+
+  get totalBalanceLabel(): string {
+    const totals = this.totalBalances();
+    if (totals.length === 0) return '$0.00';
+    return totals.map(t => formatMoney(t.amount, t.currency)).join(' · ');
   }
 
   get activeCount(): number {
@@ -98,6 +106,7 @@ export class WalletComponent implements OnInit {
 
   loadWallets(): void {
     this.isLoadingList = true;
+    this.loadError.set(false);
     this.walletService.getWallets()
       .pipe(
         finalize(() => this.isLoadingList = false),
@@ -107,8 +116,17 @@ export class WalletComponent implements OnInit {
         next: (wallets) => {
           this.wallets.set(wallets);
         },
-        error: () => { /* handled by HttpErrorInterceptor */ },
+        error: () => {
+          this.loadError.set(true);
+        },
       });
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    if (this.showCreatePanel()) {
+      this.closeCreatePanel();
+    }
   }
 
   openCreatePanel(): void {
@@ -121,97 +139,11 @@ export class WalletComponent implements OnInit {
   }
 
   openDetail(wallet: WalletResponse): void {
-    this.selectedWallet.set(wallet);
-    this.showDetailPanel.set(true);
+    this.router.navigate(['/wallets', wallet.walletId]);
   }
 
-  closeDetail(): void {
-    this.showDetailPanel.set(false);
-    this.selectedWallet.set(null);
-  }
-
-  adjustBalance(type: 'DEPOSIT' | 'WITHDRAW', amountStr: string, description: string): void {
-    const wallet = this.selectedWallet();
-    if (!wallet) return;
-
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) {
-      this.toastService.warning('Please enter a valid positive amount');
-      return;
-    }
-
-    const finalAmount = type === 'WITHDRAW' ? -amount : amount;
-
-    this.walletService.adjustBalance(wallet.walletId, finalAmount, description || undefined)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (updated) => {
-          this.wallets.update(list =>
-            list.map(w => w.walletId === updated.walletId ? { ...w, balance: updated.balance, premium: updated.premium, updatedAt: updated.updatedAt } : w)
-          );
-          this.selectedWallet.set(updated);
-          this.toastService.success(`Balance ${type === 'DEPOSIT' ? 'deposited' : 'withdrawn'} successfully`);
-        },
-        error: () => this.toastService.warning('Failed to adjust balance')
-      });
-  }
-
-  depositFunds(amountStr: string): void {
-    const wallet = this.selectedWallet();
-    if (!wallet) return;
-
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) {
-      this.toastService.warning('Please enter a valid positive amount');
-      return;
-    }
-    if (!this.depositSource().trim()) {
-      this.toastService.warning('Please specify the source of funds');
-      return;
-    }
-    if (!this.depositReference().trim()) {
-      this.toastService.warning('Please enter a deposit reference');
-      return;
-    }
-
-    this.isDepositing.set(true);
-    this.lastDeposit.set(null);
-
-    this.walletService.depositFunds(wallet.walletId, {
-      amount,
-      currency: wallet.currency,
-      source: this.depositSource(),
-      reference: this.depositReference(),
-    }).pipe(
-      finalize(() => this.isDepositing.set(false)),
-      takeUntilDestroyed(this.destroyRef),
-    )
-      .subscribe({
-        next: (receipt) => {
-          this.wallets.update(list =>
-            list.map(w => w.walletId === receipt.walletId
-              ? { ...w, balance: receipt.newBalance }
-              : w)
-          );
-          this.selectedWallet.update(w => w ? { ...w, balance: receipt.newBalance, updatedAt: receipt.timestamp } : null);
-          this.lastDeposit.set(receipt);
-          this.depositSource.set('');
-          this.depositReference.set('');
-          this.showDepositForm.set(false);
-          this.toastService.success(`$${receipt.amount.toLocaleString()} deposited successfully (ref: ${receipt.reference})`);
-        },
-        error: (err) => {
-          const msg = err.status === 409 ? 'Duplicate deposit reference' : 'Failed to deposit';
-          this.toastService.warning(msg);
-        },
-      });
-  }
-
-  formatCurrency(balance: number, currency: string): string {
-    const prefix = balance < 0 ? '-' : '';
-    const abs = Math.abs(balance);
-    const symbols: Record<string, string> = { EUR: '€', USD: '$', GBP: '£' };
-    return prefix + (symbols[currency] || currency + ' ') + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  openDeposit(wallet: WalletResponse): void {
+    this.router.navigate(['/wallets', wallet.walletId], { queryParams: { tab: 'deposits' } });
   }
 
   onSubmit(): void {
@@ -235,14 +167,19 @@ export class WalletComponent implements OnInit {
           this.wallets.update(w => [wallet, ...w]);
           this.walletForm.reset();
           this.showCreatePanel.set(false);
-          this.toastService.success(`Wallet created! ID: ${wallet.walletId.slice(0, 8)}...`, 5000);
+          this.toastService.success(`${wallet.currency} wallet created successfully`);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
   }
 
-  shortId(id: string): string {
-    return id.slice(0, 8) + '...';
+  getLastActivity(wallet: WalletResponse): WalletActivity | null {
+    const acts = this.walletService.getActivitiesFor(wallet.walletId);
+    return acts.length > 0 ? acts[0] : null;
+  }
+
+  activityLabel(type: string): string {
+    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : 'Adjustment';
   }
 
   getStatusVariant(status: string): ChipVariant {
@@ -256,9 +193,7 @@ export class WalletComponent implements OnInit {
   }
 
   formatBalance(balance: number): string {
-    const prefix = balance < 0 ? '-' : '';
-    const abs = Math.abs(balance);
-    return prefix + '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return formatMoney(balance);
   }
 
   getBalanceClass(balance: number): string {

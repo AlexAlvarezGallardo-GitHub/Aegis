@@ -8,7 +8,15 @@
 button {
   height: var(--aegis-space-12);
   font-size: var(--aegis-text-lg);
-  transition: all var(--aegis-transition);
+  transition: background-color var(--aegis-transition),
+              color var(--aegis-transition),
+              border-color var(--aegis-transition),
+              box-shadow var(--aegis-transition);
+
+  &:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: 2px;
+  }
 
   &.full-width {
     width: 100%;
@@ -44,7 +52,7 @@ button {
 
   &.danger {
     --mdc-protected-button-container-color: var(--aegis-color-error);
-    --mdc-protected-button-label-text-color: #FFFFFF;
+    --mdc-protected-button-label-text-color: var(--aegis-color-on-error);
 
     @include interactions.aegis-hover-glow(var(--aegis-color-error));
   }

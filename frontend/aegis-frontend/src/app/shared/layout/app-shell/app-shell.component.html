@@ -1,15 +1,19 @@
 @if (showShell()) {
   <div class="aegis-shell">
+    <a href="#aegis-main-content" class="skip-link">Skip to main content</a>
+
     <app-sidebar
       [collapsed]="sidebarCollapsed()"
       [isMobile]="isMobile()"
+      [mobileOpen]="mobileOpen()"
       (collapsedChange)="onSidebarCollapsedChange($event)"
+      (mobileClose)="closeMobile()"
     ></app-sidebar>
 
     <div class="aegis-main">
       <app-header (menuToggle)="toggleSidebar()"></app-header>
 
-      <main class="aegis-content">
+      <main id="aegis-main-content" class="aegis-content" tabindex="-1">
         <router-outlet [@routeAnimation]="getRouteAnimation()"></router-outlet>
       </main>
     </div>

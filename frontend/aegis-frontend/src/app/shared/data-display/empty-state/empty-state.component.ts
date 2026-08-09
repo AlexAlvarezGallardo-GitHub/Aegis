@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, ContentChild, TemplateRef, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, ContentChild, TemplateRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +20,7 @@ export class EmptyStateComponent {
   readonly description = input<string>('');
   readonly actionLabel = input<string>('');
   readonly actionRoute = input<string>();
+  readonly action = output<void>();
 
   @ContentChild('illustration') illustrationTemplate?: TemplateRef<unknown>;
 
@@ -27,6 +28,8 @@ export class EmptyStateComponent {
     const route = this.actionRoute();
     if (route) {
       this.router.navigate([route]);
+      return;
     }
+    this.action.emit();
   }
 }

@@ -42,7 +42,7 @@ describe('ToastContainerComponent', () => {
     toastService.error('Bad thing');
     fixture.detectChanges();
 
-    const messages = fixture.nativeElement.querySelectorAll('.toast-message');
+    const messages = fixture.nativeElement.querySelectorAll('.toast-title');
     expect(messages[0].textContent).toContain('All good');
     expect(messages[1].textContent).toContain('Bad thing');
   });
@@ -51,29 +51,27 @@ describe('ToastContainerComponent', () => {
     toastService.success('S');
     toastService.error('E');
     toastService.warning('W');
-    toastService.info('I');
     fixture.detectChanges();
 
     const toasts = fixture.nativeElement.querySelectorAll('.toast');
     expect(toasts[0].classList.contains('toast-success')).toBeTrue();
     expect(toasts[1].classList.contains('toast-error')).toBeTrue();
     expect(toasts[2].classList.contains('toast-warning')).toBeTrue();
-    expect(toasts[3].classList.contains('toast-info')).toBeTrue();
   });
 
-  it('should dismiss toast on click', () => {
+  it('should dismiss toast on close button', () => {
     toastService.success('Click to dismiss');
     fixture.detectChanges();
     expect(toastService.toasts().length).toBe(1);
 
-    const toastEl = fixture.nativeElement.querySelector('.toast');
-    toastEl.click();
+    const closeBtn = fixture.nativeElement.querySelector('.toast-close');
+    closeBtn.click();
     fixture.detectChanges();
     expect(toastService.toasts().length).toBe(0);
   });
 
   it('should render action button when present', () => {
-    toastService.success('Deleted', 5000, { label: 'Undo', callback: () => undefined });
+    toastService.success('Deleted', { action: { label: 'Undo', callback: () => undefined } });
     fixture.detectChanges();
 
     const actionBtn = fixture.nativeElement.querySelector('.toast-action');
@@ -86,11 +84,23 @@ describe('ToastContainerComponent', () => {
     expect(arena.getAttribute('aria-live')).toBe('polite');
   });
 
-  it('should have role alert on each toast', () => {
+  it('should have role alert on errors and role status on success', () => {
     toastService.error('Alert!');
+    toastService.success('OK');
     fixture.detectChanges();
 
-    const toast = fixture.nativeElement.querySelector('.toast');
-    expect(toast.getAttribute('role')).toBe('alert');
+    const toasts = fixture.nativeElement.querySelectorAll('.toast');
+    expect(toasts[0].getAttribute('role')).toBe('alert');
+    expect(toasts[1].getAttribute('role')).toBe('status');
+  });
+
+  it('should cap visible toasts at 3', () => {
+    toastService.success('One');
+    toastService.success('Two');
+    toastService.success('Three');
+    toastService.success('Four');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.toast').length).toBe(3);
   });
 });

@@ -1,0 +1,93 @@
+@use 'sass:map';
+
+// =============================================================================
+// Aegis Design Tokens — Layout (z-index, breakpoints, icon sizes, focus ring)
+// =============================================================================
+// New categories introduced by UC-013 to eliminate scattered magic values.
+// =============================================================================
+
+// -- SCSS Maps ----------------------------------------------------------------
+
+$aegis-z-index: (
+  base: 0,
+  sticky: 100,
+  dropdown: 1000,
+  overlay: 1100,
+  drawer: 1200,
+  modal: 1300,
+  toast: 1400,
+  palette: 1500,
+);
+
+$aegis-breakpoints: (
+  xs: 480px,
+  sm: 768px,
+  md: 1024px,
+  lg: 1280px,
+);
+
+$aegis-icon-sizes: (
+  xs: 14px,
+  sm: 16px,
+  md: 18px,
+  lg: 20px,
+  xl: 24px,
+  xxl: 32px,
+);
+
+$aegis-focus-ring: (
+  width: 2px,
+  color: #d4af37,
+  offset: 2px,
+);
+
+$aegis-dimensions: (
+  sidebar-width: 240px,
+  sidebar-width-collapsed: 64px,
+  header-height: 56px,
+  header-height-mobile: 88px,
+  nav-item-height: 40px,
+  content-max-width: 1280px,
+);
+
+// -- CSS Custom Properties (:root) --------------------------------------------
+
+@mixin aegis-layout-tokens {
+  /* Z-index scale */
+  --aegis-z-base: #{map.get($aegis-z-index, base)};
+  --aegis-z-sticky: #{map.get($aegis-z-index, sticky)};
+  --aegis-z-dropdown: #{map.get($aegis-z-index, dropdown)};
+  --aegis-z-overlay: #{map.get($aegis-z-index, overlay)};
+  --aegis-z-drawer: #{map.get($aegis-z-index, drawer)};
+  --aegis-z-modal: #{map.get($aegis-z-index, modal)};
+  --aegis-z-toast: #{map.get($aegis-z-index, toast)};
+  --aegis-z-palette: #{map.get($aegis-z-index, palette)};
+
+  /* Breakpoints */
+  --aegis-breakpoint-xs: #{map.get($aegis-breakpoints, xs)};
+  --aegis-breakpoint-sm: #{map.get($aegis-breakpoints, sm)};
+  --aegis-breakpoint-md: #{map.get($aegis-breakpoints, md)};
+  --aegis-breakpoint-lg: #{map.get($aegis-breakpoints, lg)};
+
+  /* Icon sizes */
+  --aegis-icon-size-xs: #{map.get($aegis-icon-sizes, xs)};
+  --aegis-icon-size-sm: #{map.get($aegis-icon-sizes, sm)};
+  --aegis-icon-size-md: #{map.get($aegis-icon-sizes, md)};
+  --aegis-icon-size-lg: #{map.get($aegis-icon-sizes, lg)};
+  --aegis-icon-size-xl: #{map.get($aegis-icon-sizes, xl)};
+  --aegis-icon-size-xxl: #{map.get($aegis-icon-sizes, xxl)};
+
+  /* Focus ring */
+  --aegis-focus-ring-width: #{map.get($aegis-focus-ring, width)};
+  --aegis-focus-ring-color: #{map.get($aegis-focus-ring, color)};
+  --aegis-focus-ring-offset: #{map.get($aegis-focus-ring, offset)};
+  --aegis-focus-ring: var(--aegis-focus-ring-width) solid var(--aegis-focus-ring-color);
+
+  /* Layout dimensions */
+  --aegis-sidebar-width: #{map.get($aegis-dimensions, sidebar-width)};
+  --aegis-sidebar-width-collapsed: #{map.get($aegis-dimensions, sidebar-width-collapsed)};
+  --aegis-header-height: #{map.get($aegis-dimensions, header-height)};
+  --aegis-header-height-mobile: #{map.get($aegis-dimensions, header-height-mobile)};
+  --aegis-nav-item-height: #{map.get($aegis-dimensions, nav-item-height)};
+  --aegis-content-max-width: #{map.get($aegis-dimensions, content-max-width)};
+}

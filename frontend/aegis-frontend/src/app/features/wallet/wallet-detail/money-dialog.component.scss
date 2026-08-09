@@ -1,0 +1,30 @@
+:host {
+  display: contents;
+}
+
+.dialog-wallet {
+  font-size: var(--aegis-text-sm);
+  color: var(--aegis-color-text-muted);
+  margin: 0;
+  word-break: break-all;
+}
+
+.adjust-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--aegis-space-2);
+  padding: var(--aegis-space-3);
+  border-radius: var(--aegis-radius-md);
+  background-color: var(--aegis-color-warning-bg);
+  border: 1px solid var(--aegis-color-warning);
+  color: var(--aegis-color-warning-text);
+  font-size: var(--aegis-text-sm);
+  line-height: var(--aegis-leading-normal);
+
+  mat-icon {
+    font-size: var(--aegis-icon-size-lg);
+    width: var(--aegis-icon-size-lg);
+    height: var(--aegis-icon-size-lg);
+    flex-shrink: 0;
+  }
+}

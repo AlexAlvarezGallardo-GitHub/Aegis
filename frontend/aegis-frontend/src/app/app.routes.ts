@@ -19,6 +19,12 @@ export const routes: Routes = [
           .then(m => m.WalletComponent),
       },
       {
+        path: 'wallets/:walletId',
+        loadComponent: () => import('./features/wallet/wallet-detail/wallet-detail.component')
+          .then(m => m.WalletDetailComponent),
+        data: { title: 'Wallet Detail' },
+      },
+      {
         path: 'payments',
         loadComponent: () => import('./shared/layout/page-placeholder/page-placeholder.component')
           .then(m => m.PagePlaceholderComponent),
