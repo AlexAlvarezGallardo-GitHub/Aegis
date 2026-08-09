@@ -16,7 +16,7 @@ Evidencia visual y de pruebas organizada **por feature**. Cada feature correspon
 | — | **Flujos funcionales end-to-end** (login, depósito, idempotencia 409) | — | `01-login-filled.png` · `05-deposit-success-toast.png` · `06-dup-reference-rejected.png` |
 | — | **Eventos Kafka / backend** (no frontend) | — | `09-…`–`12-…` (Kafka UI) |
 | — | **Observability** (Grafana/Tempo) | — | `observability/` |
-| — | **Progreso del proceso** (histórico por fase) | — | `unit/phase*.png` |
+| — | **Progreso del proceso** (histórico por fase) | — | `unit/phase*.png` (las capturas móviles del proceso fueron eliminadas por obsoletas; la evidencia móvil actual está en `mobile/`) |
 
 ## Mapa de capturas por feature
 

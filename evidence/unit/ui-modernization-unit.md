@@ -123,7 +123,7 @@ None. Remaining hex in component SCSS is tracked to specific Phase 3/5 tasks (no
 | Escape closes; backdrop click closes; scroll restored | ✅ |
 | Console errors: **0** | ✅ |
 
-Screenshots: `evidence/unit/phase2-shell-wallets.png`, `evidence/unit/phase2-mobile-drawer-open.png`.
+Screenshots: `evidence/unit/phase2-shell-wallets.png`. (Mobile drawer current evidence: `evidence/mobile/02-drawer-open.png` — see Scope Change 2.)
 
 ### Failures
 
@@ -285,7 +285,7 @@ None.
 ### Live verification (Playwright)
 
 - Viewport matrix 1440/1024/768/390 × `wallets, transactions, login, register` (16 combos): **zero horizontal overflows**, 0 console errors.
-- Screenshot: `evidence/unit/phase7-wallets-mobile-390.png`.
+- Mobile evidence (current): `evidence/mobile/01-wallets-mobile.png`, `evidence/mobile/04-toast-mobile.png` (see Scope Change 2).
 
 ### Failures
 
