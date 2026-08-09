@@ -172,6 +172,60 @@ public class Wallet {
         this.updatedAt = Instant.now();
     }
 
+    /**
+     * Reverses a previously applied deposit by appending an immutable REVERSAL
+     * entry that references the original entry. The original entry is never
+     * modified (ADR-004).
+     *
+     * @param depositEntryId the id of the original DEPOSIT entry
+     * @param reference      idempotency reference for the reversal
+     * @param description    optional description for the reversal entry
+     * @return the newly appended REVERSAL entry
+     * @throws com.aegis.wallet.domain.exception.DepositReversalException if the
+     *         deposit is not found, already reversed, or the wallet is inactive
+     */
+    public LedgerEntry reverseDeposit(UUID depositEntryId, String reference, String description) {
+        if (status != WalletStatus.ACTIVE) {
+            throw new com.aegis.wallet.domain.exception.DepositReversalException(
+                    "Cannot reverse deposit. Wallet is " + status.name().toLowerCase());
+        }
+
+        LedgerEntry original = ledgerEntries.stream()
+                .filter(e -> e.id().equals(depositEntryId))
+                .findFirst()
+                .orElseThrow(() -> new com.aegis.wallet.domain.exception.DepositReversalException(
+                        "Deposit entry not found: " + depositEntryId));
+
+        if (original.type() != LedgerEntryType.DEPOSIT) {
+            throw new com.aegis.wallet.domain.exception.DepositReversalException(
+                    "Entry " + depositEntryId + " is not a DEPOSIT");
+        }
+
+        boolean alreadyReversed = ledgerEntries.stream()
+                .anyMatch(e -> e.type() == LedgerEntryType.REVERSAL
+                        && depositEntryId.equals(e.reversalOf()));
+        if (alreadyReversed) {
+            throw new com.aegis.wallet.domain.exception.DepositReversalException(
+                    "Deposit entry already reversed: " + depositEntryId);
+        }
+
+        this.balance = this.balance.subtract(original.amount());
+
+        LedgerEntry reversal = new LedgerEntry(
+                UuidV7Generator.generate(),
+                walletId.value(),
+                LedgerEntryType.REVERSAL,
+                original.amount(),
+                original.currency(),
+                reference != null ? reference : description != null ? description : "Reversal of " + depositEntryId,
+                Instant.now(),
+                depositEntryId
+        );
+        ledgerEntries.add(reversal);
+        this.updatedAt = Instant.now();
+        return reversal;
+    }
+
     public boolean isPremium() {
         return "EUR".equals(this.currency) && this.balance.compareTo(new BigDecimal("1000")) > 0;
     }

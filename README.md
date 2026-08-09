@@ -46,7 +46,7 @@ Every claim in this repository is backed by a link. Nothing here is asserted wit
 
 | CI status | Security scanning | License | Coverage |
 |-----------|-------------------|---------|----------|
-| [![CI](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml) | [![Security](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml) | [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) | [![Coverage](https://raw.githubusercontent.com/AlexAlvarezGallardo-GitHub/Aegis/gh-pages/badges/coverage.svg)](.github/workflows/coverage.yml) |
+| [![CI](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/ci.yml) | [![Security](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/AlexAlvarezGallardo-GitHub/Aegis/actions/workflows/security.yml) | [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) | [![Coverage](https://raw.githubusercontent.com/AlexAlvarezGallardo-GitHub/Aegis/gh-pages/coverage.svg)](.github/workflows/coverage.yml) |
 
 | Evidence | Where |
 |----------|-------|
@@ -303,7 +303,8 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 |-------|-------|----------|
 | **Unit tests** | JUnit 5 + Mockito | Domain logic covered; per-module coverage reported via JaCoCo |
 | **Integration tests** | Testcontainers (real PostgreSQL 16 + Kafka 7.5) | Adapters tested against real infrastructure |
-| **End-to-end tests** | Testcontainers + MockMvc | Full HTTP request → database → Kafka flow |
+| **End-to-end tests** | Playwright (`e2e/`) | Browser flows against the running stack |
+| **Load tests** | k6 (`load/k6/`) | Concurrency, latency and idempotency under load |
 | **Frontend tests** | Jasmine + Karma | Component rendering, service mocking, form validation |
 
 ### CI/CD — 4 Parallel Quality Gates
@@ -316,6 +317,18 @@ Every pull request triggers automated validation of:
 - **PR body** — Verifies summary, changes, and testing documentation
 
 Plus hooks for **local enforcement** before code ever reaches CI.
+
+Beyond PR validation, the `.github/workflows/` directory runs the full pipeline:
+
+| Workflow | Purpose |
+|----------|---------|
+| `ci.yml` | Build, unit + integration tests, coverage (JaCoCo) |
+| `pr-validation.yml` | Branch/commit/PR title/body gates, backend matrix, frontend build + tests, link checker |
+| `security.yml` | CodeQL, Trivy, SBOM (Syft), Cosign signing, Scorecard |
+| `coverage.yml` | Publishes coverage badge |
+| `nightly.yml` | Scheduled regression checks |
+| `release.yml` | Automated releases |
+| `update-github-metrics.yml` | Refreshes `portfolio/public/data/github-metrics.json` |
 
 ---
 
@@ -350,11 +363,13 @@ aegis/
 │       └── src/main/java/com/aegis/bff/
 │           ├── BffApplication.java    # Spring Boot entry point
 │           ├── BffAuthController.java # /api/bff/auth/* endpoints
-│           ├── BffService.java        # Proxy logic (RestClient → Identity Service)
-│           ├── SessionJwtStore.java   # JWT storage in HttpSession
+│           ├── BffWalletController.java # /api/bff/wallet/* endpoints
+│           ├── IdentityClient.java    # RestClient → Identity Service
+│           ├── WalletClient.java      # RestClient → Wallet Service
+│           ├── TokenStore.java        # JWT storage in HttpSession (Redis-backed)
 │           ├── SessionJwtAuthenticationFilter.java # Session-to-JWT filter
-│           ├── LoginRequest.java      # Login request DTO
-│           └── SecurityConfig.java    # CSRF, HttpOnly cookies, stateless session
+│           ├── SecurityConfig.java    # CSRF, HttpOnly cookies, stateless session
+│           └── BffExceptionHandler.java # Unified REST exception handling
 ├── frontend/
 │   └── aegis-frontend/                # Angular 22 SPA
 │       ├── Dockerfile                 # Production multi-stage build (nginx)
@@ -364,24 +379,29 @@ aegis/
 │       ├── proxy.conf.docker.json     # Dev proxy to Docker service names
 │       ├── .dockerignore
 │       └── src/app/
-│           ├── features/dashboard/    # Dashboard with KPIs and system status
-│           ├── features/wallet/       # Wallet management (create, list, search)
-│           ├── features/registration/ # Registration form component
 │           ├── features/auth/         # Login component (via BFF)
-│           ├── shared/layout/
-│           │   ├── app-shell/         # Main layout wrapper with sidebar + header
-│           │   ├── sidebar/           # Left navigation with grouped sections
-│           │   ├── header/            # Top bar with user menu and theme toggle
-│           │   └── page-placeholder/  # Generic placeholder for stub routes
-│           ├── shared/data-display/   # StatCard, StatusChip, EmptyState, LoadingSkeleton
-│           ├── shared/guards/         # AuthGuard with session verification
-│           ├── shared/interceptors/   # HTTP auth, error handling with 401 redirect
-│           └── shared/models/         # Auth and wallet models
+│           ├── features/registration/ # Registration form component
+│           ├── features/wallet/       # Wallet management (create, list, search)
+│           └── shared/
+│               ├── layout/            # app-shell, sidebar, header, page-placeholder
+│               ├── components/        # Reusable presentational components
+│               ├── data-display/      # StatCard, StatusChip, EmptyState, LoadingSkeleton
+│               ├── directives/        # Shared directives
+│               ├── forms/             # Shared form utilities
+│               ├── guards/            # AuthGuard with session verification
+│               ├── icons/             # Icon set
+│               ├── interceptors/      # HTTP auth, error handling with 401 redirect
+│               ├── models/            # Auth and wallet models
+│               ├── services/          # Shared API services
+│               └── utils/             # Utility helpers
 ├── infra/
 │   ├── docker-compose.yml             # Production: all services with multi-stage builds
 │   ├── docker-compose.dev.yml         # Dev overlay: hot-reload with volume mounts
 │   ├── build-and-run.bat              # Build & run script (accepts 'dev' argument)
-│   └── build-and-run.sh               # Linux equivalent
+│   ├── build-and-run.sh               # Linux equivalent
+│   ├── deploy-local.ps1               # Local deployment helper
+│   ├── observability/                 # Grafana dashboards (api, kafka, outbox, database)
+│   └── .env.example                   # Dev environment template (copy to .env)
 ├── specs/                             # Spec-driven development artifacts
 │   ├── 001-user-registration/
 │   │   ├── spec.md                    # 508-line full specification
@@ -401,10 +421,34 @@ aegis/
 │           ├── auth-api.yaml
 │           ├── user-authenticated-event.json
 │           └── user-account-locked-event.json
+│   ├── 003-create-wallet/             # UC-003 wallet creation
+│   ├── 004-deposit-funds/             # UC-004 deposits with idempotency
+│   ├── 008-fraud-detection/           # UC-008 real-time fraud assessment
+│   ├── 009-manage-wallet/             # UC-009 wallet update/deactivate/reactivate
+│   ├── 010-bff/                       # UC-010 BFF edge service
+│   └── 011-engineering-portfolio/     # UC-011 this engineering portfolio
+├── e2e/                               # Playwright end-to-end tests (browser flows)
+│   └── tests/                         # auth.spec.ts, wallet.spec.ts
+├── load/                              # k6 load testing scripts
+│   └── k6/                            # login, wallets, deposits, idempotency
+├── evidence/                          # Screenshots & observability evidence of the running stack
+│   └── observability/                 # Tempo traces, dashboards, load-test results
 ├── portfolio/                          # Engineering portfolio website (spec 011)
 │   └── public/data/github-metrics.json # Real GitHub metrics (workflow-generated)
 └── docs/
+    ├── adr/                           # Architecture Decision Records (ADR-001 … ADR-013)
+    ├── architecture/                  # Service catalog, CICD pipeline, resilience, idempotency
     ├── design-system/                 # Brand, colors, typography, components
+    ├── observability/                 # OpenTelemetry & tracing guides
+    ├── obsidian/                      # Domain documentation vault (Mermaid diagrams)
+    ├── operations/                    # Operational guides
+    ├── postmortems/                   # Incident postmortems
+    ├── runbooks/                      # Operational runbooks
+    ├── project-status.md              # Capability × environment matrix (source of truth)
+    ├── HANDOVER.md                    # GitOps/Kubernetes handover notes
+    ├── limitations.md                 # Known limitations
+    ├── technical-debt.md              # Tracked technical debt
+    ├── ai-engineering-governance.md   # AI workflow governance
     └── AGENTS-README.md               # AI agent workflow documentation
 ```
 
@@ -480,6 +524,9 @@ docker compose -f infra/docker-compose.yml up -d --build
 | Wallet Service | http://localhost:8083 |
 | PostgreSQL (Identity) | localhost:5432 |
 | PostgreSQL (Wallet) | localhost:5433 |
+| PostgreSQL (Reporting) | localhost:5434 |
+| PostgreSQL (Audit) | localhost:5435 |
+| PostgreSQL (Fraud) | localhost:5436 |
 | Kafka UI | http://localhost:8090 |
 | Redis | localhost:6379 |
 | Database Admin (DbGate) | http://localhost:3000 |

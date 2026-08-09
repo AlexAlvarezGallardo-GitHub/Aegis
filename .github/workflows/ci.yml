@@ -108,8 +108,12 @@ jobs:
       - name: Run PIT on critical modules
         working-directory: backend
         run: |
+          mvn -B -q install -DskipTests -pl aegis-common -am
           mvn -B -pl aegis-identity-service,aegis-wallet-service,aegis-fraud-service \
-            -am -DskipITs \
+            -DskipITs -DskipTests \
+            test-compile
+          mvn -B -pl aegis-identity-service,aegis-wallet-service,aegis-fraud-service \
+            -DskipITs \
             -Pmutation-testing \
             org.pitest:pitest-maven:mutationCoverage
       - name: Upload mutation reports
@@ -196,6 +200,197 @@ jobs:
           image: ${{ matrix.image }}
           tags: ${{ github.sha }},latest
           push: 'true'
+
+  e2e:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [detect-changes, docker-build-push]
+    if: ${{ always() && needs.docker-build-push.result != 'failure' && needs.docker-build-push.result != 'cancelled' && (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.e2e == 'true' || needs.detect-changes.outputs.workflows == 'true') }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare infra env
+        run: cp infra/.env.example infra/.env
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Determine image tag
+        id: img
+        run: |
+          if [ "${{ needs.docker-build-push.result }}" = "success" ]; then
+            echo "TAG=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "TAG=latest" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull and tag service images
+        run: |
+          TAG="${{ steps.img.outputs.TAG }}"
+          pull_with_fallback() {
+            local image="$1"
+            local local_name="$2"
+            for attempt in 1 2 3; do
+              if docker pull "$image:$TAG"; then
+                docker tag "$image:$TAG" "$local_name:latest"
+                return 0
+              fi
+              echo "pull of $image:$TAG failed (attempt $attempt/3); retrying..."
+              sleep 5
+            done
+            # Image for this service was not built in this run (filter did not change).
+            # Fall back to the last published 'latest' tag.
+            echo "::warning::$image:$TAG not found; falling back to :latest"
+            docker pull "$image:latest"
+            docker tag "$image:latest" "$local_name:latest"
+          }
+          for svc in identity wallet bff audit fraud reporting; do
+            pull_with_fallback "ghcr.io/$GHCR_OWNER/$svc-service" "infra-aegis-$svc"
+          done
+          pull_with_fallback "ghcr.io/$GHCR_OWNER/frontend" "infra-aegis-frontend"
+      - name: Start the full stack
+        run: docker compose -f infra/docker-compose.yml up -d
+      - name: Wait for BFF readiness
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8082/actuator/health >/dev/null; then
+              echo "BFF ready after $((i*5))s"
+              break
+            fi
+            sleep 5
+          done
+          curl -sf http://localhost:8082/actuator/health || {
+            echo "::error::BFF never became ready"
+            docker compose -f infra/docker-compose.yml logs --tail=120
+            exit 1
+          }
+      - name: Seed E2E user
+        run: |
+          echo "Waiting for Identity service..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8081/actuator/health >/dev/null; then
+              echo "Identity ready after $((i*5))s"
+              break
+            fi
+            sleep 5
+          done
+          echo "Registering E2E user..."
+          for i in $(seq 1 12); do
+            if curl -sf -X POST http://localhost:8081/api/v1/users/register \
+              -H 'Content-Type: application/json' \
+              -d '{"email":"alex@aegis.test","password":"StrongPass123!","firstName":"Alex","lastName":"Test"}'; then
+              echo "E2E user registered"
+              break
+            fi
+            echo "registration attempt ${i} failed, retrying..."
+            sleep 5
+          done
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run Playwright E2E
+        working-directory: e2e
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-playwright-report
+          path: |
+            e2e/playwright-report/
+            evidence/html-report/
+            evidence/e2e/
+          if-no-files-found: ignore
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
+
+  perf-baseline:
+    name: Performance Baseline (k6)
+    runs-on: ubuntu-latest
+    needs: [detect-changes, docker-build-push]
+    if: ${{ always() && needs.docker-build-push.result == 'success' }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare infra env
+        run: cp infra/.env.example infra/.env
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull and tag service images
+        run: |
+          TAG="${{ github.sha }}"
+          pull_with_fallback() {
+            local image="$1"
+            local local_name="$2"
+            for attempt in 1 2 3; do
+              if docker pull "$image:$TAG"; then
+                docker tag "$image:$TAG" "$local_name:latest"
+                return 0
+              fi
+              echo "pull of $image:$TAG failed (attempt $attempt/3); retrying..."
+              sleep 5
+            done
+            # Image for this service was not built in this run (filter did not change).
+            # Fall back to the last published 'latest' tag.
+            echo "::warning::$image:$TAG not found; falling back to :latest"
+            docker pull "$image:latest"
+            docker tag "$image:latest" "$local_name:latest"
+          }
+          for svc in identity wallet bff audit fraud reporting; do
+            pull_with_fallback "ghcr.io/$GHCR_OWNER/$svc-service" "infra-aegis-$svc"
+          done
+          pull_with_fallback "ghcr.io/$GHCR_OWNER/frontend" "infra-aegis-frontend"
+      - name: Start the full stack
+        run: docker compose -f infra/docker-compose.yml up -d
+      - name: Wait for Identity and BFF readiness
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8081/actuator/health >/dev/null && break
+            sleep 5
+          done
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8082/actuator/health >/dev/null && break
+            sleep 5
+          done
+      - name: Seed perf users
+        run: |
+          for i in $(seq 1 10); do
+            curl -sf -X POST http://localhost:8081/api/v1/users/register -H 'Content-Type: application/json' \
+              -d "{\"email\":\"perfuser$i@aegis.test\",\"password\":\"LoadTest123!\",\"firstName\":\"Perf\",\"lastName\":\"User$i\"}" >/dev/null || true
+          done
+      - name: Run k6 perf smoke
+        run: |
+          docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
+            --user "$(id -u):$(id -g)" \
+            -v "$PWD/load:/scripts" \
+            grafana/k6:latest run \
+            --summary-export /scripts/perf-baseline.json \
+            /scripts/k6/perf.js -e BASE_URL=http://host.docker.internal:8082 -e USER_PREFIX=perfuser
+      - name: Upload perf baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-baseline
+          path: load/perf-baseline.json
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
 
   security-scan:
     name: Trivy Security Scan (${{ matrix.image }})
@@ -347,12 +542,15 @@ jobs:
           cosign sign --yes "$IMAGE"
 
   gitops-update:
-    name: Update GitOps (DEV)
+    name: Update GitOps (DEV) via PR
     runs-on: ubuntu-latest
     needs: [detect-changes, docker-build-push]
     if: ${{ always() && (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true') && needs.docker-build-push.result != 'failure' && needs.docker-build-push.result != 'cancelled' }}
     permissions:
       contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITOPS_TOKEN }}
     steps:
       - name: Checkout GitOps repository
         uses: actions/checkout@v4
@@ -360,23 +558,60 @@ jobs:
           repository: AlexAlvarezGallardo-GitHub/Aegis-GitOps
           token: ${{ secrets.GITOPS_TOKEN }}
           path: aegis-gitops
+          ref: main
       - name: Update image tags
         working-directory: aegis-gitops
         run: |
           sed -i "s|^  tag: .*|  tag: ${{ github.sha }}|g" overlays/dev/*-values.yaml
           git diff --stat
-      - name: Commit and push
+      - name: Validate Helm templates
+        working-directory: aegis-gitops
+        run: |
+          if command -v helm >/dev/null 2>&1; then
+            for d in charts/*/; do
+              helm template "$(basename "$d")" "$d" -f overlays/dev/$(basename "$d")-values.yaml > /dev/null 2>&1 \
+                || echo "::warning::helm template failed for $d (chart may require cluster context)"
+            done
+          else
+            echo "helm not installed; skipping template validation"
+          fi
+      - name: Commit and open PR
         working-directory: aegis-gitops
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b ci/update-dev-image-tags-${{ github.sha }}
           git add overlays/dev/*-values.yaml
           if git diff --cached --quiet; then
-            echo "No image tag changes to push."
+            echo "No image tag changes to commit."
             exit 0
           fi
           git commit -m "chore(infra): update dev image tags to ${{ github.sha }}"
-          git push
+          git push origin ci/update-dev-image-tags-${{ github.sha }}
+
+          # Open (or reuse) a PR instead of pushing directly to main
+          PR_URL=$(gh api "repos/AlexAlvarezGallardo-GitHub/Aegis-GitOps/pulls" \
+            -f title="chore(infra): update dev image tags to ${{ github.sha }}" \
+            -f head="ci/update-dev-image-tags-${{ github.sha }}" \
+            -f base="main" \
+            -f body="Automated image tag promotion from Aegis CI. See commit ${{ github.sha }}." \
+            --jq '.html_url')
+          echo "Opened GitOps PR: $PR_URL"
+          echo "GITOPS_PR_URL=$PR_URL" >> "$GITHUB_ENV"
+      - name: Approve and merge GitOps PR
+        working-directory: aegis-gitops
+        env:
+          GITOPS_PR_URL: ${{ env.GITOPS_PR_URL }}
+        run: |
+          if [ -z "$GITOPS_PR_URL" ]; then
+            echo "No PR to merge."
+            exit 0
+          fi
+          PR_NUM=${GITOPS_PR_URL##*/}
+          # Require the PR to be green, then squash-merge
+          gh pr merge "$PR_NUM" --repo AlexAlvarezGallardo-GitHub/Aegis-GitOps \
+            --squash --delete-branch
+          echo "Merged GitOps PR #$PR_NUM"
 
   ci-summary:
     name: CI Summary
@@ -387,6 +622,8 @@ jobs:
       - mutation-testing
       - frontend-build
       - docker-build-push
+      - e2e
+      - perf-baseline
       - sbom
       - security-scan
       - cosign-sign

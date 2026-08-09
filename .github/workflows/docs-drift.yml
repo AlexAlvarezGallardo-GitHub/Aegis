@@ -1,0 +1,39 @@
+name: Docs Drift
+
+# Detects drift between the canonical platform-registry.json and the actual
+# codebase (backend modules) and the Aegis-GitOps repository (charts and
+# Argo CD applications). Fails the PR when claims diverge from reality.
+#
+# The GitOps repository is public, so the check clones it anonymously.
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'docs/architecture/**'
+      - 'scripts/check-doc-alignment.mjs'
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift-check:
+    name: Docs vs registry alignment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate registry JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('docs/architecture/platform-registry.json','utf8')); console.log('platform-registry.json is valid JSON')"
+
+      - name: Run drift check
+        run: node scripts/check-doc-alignment.mjs

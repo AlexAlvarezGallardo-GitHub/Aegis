@@ -44,7 +44,8 @@ public abstract class AbstractExceptionHandler {
 
     @ExceptionHandler(AegisException.class)
     public ResponseEntity<Map<String, Object>> handleAegisException(AegisException ex) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getCode(), ex.getMessage(), null);
+        return buildErrorResponse(HttpStatus.valueOf(ex.getErrorStatus().getCode()),
+                ex.getCode(), ex.getMessage(), null);
     }
 
     @ExceptionHandler(Exception.class)

@@ -14,19 +14,24 @@ Value object for validated email addresses.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `value` | String | Normalized email |
+| `value` | String | Normalized (trimmed, lowercase) email |
 
 ## Validation Rules
 
 - Non-null, non-blank
-- Matches RFC 5322 pattern
-- Normalized to lowercase
 - Max 255 characters
+- Matches the domain pattern `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
+- Normalized to trimmed lowercase; throws `InvalidEmailException`
+
+## Factory Methods
+
+- `Email.of(value)` → validated instance or `InvalidEmailException`
 
 ## Used By
 
-- [[02 - Domain Models/User\|User]] aggregate root
-- `RegisterUserCommand`, `RegisterUserRequest` DTOs
+- [[02 - Domain Models/User|User]] aggregate root
+- [[02 - Domain Models/Credentials|Credentials]] value object
+- `RegisterUserCommand`, `AuthenticateUserCommand`, `RegisterUserRequest` DTOs
 
 ## JPA Mapping
 

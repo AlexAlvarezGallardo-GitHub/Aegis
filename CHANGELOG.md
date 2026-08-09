@@ -9,12 +9,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Repository governance: `CONTRIBUTING.md`, `.github/CODEOWNERS`, issue templates and PR template.
-- Link checker (lychee) job in CI to validate internal and external links.
-- Architecture tests (ArchUnit) enforcing hexagonal layer boundaries in every backend service.
-- OpenAPI contract validation against controllers.
-- Mutation testing (PIT) coverage reporting for critical domain modules.
-- Public coverage badge wired to a dedicated `coverage.yml` workflow.
+- **Observability evidence**: real traces captured from the minikube + Aegis-GitOps
+  LGTM stack (`evidence/observability/`) — outbox relay, HTTP/security spans and a
+  40-deposit load test (p95 247 ms).
+
+- **GitOps promotion via PR**: the `gitops-update` CI job now opens a pull request
+  in `Aegis-GitOps` (with Helm template validation) and squash-merges it, instead of
+  pushing directly to `main`.
+
+- **Transparency docs**: `docs/limitations.md`, `docs/technical-debt.md`,
+  `docs/ai-engineering-governance.md` and `docs/architecture/cicd-pipeline.md`.
+
+- **ADRs 005-013**: Kafka event backbone, transactional outbox, idempotency
+  strategy, event versioning, retry/DLT, BFF, OpenTelemetry and secrets management.
+
+- **Resilience testing**: `OutboxRelaySchedulerResilienceTest` (Kafka down keeps
+  events PENDING, successful send marks PUBLISHED, missing topic handled) and
+  `docs/architecture/resilience-testing.md`.
+
+- **Postmortem** `docs/postmortems/001-duplicate-deposit-event.md` documenting the
+  simulated duplicate-deposit incident, its root cause, resolution and actions.
+
+- **Kafka trace propagation**: `observation-enabled` on producers/consumers/listeners
+  (identity, wallet, audit, reporting, fraud) so the W3C `traceparent` header flows
+  through Kafka messages for end-to-end distributed tracing (OTLP/Tempo).
+- `KafkaTracePropagationIT` verifying a published message carries the `traceparent`
+  header (format `00-<trace>-<span>-<flags>`).
+- **Grafana dashboards** (`infra/observability/dashboards/`): API (availability, p95
+  latency, 5xx, RPS), Kafka (producer rate, consumer lag, DLT), Outbox
+  (`aegis.outbox.pending_events`) and Database (HikariCP connections, timeouts).
+- **Distributed tracing doc** (`docs/observability/tracing.md`): OTLP
+  instrumentation, Kafka trace propagation, configuration and end-to-end
+  verification steps.
+- Operational docs: `docs/observability/slo.md` (SLI/SLO reference targets),
+  `docs/runbooks/` (consumer lag, outbox blocked, DLT, ledger drift, DB
+  connections, API down, database restore) and `docs/operations/backup-recovery.md`
+  (RPO ≤ 5 min, RTO ≤ 30 min).
+- **Ledger reconciliation** job (`LedgerReconciliationService`): recomputes each
+  wallet balance from its immutable ledger entries, reports drift via
+  `aegis.wallet.reconciliation_discrepancies` gauge.
+- **Deposit reversal** (`POST /api/v1/wallets/{id}/deposits/{depositId}/reversal`):
+  immutable `REVERSAL` ledger entries referencing the original deposit (ADR-004);
+  wallet balance reduced; a deposit can be reversed at most once.
+- **ADR-004**: ledger design (single-entry per-aggregate ledger, immutability, compensations).
+- Docs for the financial model: `wallet-balance.md` (monetary precision, balance types) and
+  `compensations.md` (reversal/compensation design).
+
+### Changed
+
+- **README aligned with the repository**: project structure updated to the real layout
+  (frontend `features/` + `shared/`, BFF controllers/clients, all specs 001-011, `e2e/`,
+  `load/`, `evidence/`, full `docs/` and `infra/` trees), E2E row now reflects Playwright
+  (not MockMvc), load tests via k6, five PostgreSQL access ports, and the CI/CD workflow set.
+- **Obsidian vault aligned with the project** (`docs/obsidian/`): removed non-existent
+  domain events and use cases (`WalletDeactivated`, `WalletReactivated`, `WalletUpdated`,
+  `DeactivateWalletUseCase`, `ReactivateWalletUseCase`), renamed `UC-004 Manage Wallet` →
+  `UC-009 Manage Wallet`, corrected Kafka topic `aegis.wallet.created`, added missing models
+  (`Password`, fraud/audit/reporting), events, inbound/outbound ports, and rewrote the
+  frontend, services, infrastructure and specs docs to reflect the real code.
+
+### Added (Sprint 3)
+
+- Kafka **retry + dead letter topics (DLT)** for the Audit, Reporting and Fraud
+  consumers (`DefaultErrorHandler` + `DeadLetterPublishingRecoverer`, `*.dlt`).
+- Consumer **deduplication** via `processed_events` table (`eventId` unique,
+  `INSERT ... ON CONFLICT DO NOTHING`) in Audit, Reporting and Fraud.
+- **Deposit idempotency** hardened with a unique partial index
+  `idx_ledger_entries_deposit_reference` and concurrent duplicate rejection.
+- **`aegis.outbox.pending_events`** Micrometer gauge in the Wallet outbox relay.
+- Architecture docs: `deposit-flow.md`, `idempotency.md`, `retry-dlt.md`,
+  `outbox-failure.md`, `event-versioning.md`, `kafka-partitioning.md`.
+- Standard event envelope documented and reflected in
+  `funds-deposited.yaml` (`occurredAt`, `causationId`, `aggregateId`, `aggregateType`).
 
 ## [0.1.0] - 2026-08-06
 

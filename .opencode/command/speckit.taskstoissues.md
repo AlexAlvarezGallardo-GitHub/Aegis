@@ -58,7 +58,7 @@ git config --get remote.origin.url
 > [!CAUTION]
 > ONLY PROCEED TO NEXT STEPS IF THE REMOTE IS A GITHUB URL
 
-1. For each task in the list, use the GitHub MCP server to create a new issue in the repository that is representative of the Git remote.
+1. For each task in the list, use the `gh` CLI to create an issue in the repository from the Git remote: `gh api repos/<owner>/<repo>/issues -f title=... -f body=...` (set the repo token inline per AGENTS.md "GitHub Connectivity"). Do NOT use the GitHub MCP server.
 
 > [!CAUTION]
 > UNDER NO CIRCUMSTANCES EVER CREATE ISSUES IN REPOSITORIES THAT DO NOT MATCH THE REMOTE URL

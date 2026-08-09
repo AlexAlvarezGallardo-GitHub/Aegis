@@ -7,5 +7,6 @@ public enum LedgerEntryType {
     TRANSFER_OUT,
     TRANSFER_IN,
     PAYMENT,
-    REFUND
+    REFUND,
+    REVERSAL
 }

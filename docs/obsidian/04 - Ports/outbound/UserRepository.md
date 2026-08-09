@@ -15,13 +15,20 @@ Outbound port for user persistence.
 
 | Method | Description |
 |--------|-------------|
-| `findByEmail(email)` | Lookup user by email |
-| `findById(userId)` | Lookup by ID |
-| `save(user)` | Persist new or updated user |
-| `existsByEmail(email)` | Check email uniqueness |
+| `save(user)` → `User` | Persist new or updated user |
+| `saveAndFlush(user)` → `User` | Persist and flush the persistence context |
+| `findByEmail(email)` → `Optional<User>` | Lookup user by [[02 - Domain Models/Email\|Email]] |
+| `findById(userId)` → `Optional<User>` | Lookup by [[02 - Domain Models/UserId\|UserId]] |
+| `existsByEmail(email)` → `boolean` | Check email uniqueness |
 
 ## Implementation
 
 - **Adapter**: `UserRepositoryAdapter` in `infrastructure/persistence/`
 - **Spring Data**: `UserJpaRepository`
 - **JPA Entity**: `UserJpaEntity`
+
+## Used By
+
+- [[04 - Ports/inbound/RegisterUserUseCase|RegisterUserUseCase]]
+- [[04 - Ports/inbound/AuthenticateUserUseCase|AuthenticateUserUseCase]]
+- [[04 - Ports/inbound/RefreshTokenUseCase|RefreshTokenUseCase]]

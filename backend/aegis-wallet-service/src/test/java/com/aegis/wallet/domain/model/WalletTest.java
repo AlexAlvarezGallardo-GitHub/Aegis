@@ -193,4 +193,46 @@ class WalletTest {
 
         assertEquals(0, BigDecimal.ZERO.compareTo(wallet.getBalance()));
     }
+
+    @Test
+    void reverseDepositShouldReduceBalanceAndAppendReversalEntry() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK_TRANSFER", "TXN-001", null);
+        UUID depositId = wallet.getLedgerEntries().get(1).id();
+
+        LedgerEntry reversal = wallet.reverseDeposit(depositId, "REV-001", null);
+
+        assertEquals(0, BigDecimal.ZERO.compareTo(wallet.getBalance()));
+        assertEquals(LedgerEntryType.REVERSAL, reversal.type());
+        assertEquals(depositId, reversal.reversalOf());
+        assertEquals(0, new BigDecimal("100.00").compareTo(reversal.amount()));
+        // both entries remain in the ledger (immutable history)
+        assertEquals(3, wallet.getLedgerEntries().size());
+    }
+
+    @Test
+    void reverseDepositShouldRejectUnknownEntry() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        assertThrows(com.aegis.wallet.domain.exception.DepositReversalException.class,
+                () -> wallet.reverseDeposit(UUID.randomUUID(), "REV-001", null));
+    }
+
+    @Test
+    void reverseDepositShouldRejectNonDepositEntry() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        UUID openingId = wallet.getLedgerEntries().getFirst().id();
+        assertThrows(com.aegis.wallet.domain.exception.DepositReversalException.class,
+                () -> wallet.reverseDeposit(openingId, "REV-001", null));
+    }
+
+    @Test
+    void reverseDepositShouldRejectSecondReversal() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK_TRANSFER", "TXN-001", null);
+        UUID depositId = wallet.getLedgerEntries().get(1).id();
+
+        wallet.reverseDeposit(depositId, "REV-001", null);
+        assertThrows(com.aegis.wallet.domain.exception.DepositReversalException.class,
+                () -> wallet.reverseDeposit(depositId, "REV-002", null));
+    }
 }

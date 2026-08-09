@@ -44,6 +44,11 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        // The session already carries the JWT; auth is resolved from it on
+                        // every request, so rotating the session id (default changeSessionId
+                        // fixation protection) races under concurrent requests and throws
+                        // "Session was invalidated". The login creates a fresh session.
+                        .sessionFixation().none()
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(

@@ -8,16 +8,21 @@ status: implemented
 
 # Credentials
 
-Value object holding raw authentication input.
+Value object holding validated authentication input.
 
 ## Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `email` | String | Raw email input |
-| `password` | String | Raw password input |
+| `email` | [[02 - Domain Models/Email\|Email]] | Validated email |
+| `password` | String | Raw password (must not be blank) |
+
+## Validation Rules
+
+- Password must be non-null and non-blank
+- Email is a validated [[02 - Domain Models/Email|Email]] value object
 
 ## Used By
 
-- [[04 - Ports/inbound/AuthenticateUserUseCase\|AuthenticateUserUseCase]]
+- `AuthenticateUserCommand` (email/password/correlationId) in the application layer
 - `AuthenticateUserService`

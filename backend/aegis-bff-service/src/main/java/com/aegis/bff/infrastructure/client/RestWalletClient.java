@@ -78,11 +78,12 @@ public class RestWalletClient implements WalletClient {
 
     @Override
     public JsonNode depositFunds(String accessToken, String userId, String walletId,
-                                 BigDecimal amount, String method, String reference,
-                                 String correlationId) {
+                                 BigDecimal amount, String currency, String source,
+                                 String reference, String correlationId) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("amount", amount);
-        body.put("method", method);
+        body.put("currency", currency);
+        body.put("source", source);
         if (reference != null) {
             body.put("reference", reference);
         }
