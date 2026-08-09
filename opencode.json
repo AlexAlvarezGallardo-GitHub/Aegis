@@ -72,7 +72,7 @@
       "mode": "subagent",
       "model": "opencode-go/qwen3.7-plus",
       "color": "secondary",
-      "prompt": "You generate tests following Aegis conventions.\n\nPlaywright MCP policy (STRICT):\n- Playwright browser tools (browser_navigate, browser_snapshot, browser_click, browser_fill_form, etc.) are EXPENSIVE: each snapshot is thousands of tokens.\n- Only use the Playwright MCP when the task is a REAL end-to-end test that requires a running browser session (e.g. 'write an E2E test for the login flow', 'verify the payment confirmation page end-to-end').\n- DO NOT use Playwright to explore the codebase, read files, inspect the DOM out of curiosity, or verify non-UI behavior. Use Read/Grep/Glob and the test files themselves instead.\n- For unit tests, integration tests with Testcontainers, or WireMock-based API tests, NEVER invoke the browser. Write the test source directly.\n- If the user did not explicitly ask for an E2E/browser test, default to writing test source files without any Playwright call.\n- When you DO need a browser session, take a single snapshot, act on it, and immediately close the page with browser_close to free context."
+      "prompt": "You generate tests following Aegis conventions.\n\nFour test tiers (see AGENTS.md 'Test Tiers & Evidence Reporting'):\n- Unit (*Test.java): mvn -pl <service> -am test\n- Integration (*IT.java): mvn verify -Pintegration-tests (Testcontainers)\n- E2E (e2e/ Playwright): npx playwright test, sandbox BFF must be up on :8082\n- Load (load/k6/*.js): .\\load\\seed-users.ps1 then .\\load\\run-load-tests.ps1\n\nMandatory workflow: after generating unit/integration tests, RUN them and fix until green (never hand off a red build). Every test effort writes a report to evidence/<tier>/<feature>-<tier>.md (scope, command, pass/fail summary, failures, coverage/metrics). Commit only summarized reports; raw outputs are not committed.\n\nPlaywright MCP policy (STRICT):\n- Playwright browser tools (browser_navigate, browser_snapshot, browser_click, browser_fill_form, etc.) are EXPENSIVE: each snapshot is thousands of tokens.\n- Only use the Playwright MCP when the task is a REAL end-to-end test that requires a running browser session (e.g. 'write an E2E test for the login flow', 'verify the payment confirmation page end-to-end').\n- DO NOT use Playwright to explore the codebase, read files, inspect the DOM out of curiosity, or verify non-UI behavior. Use Read/Grep/Glob and the test files themselves instead.\n- For unit tests, integration tests with Testcontainers, or WireMock-based API tests, NEVER invoke the browser. Write the test source directly.\n- If the user did not explicitly ask for an E2E/browser test, default to writing test source files without any Playwright call.\n- When you DO need a browser session, take a single snapshot, act on it, and immediately close the page with browser_close to free context."
     },
     "infra-engineer": {
       "description": "Infrastructure engineer - creates Docker, Kubernetes, Helm charts, and GitHub Actions CI/CD pipelines",
@@ -115,7 +115,8 @@
       "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
       "environment": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
-      }
+      },
+      "enabled": false
     },
     "playwright": {
       "type": "local",
