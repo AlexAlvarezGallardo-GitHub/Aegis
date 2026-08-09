@@ -396,6 +396,77 @@ jobs:
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
 
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.e2e == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare infra env
+        run: cp infra/.env.example infra/.env
+      - name: Build service images
+        run: docker compose -f infra/docker-compose.yml build aegis-identity aegis-wallet aegis-bff aegis-audit aegis-fraud aegis-reporting aegis-frontend
+      - name: Start the full stack
+        run: docker compose -f infra/docker-compose.yml up -d
+      - name: Wait for BFF and Identity readiness
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8082/actuator/health >/dev/null; then
+              echo "BFF ready after $((i*5))s"
+              break
+            fi
+            sleep 5
+          done
+          curl -sf http://localhost:8082/actuator/health || {
+            echo "::error::BFF never became ready"
+            docker compose -f infra/docker-compose.yml logs --tail=120
+            exit 1
+          }
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8081/actuator/health >/dev/null; then
+              echo "Identity ready after $((i*5))s"
+              break
+            fi
+            sleep 5
+          done
+      - name: Seed E2E user
+        run: |
+          echo "Registering E2E user..."
+          for i in $(seq 1 12); do
+            if curl -sf -X POST http://localhost:8081/api/v1/users/register \
+              -H 'Content-Type: application/json' \
+              -d '{"email":"alex@aegis.test","password":"StrongPass123!","firstName":"Alex","lastName":"Test"}'; then
+              echo "E2E user registered"
+              break
+            fi
+            echo "registration attempt ${i} failed, retrying..."
+            sleep 5
+          done
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run Playwright E2E
+        working-directory: e2e
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-playwright-report-pr
+          path: |
+            e2e/playwright-report/
+            evidence/html-report/
+            evidence/e2e/
+          if-no-files-found: ignore
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
+
   pr-summary:
     name: PR Summary
     runs-on: ubuntu-latest
@@ -404,6 +475,7 @@ jobs:
       - backend-build
       - frontend-build
       - frontend-tests
+      - e2e-tests
     if: always()
     steps:
       - name: Publish summary
@@ -412,6 +484,7 @@ jobs:
           BACKEND: ${{ needs.backend-build.result }}
           FRONTEND_BUILD: ${{ needs.frontend-build.result }}
           FRONTEND_TESTS: ${{ needs.frontend-tests.result }}
+          E2E: ${{ needs.e2e-tests.result }}
           CHANGES: ${{ toJson(needs.detect-changes.outputs) }}
         with:
           script: |
@@ -419,6 +492,7 @@ jobs:
             const backend = process.env.BACKEND || 'skipped';
             const frontendBuild = process.env.FRONTEND_BUILD || 'skipped';
             const frontendTests = process.env.FRONTEND_TESTS || 'skipped';
+            const e2e = process.env.E2E || 'skipped';
 
             const status = (result) => {
               if (result === 'success') return '✅ success';
@@ -438,6 +512,7 @@ jobs:
               `| Backend build | ${status(backend)} |`,
               `| Frontend build | ${status(frontendBuild)} |`,
               `| Frontend unit tests | ${status(frontendTests)} |`,
+              `| E2E tests | ${status(e2e)} |`,
               '',
               '> Target feedback time: 30–60 seconds for validation jobs with warm cache.',
             ].join('\n');
