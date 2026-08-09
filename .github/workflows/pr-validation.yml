@@ -557,7 +557,18 @@ jobs:
           path: test-reports
           pattern: 'surefire-*'
           merge-multiple: true
+      - name: Check for reports
+        id: reports
+        run: |
+          if [ -n "$(find test-reports -name '*.xml' 2>/dev/null | head -1)" ]; then
+            echo "HAS_REPORTS=1" >> "$GITHUB_OUTPUT"
+            echo "Maven test reports found."
+          else
+            echo "HAS_REPORTS=0" >> "$GITHUB_OUTPUT"
+            echo "No Maven test reports for this PR (no backend changes)."
+          fi
       - name: Generate test report
+        if: ${{ steps.reports.outputs.HAS_REPORTS == '1' }}
         env:
           BRANCH: ${{ github.head_ref }}
           COMMIT: ${{ github.event.pull_request.head.sha }}
@@ -567,6 +578,7 @@ jobs:
             --commit "$COMMIT" \
             -o test-report.md || true
       - name: Post PR comment
+        if: ${{ steps.reports.outputs.HAS_REPORTS == '1' }}
         uses: actions/github-script@v7
         with:
           script: |
