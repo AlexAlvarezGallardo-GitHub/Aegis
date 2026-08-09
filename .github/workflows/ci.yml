@@ -256,10 +256,25 @@ jobs:
           }
       - name: Seed E2E user
         run: |
-          curl -sf -X POST http://localhost:8081/api/v1/users/register \
-            -H 'Content-Type: application/json' \
-            -d '{"email":"alex@aegis.test","password":"StrongPass123!","firstName":"Alex","lastName":"Test"}' \
-            || echo "E2E user already registered"
+          echo "Waiting for Identity service..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8081/actuator/health >/dev/null; then
+              echo "Identity ready after $((i*5))s"
+              break
+            fi
+            sleep 5
+          done
+          echo "Registering E2E user..."
+          for i in $(seq 1 12); do
+            if curl -sf -X POST http://localhost:8081/api/v1/users/register \
+              -H 'Content-Type: application/json' \
+              -d '{"email":"alex@aegis.test","password":"StrongPass123!","firstName":"Alex","lastName":"Test"}'; then
+              echo "E2E user registered"
+              break
+            fi
+            echo "registration attempt ${i} failed, retrying..."
+            sleep 5
+          done
       - name: Install Playwright browsers
         working-directory: e2e
         run: |
