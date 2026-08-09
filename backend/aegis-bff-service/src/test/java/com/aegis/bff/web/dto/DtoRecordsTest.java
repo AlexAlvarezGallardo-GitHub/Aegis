@@ -43,15 +43,16 @@ class DtoRecordsTest {
     }
 
     @Test
-    @DisplayName("DepositFundsRequest should hold amount, method and reference")
+    @DisplayName("DepositFundsRequest should hold amount, currency, source and reference")
     void depositFundsRequest() {
         // Arrange & Act
         DepositFundsRequest request = new DepositFundsRequest(
-                new BigDecimal("100.00"), "BANK_TRANSFER", "ref-123");
+                new BigDecimal("100.00"), "EUR", "BANK_TRANSFER", "ref-123");
 
         // Assert
         assertEquals(new BigDecimal("100.00"), request.amount());
-        assertEquals("BANK_TRANSFER", request.method());
+        assertEquals("EUR", request.currency());
+        assertEquals("BANK_TRANSFER", request.source());
         assertEquals("ref-123", request.reference());
     }
 
@@ -60,7 +61,7 @@ class DtoRecordsTest {
     void depositFundsRequestNullReference() {
         // Arrange & Act
         DepositFundsRequest request = new DepositFundsRequest(
-                new BigDecimal("25.00"), "CARD", null);
+                new BigDecimal("25.00"), "EUR", "CARD", null);
 
         // Assert
         assertNull(request.reference());
