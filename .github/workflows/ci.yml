@@ -376,7 +376,11 @@ jobs:
           done
       - name: Run k6 perf smoke
         run: |
-          docker run --rm -v "$PWD/load:/scripts" grafana/k6:latest run \
+          docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
+            --user "$(id -u):$(id -g)" \
+            -v "$PWD/load:/scripts" \
+            grafana/k6:latest run \
             --summary-export /scripts/perf-baseline.json \
             /scripts/k6/perf.js -e BASE_URL=http://host.docker.internal:8082 -e USER_PREFIX=perfuser
       - name: Upload perf baseline
