@@ -232,12 +232,27 @@ jobs:
       - name: Pull and tag service images
         run: |
           TAG="${{ steps.img.outputs.TAG }}"
+          pull_with_fallback() {
+            local image="$1"
+            local local_name="$2"
+            for attempt in 1 2 3; do
+              if docker pull "$image:$TAG"; then
+                docker tag "$image:$TAG" "$local_name:latest"
+                return 0
+              fi
+              echo "pull of $image:$TAG failed (attempt $attempt/3); retrying..."
+              sleep 5
+            done
+            # Image for this service was not built in this run (filter did not change).
+            # Fall back to the last published 'latest' tag.
+            echo "::warning::$image:$TAG not found; falling back to :latest"
+            docker pull "$image:latest"
+            docker tag "$image:latest" "$local_name:latest"
+          }
           for svc in identity wallet bff audit fraud reporting; do
-            docker pull "ghcr.io/$GHCR_OWNER/$svc-service:$TAG"
-            docker tag  "ghcr.io/$GHCR_OWNER/$svc-service:$TAG" "infra-aegis-$svc:latest"
+            pull_with_fallback "ghcr.io/$GHCR_OWNER/$svc-service" "infra-aegis-$svc"
           done
-          docker pull "ghcr.io/$GHCR_OWNER/frontend:$TAG"
-          docker tag  "ghcr.io/$GHCR_OWNER/frontend:$TAG" "infra-aegis-frontend:latest"
+          pull_with_fallback "ghcr.io/$GHCR_OWNER/frontend" "infra-aegis-frontend"
       - name: Start the full stack
         run: docker compose -f infra/docker-compose.yml up -d
       - name: Wait for BFF readiness
