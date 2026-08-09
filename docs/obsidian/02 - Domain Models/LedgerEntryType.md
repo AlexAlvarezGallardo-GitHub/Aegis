@@ -8,16 +8,20 @@ status: implemented
 
 # LedgerEntryType
 
-Enum classifying ledger transaction types.
+Enum classifying immutable ledger entry types.
 
 ## Values
 
 | Value | Effect | Description |
 |-------|--------|-------------|
-| `CREDIT` | +balance | Funds added |
-| `DEBIT` | -balance | Funds deducted |
-| `RESERVE` | -available | Funds locked |
-| `RELEASE` | +available | Funds unlocked |
+| `OPENING` | +0 | Wallet creation entry |
+| `DEPOSIT` | +balance | Funds added |
+| `WITHDRAWAL` | -balance | Funds deducted |
+| `TRANSFER_OUT` | -balance | Funds sent to another wallet |
+| `TRANSFER_IN` | +balance | Funds received from another wallet |
+| `PAYMENT` | -balance | Funds paid out |
+| `REFUND` | +balance | Funds refunded |
+| `REVERSAL` | -balance | Reverses a DEPOSIT (references original entry) |
 
 ## State Transitions
 
@@ -25,14 +29,22 @@ Ledger entry types represent immutable transaction classifications. Each entry i
 
 ```mermaid
 stateDiagram-v2
-    [*] --> CREDIT: deposit funds
-    [*] --> DEBIT: withdraw funds
-    [*] --> RESERVE: lock funds
-    RESERVE --> RELEASE: unlock funds
-    RESERVE --> DEBIT: confirm deduction
-    CREDIT --> [*]
-    DEBIT --> [*]
-    RELEASE --> [*]
+    [*] --> OPENING: Wallet.create()
+    [*] --> DEPOSIT: deposit funds
+    [*] --> WITHDRAWAL: withdraw funds
+    [*] --> TRANSFER_OUT: send transfer
+    [*] --> TRANSFER_IN: receive transfer
+    [*] --> PAYMENT: pay
+    [*] --> REFUND: refund
+    DEPOSIT --> REVERSAL: reverse deposit (references original)
+    OPENING --> [*]
+    DEPOSIT --> [*]
+    WITHDRAWAL --> [*]
+    TRANSFER_OUT --> [*]
+    TRANSFER_IN --> [*]
+    PAYMENT --> [*]
+    REFUND --> [*]
+    REVERSAL --> [*]
 ```
 
 ## Used By

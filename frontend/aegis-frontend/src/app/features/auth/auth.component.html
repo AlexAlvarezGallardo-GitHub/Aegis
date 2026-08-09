@@ -22,7 +22,7 @@
 
         <app-aegis-loading-button
           label="Sign In"
-          [loading]="isLoading"
+          [loading]="isLoading()"
           [disabled]="loginForm.invalid"
           [fullWidth]="true"
         />
@@ -38,7 +38,7 @@
           <p class="mock-label">Development Mode</p>
           <app-aegis-loading-button
             label="Mock Login (skip auth)"
-            [loading]="isLoading"
+            [loading]="isLoading()"
             [fullWidth]="true"
             variant="danger"
             type="button"

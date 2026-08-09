@@ -27,21 +27,21 @@
 | ⚪ | Prepared — structure exists (GitOps manifests), not operating |
 | — | Not available / not implemented |
 
-> The **DEV** column refers to the verified docker-compose DEV stack (see [Environment status](#environment-status)). The GitOps/Kubernetes DEV structure is not yet an operating cluster.
+> The **DEV** column refers to the verified docker-compose DEV stack (see [Environment status](#environment-status)). The GitOps/Kubernetes DEV structure has partial evidence (minikube, 2026-08-07) but is not yet an independently verified operating cluster.
 
 ## Environment status
 
 | Environment | Status | Notes |
 |-------------|--------|-------|
 | **Local** | Functional | `docker-compose` dev stack: all 6 services, frontend, PostgreSQL ×5, Kafka, Redis |
-| **DEV** | Functional (docker-compose) / Prepared (GitOps) | The docker-compose DEV stack is verified running. The Kubernetes + Argo CD DEV structure exists in `Aegis-GitOps` (charts, `applications/dev/`, app-of-apps) but is **not verified** as an operating cluster — see `docs/HANDOVER.md` |
+| **DEV** | Functional (docker-compose) / Partial (minikube) | The docker-compose DEV stack is verified running. The Kubernetes + Argo CD structure exists in `Aegis-GitOps` (charts, `applications/dev/`, app-of-apps). Evidence from 2026-08-07 shows the wallet service deployed on minikube (`aegis-dev`) with a 40/40 deposit load test (p95 247 ms) and traces exported to Tempo — see `evidence/observability/`. Argo CD bootstrap/sync to `Aegis-GitOps` is still not independently confirmed — see `docs/HANDOVER.md` |
 | **PRE** | Prepared structure | Helm values and overlays exist in `Aegis-GitOps`; no operating cluster |
 | **STAGE** | Prepared structure | Helm values and overlays exist in `Aegis-GitOps`; no operating cluster |
 | **PROD** | Prepared structure | Helm values and overlays exist in `Aegis-GitOps`; no operating cluster |
 
 > PRE, STAGE and PROD demonstrate the intended promotion structure but are not currently operating production environments. There is no customer traffic, no regulatory certification, no real banking or KYC provider, and no commercial SLA.
 
-> **Note:** A previous version of `docs/obsidian/00 - Overview/Aegis Platform.md` stated that DEV runs in minikube via Argo CD. `docs/HANDOVER.md` (2026-08-02) records that Argo CD was never connected to the GitOps repo, so that claim is **unverified** and must not be repeated until a health check confirms the cluster is actually operating.
+> **Note:** `docs/HANDOVER.md` (2026-08-02) records that Argo CD was not yet connected to the GitOps repo, so earlier claims of "DEV runs in minikube via Argo CD" were unverified. Evidence added on 2026-08-07 (`evidence/observability/load-test-deposits.md`, Tempo trace exports, Grafana dashboards) shows the Kubernetes DEV stack running on minikube, so the environment is now marked **partial** rather than unverified. Argo CD bootstrap/sync should be confirmed with a health check before marking DEV **fully verified**.
 
 ## Evidence index
 
@@ -53,6 +53,7 @@ Every claim above points to verifiable evidence:
 | Tests run in CI | `.github/workflows/ci.yml`, `.github/workflows/pr-validation.yml` |
 | Security checks in CI | `.github/workflows/security.yml` (CodeQL, Trivy, SBOM, Scorecard, Cosign) |
 | DEV is GitOps-managed | `Aegis-GitOps` repository: Helm charts, `applications/dev/`, app-of-apps |
+| DEV Kubernetes stack running | `evidence/observability/load-test-deposits.md` (40/40 deposits, p95 247 ms, 2026-08-07), Tempo traces, Grafana dashboards |
 | Observability | Prometheus, Grafana, Loki, Tempo (instrumented in `main`) |
 
 ## Update rules

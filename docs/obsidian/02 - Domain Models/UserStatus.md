@@ -16,22 +16,20 @@ Enum representing account lifecycle states.
 |-------|-------------|
 | `PENDING_VERIFICATION` | Awaiting email verification |
 | `ACTIVE` | Fully registered and active |
-| `LOCKED` | Temporarily locked (failed attempts) |
+| `LOCKED` | Temporarily locked (5 failed attempts, 15 min) |
 | `SUSPENDED` | Admin-suspended |
-| `CLOSED` | Account closed |
 
 ## State Transitions
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDING_VERIFICATION
+    [*] --> PENDING_VERIFICATION: User.register()
     PENDING_VERIFICATION --> ACTIVE: email verified
     ACTIVE --> LOCKED: 5 failed attempts
     ACTIVE --> SUSPENDED: admin
-    ACTIVE --> CLOSED: user request
-    LOCKED --> ACTIVE: timeout / admin unlock
-    SUSPENDED --> ACTIVE: admin
-    CLOSED --> [*]
+    LOCKED --> ACTIVE: lockout expired
+    SUSPENDED --> [*]
+    LOCKED --> [*]
 ```
 
 ## Used By

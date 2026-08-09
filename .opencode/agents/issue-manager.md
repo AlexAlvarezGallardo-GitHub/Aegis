@@ -253,7 +253,7 @@ These are the typical requests you handle and how to execute them:
 
 ## Rules
 
-1. **Always use GitHub MCP tools** for all issue operations (create, update, comment, label, close)
+1. **Always use the `gh` CLI** for all issue operations (create, update, comment, label, close). Do NOT use the GitHub MCP tools — they fail with 403. Set the repo token inline per AGENTS.md: `$env:GITHUB_TOKEN = $env:AEGIS_FINE_GRAINED`
 2. **Always verify before modifying**: read an issue's current state before updating it
 3. **Never close an epic** without confirming all children are closed or explicitly excluded
 4. **Never create orphan issues**: every issue should be linked to a parent or be an epic

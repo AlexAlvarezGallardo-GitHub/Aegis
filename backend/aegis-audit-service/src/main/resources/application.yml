@@ -31,12 +31,19 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
 aegis:
   kafka:
     topics:
       funds-deposited: wallet.funds.deposited
       fraud-assessment-completed: fraud.assessment.completed
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+    dlt-suffix: .dlt
 
 springdoc:
   api-docs:

@@ -85,7 +85,12 @@ When asked for a status report, include:
 
 ## Tool usage
 
-- Use `github_list_issues`, `github_get_issue`, `github_create_issue`, `github_update_issue`, `github_add_issue_comment`.
+- Use the `gh` CLI for all GitHub issue/PR operations. Do NOT use the GitHub MCP tools — they are authenticated with a separate credential that frequently fails (403).
+- Set the repo-scoped token inline per command; never export it globally (see AGENTS.md "GitHub Connectivity"):
+  - Aegis repo → `$env:GITHUB_TOKEN = $env:AEGIS_FINE_GRAINED` (fallback: `AEGIS_PORTFOLIO_FINE_GRAINED`)
+  - Aegis-Portfolio → `$env:AEGIS_PORTFOLIO_FINE_GRAINED`
+  - Aegis-GitOps → `$env:AEGIS_GITOPS_FINE_GRAINED`
+- Prefer `gh issue list`, `gh issue view <n>`, `gh issue edit <n> --body-file -`, `gh api repos/<owner>/<repo>/issues`.
 - Use `task` with `explore` agent only for codebase exploration when needed.
 - Prefer parallel calls when fetching multiple issues.
 - Always preserve existing issue content; enrich it, do not overwrite it blindly.

@@ -38,14 +38,14 @@ graph TB
         ArgoCD[Argo CD]
         AppOfApps[app-of-apps-dev]
         DEV[DEV Namespace: aegis-dev]
-        PRE[PRE Namespace - future]
-        STAGE[STAGE Namespace - future]
-        PROD[PROD Namespace - future]
+        PRE[PRE Namespace: aegis-pre]
+        STAGE[STAGE Namespace: aegis-stage]
+        PROD[PROD Namespace: aegis-prod]
     end
 
     AppCode -->|push to main| CI
     CI -->|docker push| GHCR
-    CI -->|update image tags| Overlays
+    CI -->|gitops-update PR| GitOpsRepo
     GHCR --> ArgoCD
     Charts --> Overlays
     Overlays --> ArgoApp
@@ -81,8 +81,8 @@ sequenceDiagram
 
     Dev->>CI: Push to main
     CI->>CI: Build & test
-    CI->>GHCR: Push Docker images
-    CI->>GitOps: Update image tags (overlays/dev/*-values.yaml)
+    CI->>GHCR: Push Docker images (immutable SHA tags)
+    CI->>GitOps: gitops-update job opens PR (overlays/dev/*-values.yaml)
     GitOps-->>Argo: Detect manifest change
     Argo->>AppOfApps: Reconcile applications/
     AppOfApps->>K8s: Auto-discover child apps & sync
@@ -120,6 +120,8 @@ graph TB
 Aegis-GitOps/
 ├── applications/          # Argo CD Application manifests
 │   ├── app-of-apps-dev.yaml   # Root app-of-apps (auto-discovers dev apps)
+│   ├── monitoring.yaml        # Observability stack (ns monitoring)
+│   ├── logging.yaml           # Loki + Promtail (ns logging)
 │   ├── dev/                   # One application per dev service/infra
 │   │   ├── bff.yaml
 │   │   ├── database.yaml
@@ -128,9 +130,9 @@ Aegis-GitOps/
 │   │   ├── kafka.yaml
 │   │   ├── redis.yaml
 │   │   └── wallet.yaml
-│   ├── pre/               # (future app-of-apps per environment)
-│   ├── stage/
-│   └── prod/
+│   ├── pre/               # bff, frontend, identity, wallet (no app-of-apps yet)
+│   ├── stage/             # bff, frontend, identity, wallet
+│   └── prod/              # bff, frontend, identity, wallet
 ├── base/                  # Shared reference values
 ├── charts/                # Helm charts per service
 │   ├── identity/
@@ -143,21 +145,50 @@ Aegis-GitOps/
 │   ├── stage/
 │   └── prod/
 └── infrastructure/        # Platform infrastructure (base/overlays pattern)
-    ├── argocd/
+    ├── argocd/            # Argo CD install + config + RBAC
     ├── database/          # postgres-identity, postgres-wallet
     ├── kafka/             # kafka, zookeeper
-    └── redis/             # redis
+    ├── redis/             # redis
+    ├── monitoring/        # Prometheus, Grafana, Tempo, Alertmanager, exporters
+    └── logging/           # Loki, Promtail
 ```
 
 ## Environments
 
-| Environment | Overlay | Namespace | Status |
-|-------------|---------|-----------|--------|
-| DEV   | `overlays/dev/`   | `aegis-dev`   | **Active** (minikube) |
-| PRE   | `overlays/pre/`   | `aegis-pre`   | Not deployed |
-| STAGE | `overlays/stage/` | `aegis-stage` | Not deployed |
-| PROD  | `overlays/prod/`  | `aegis-prod`  | Not deployed |
+| Environment | Overlay | Namespace | Sync | Prune | Self-Heal |
+|-------------|---------|-----------|------|-------|-----------|
+| DEV   | `overlays/dev/`   | `aegis-dev`   | Auto | Yes | Yes |
+| PRE   | `overlays/pre/`   | `aegis-pre`   | Auto | Yes | Yes |
+| STAGE | `overlays/stage/` | `aegis-stage` | Manual/Approval | Yes | Yes |
+| PROD  | `overlays/prod/`  | `aegis-prod`  | Manual/Approval | **No** | Yes |
 
-Each environment gets its own app-of-apps Application (`app-of-apps-<env>` pointing at `applications/<env>/`) when it becomes active. Overlays and charts for pre/stage/prod already exist in the repo and are promotion-ready.
+The `aegis-pre`, `aegis-stage` and `aegis-prod` applications already exist in `applications/` for the four service charts and are promotion-ready; only DEV has a root `app-of-apps` today (`app-of-apps-dev.yaml`).
+
+## Deployable via GitOps
+
+Argo CD deploys **only** the services that ship a Helm chart:
+
+- `identity`, `wallet`, `bff`, `frontend` (service charts)
+- `database`, `kafka`, `redis` (infrastructure)
+- `monitoring`, `logging` (observability)
+
+> **Note:** `audit`, `fraud` and `reporting` have **no Helm chart and no Argo CD Application**. They run only via docker-compose locally and ship images to GHCR through CI — they are **not** deployable via GitOps today.
+
+## Images & Pull Secret
+
+- Images are pushed to GHCR under `ghcr.io/alexalvarezgallardo-github/`:
+  `identity-service`, `wallet-service`, `bff-service`, `frontend`
+- Tags are immutable SHA tags (`tag: <git-sha>`), overridden per environment in `overlays/<env>/*-values.yaml`
+- Pods pull images via the `ghcr-pull` imagePullSecret (created by `scripts/setup-minikube.ps1`)
+
+## Bootstrap
+
+- Argo CD installs itself via `infrastructure/argocd/install` (kustomize)
+- `applications/app-of-apps-dev.yaml` is the single bootstrap point
+- `scripts/setup-minikube.ps1` automates cluster creation, Argo CD install, GHCR pull secret and app-of-apps apply
+
+## Promotion
+
+The `gitops-update` CI job (`ci.yml`) opens a PR against `Aegis-GitOps` updating the dev image tags in `overlays/dev/*-values.yaml`. Promotion to pre/stage/prod follows the same manual-approval flow by bumping the respective overlay values.
 
 See [[05 - Infrastructure/Argo CD\|Argo CD]] for application reconciliation and [[05 - Infrastructure/Helm Charts\|Helm Charts]] for chart and overlay details.

@@ -7,6 +7,7 @@ import com.aegis.wallet.domain.model.WalletId;
 import com.aegis.wallet.domain.port.inbound.DepositFundsUseCase;
 import com.aegis.wallet.domain.port.outbound.EventPublisher;
 import com.aegis.wallet.domain.port.outbound.WalletRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,15 @@ public class DepositFundsService implements DepositFundsUseCase {
 
         wallet.depositFunds(command.amount(), command.source(), command.reference(), "Deposit");
 
-        walletRepository.save(wallet);
+        try {
+            walletRepository.save(wallet);
+        } catch (DuplicateKeyException e) {
+            // Race condition guard: a concurrent request inserted the same
+            // reference between our in-memory check and the DB write. The unique
+            // partial index (V3__unique_deposit_reference.sql) rejects the second
+            // insert; translate the integrity violation to the domain exception.
+            throw new DuplicateDepositException(command.reference());
+        }
 
         var event = wallet.toFundsDepositedEvent(
                 command.amount(), command.source(), command.reference(), command.correlationId());

@@ -6,33 +6,61 @@ status: implemented
 
 # Frontend Components
 
+Standalone Angular 22 components. Total: 21 `.component.ts` (3 feature + 18 shared).
+
+## Root Component
+
+| Component | Description |
+|-----------|-------------|
+| `AppComponent` | Root standalone component |
+
 ## Feature Components
 
 | Component | Route | Description |
 |-----------|-------|-------------|
-| `DashboardComponent` | `/dashboard` | KPIs, charts, activity feed, system health |
-| `WalletListComponent` | `/wallets` | Wallet table with CRUD actions |
-| `WalletDetailComponent` | `/wallets/:id` | Wallet detail with timeline |
-| `AuthComponent` | `/login` | Login form |
+| `AuthComponent` | `/login` | Login form (real + mock login in dev) |
 | `RegistrationComponent` | `/register` | Registration form |
+| `WalletComponent` | `/wallets` | Wallet CRUD + deposits |
 
-## Shared / UX Foundation
+## Shared Components (UX Foundation)
 
-| Component | Description |
-|-----------|-------------|
-| `AppShellComponent` | Layout wrapper (sidebar + header) |
-| `StatCardComponent` | KPI metric card with trend |
-| `StatusChipComponent` | Colored status badge |
-| `LoadingSkeletonComponent` | Skeleton loader |
-| `EmptyStateComponent` | Empty state display |
-| `AegisIconComponent` | Custom SVG icons |
-| `WalletEditDialogComponent` | Edit wallet name dialog |
-| `DeactivateConfirmationDialogComponent` | Confirm deactivation |
-| `PagePlaceholderComponent` | Generic placeholder for future routes |
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `AppShellComponent` | `shared/layout` | Protected layout wrapper (sidebar + header) |
+| `HeaderComponent` | `shared/layout` | App header |
+| `SidebarComponent` | `shared/layout` | Navigation sidebar |
+| `PagePlaceholderComponent` | `shared/layout` | Generic "under construction" placeholder |
+| `CommandPaletteComponent` | `shared/components` | Cmd/Ctrl+K palette with fuzzy search |
+| `ConfirmationDialogComponent` | `shared/components` | Confirm dialog (CDK Dialog) |
+| `KeyboardShortcutCheatSheetComponent` | `shared/components` | Shortcut cheat sheet (`?` key) |
+| `ThemeToggleComponent` | `shared/components` | Light/dark theme toggle |
+| `ToastContainerComponent` | `shared/components` | Toast container (signals) |
 
-## Shared Form Components
+## Shared Data Display
 
-| Component | Description |
-|-----------|-------------|
-| `FormFieldComponent` | Wrapped Material form field |
-| `FormErrorsComponent` | Validation error display |
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `StatCardComponent` | `shared/data-display` | KPI metric card with `CountUpDirective` |
+| `StatusChipComponent` | `shared/data-display` | Colored status badge (variants) |
+| `EmptyStateComponent` | `shared/data-display` | Empty state display |
+| `LoadingSkeletonComponent` | `shared/data-display` | Skeleton loader |
+
+## Shared Forms
+
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `FormFieldErrorComponent` | `shared/forms` | Validation error display |
+| `LoadingButtonComponent` | `shared/forms` | Button with loading state |
+| `PasswordInputComponent` | `shared/forms` | Password input (`ControlValueAccessor`) |
+
+## Icons
+
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `AegisIconComponent` | `shared/icons` | Custom SVG icons |
+
+## Directives
+
+| Directive | Location | Description |
+|-----------|----------|-------------|
+| `CountUpDirective` | `shared/directives` | Animated number count-up for `StatCardComponent` |

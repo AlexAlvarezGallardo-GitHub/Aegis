@@ -110,6 +110,14 @@ html-report/
 evidence/html-report/
 
 # ============================================================================
+# Evidence - raw outputs are reproducible via scripts (reports ARE committed)
+# ============================================================================
+evidence/**/*.txt
+evidence/**/*-summary.json
+evidence/e2e/*.json
+hero-*.png
+
+# ============================================================================
 # Build Artifacts
 # ============================================================================
 build/

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -48,7 +48,7 @@ export class AuthComponent {
   private destroyRef = inject(DestroyRef);
 
   loginForm: FormGroup;
-  isLoading = false;
+  isLoading = signal(false);
 
   readonly enableMockLogin = environment.enableMockLogin;
 
@@ -71,11 +71,11 @@ export class AuthComponent {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.authService.login(this.loginForm.value)
       .pipe(
-        finalize(() => this.isLoading = false),
+        finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -93,10 +93,10 @@ export class AuthComponent {
   }
 
   mockLogin(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.authService.mockLogin()
       .pipe(
-        finalize(() => this.isLoading = false),
+        finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({

@@ -17,6 +17,22 @@ payload:
   schemaVersion:
     type: string
     example: "1.0"
+  occurredAt:
+    type: string
+    format: date-time
+    description: When the event occurred (alias of timestamp)
+  causationId:
+    type: string
+    format: uuid
+    nullable: true
+    description: Identifier of the command/event that caused this event
+  aggregateId:
+    type: string
+    format: uuid
+    description: Identifier of the aggregate (the wallet)
+  aggregateType:
+    type: string
+    enum: [WALLET]
   walletId:
     type: string
     format: uuid
