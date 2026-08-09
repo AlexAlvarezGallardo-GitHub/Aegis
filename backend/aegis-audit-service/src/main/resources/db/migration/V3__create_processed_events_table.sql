@@ -2,7 +2,7 @@ CREATE TABLE processed_events (
     event_id       UUID         PRIMARY KEY,
     topic          VARCHAR(255) NOT NULL,
     partition      INTEGER      NOT NULL,
-    offset         BIGINT       NOT NULL,
+    kafka_offset   BIGINT       NOT NULL,
     processed_at   TIMESTAMP    NOT NULL
 );
 

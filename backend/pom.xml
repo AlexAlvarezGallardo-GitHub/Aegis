@@ -190,9 +190,10 @@
                             <param>com.aegis.*.domain.*</param>
                         </targetClasses>
                         <targetTests>
-                            <param>com.aegis.*.domain.*</param>
-                            <param>com.aegis.*.application.*</param>
+                              <param>com.aegis.*.domain.*Test</param>
+                              <param>com.aegis.*.application.*Test</param>
                         </targetTests>
+                        <maxMemory>4096</maxMemory>
                         <mutators>
                             <mutator>CONDITIONALS_BOUNDARY</mutator>
                             <mutator>INCREMENTS</mutator>

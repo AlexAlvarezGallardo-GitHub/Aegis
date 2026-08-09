@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -89,6 +90,10 @@ class ConcurrentDepositIdempotencyIT {
                             "BANK_TRANSFER", reference, "corr-" + UUID.randomUUID()));
                     successCount.incrementAndGet();
                 } catch (DuplicateDepositException e) {
+                    duplicateCount.incrementAndGet();
+                } catch (DataIntegrityViolationException e) {
+                    // Under true concurrency the DB unique index (V3) is what
+                    // rejects the losing deposits, so treat it as a duplicate too.
                     duplicateCount.incrementAndGet();
                 }
                 return null;
