@@ -36,23 +36,32 @@ def parse_suite(path):
     }
 
 
+SERVICE_PREFIXES = ["identity", "wallet", "bff", "audit", "fraud", "reporting", "common"]
+
+
+def module_from_suite(name):
+    # name is the fully qualified class, e.g. com.aegis.bff.BffServiceTest
+    for svc in SERVICE_PREFIXES:
+        if name.startswith(f"com.aegis.{svc}."):
+            return "aegis-common" if svc == "common" else f"aegis-{svc}-service"
+    return "unknown"
+
+
 def scan_maven(root):
     modules = {}
-    patterns = [
-        "**/target/surefire-reports/*.xml",
-        "**/target/failsafe-reports/*.xml",
-    ]
-    for pattern in patterns:
-        for path in glob.glob(os.path.join(root, pattern), recursive=True):
-            # derive module from path, e.g. backend/aegis-identity-service/target/...
-            parts = path.replace("\\", "/").split("/")
-            module = "unknown"
-            for i, p in enumerate(parts):
-                if p == "backend" and i + 1 < len(parts):
-                    module = parts[i + 1]
-                    break
-            kind = "IT" if "failsafe" in path else "unit"
-            modules.setdefault(module, []).append((kind, parse_suite(path)))
+    for path in glob.glob(os.path.join(root, "**", "*.xml"), recursive=True):
+        # upload-artifact flattens paths, so attribute the module from the
+        # testsuite package instead of the directory layout.
+        try:
+            root_el = ET.parse(path).getroot()
+        except ET.ParseError:
+            continue
+        if root_el.tag != "testsuite":
+            continue
+        suite = parse_suite(path)
+        module = module_from_suite(suite["name"])
+        kind = "IT" if "failsafe" in path.replace("\\", "/") else "unit"
+        modules.setdefault(module, []).append((kind, suite))
     return modules
 
 
