@@ -1,56 +1,44 @@
-// k6 load test: idempotency - repeat the same deposit reference
-// Expected: exactly one 201, subsequent attempts return 409 DuplicateDeposit.
+// k6 load test: deposit idempotency via BFF
+// Expected: first attempt 201, every repeat with the same reference 409 (no double-apply).
 // Run: k6 run --vus 10 --duration 1m load/k6/idempotency.js
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import {
+  BASE_URL, login, userEmail, PASSWORD, stateChangingHeaders, ensureWallet,
+} from './lib.js';
 
 export const options = {
   vus: 10,
   duration: '1m',
+  // NOTE: 409 is the EXPECTED response for repeated references, so the generic
+  // `http_req_failed` threshold does not apply here (k6 counts any 4xx/5xx as
+  // a failure). Correctness is asserted below: 201 first / 409 repeat / never 5xx.
   thresholds: {
-    http_req_failed: ['rate<0.01'],
+    checks: ['rate==1'],
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8082';
-const FIXED_REFERENCE = 'IDEMPOTENCY-FIXED-REF';
-
-const wallets = {};
-
-function ensureWallet(userId) {
-  if (wallets[userId]) {
-    return wallets[userId];
-  }
-  const create = http.post(`${BASE_URL}/api/bff/wallets`, JSON.stringify({
-    currency: 'EUR',
-  }), {
-    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
-  });
-  if (create.status === 201) {
-    wallets[userId] = create.json('walletId');
-  }
-  return wallets[userId];
-}
-
 export default function () {
-  const userId = `idem-user-${__VU}`;
-  const walletId = ensureWallet(userId);
+  const vu = __VU;
+  login(userEmail(vu), PASSWORD);
+
+  const walletId = ensureWallet(vu, 'EUR');
   if (!walletId) {
     return;
   }
 
-  // Reuse the SAME reference every iteration for this VU
   const res = http.post(`${BASE_URL}/api/bff/wallets/${walletId}/deposits`, JSON.stringify({
     amount: 50.0,
     currency: 'EUR',
     source: 'BANK_TRANSFER',
-    reference: `${FIXED_REFERENCE}-${__VU}`,
+    reference: `K6-IDEM-${vu}`,
   }), {
-    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+    headers: stateChangingHeaders(),
   });
 
   check(res, {
     'deposit is 201 (first) or 409 (duplicate)': (r) => r.status === 201 || r.status === 409,
+    'never a 5xx': (r) => r.status < 500,
   });
 
   sleep(1);

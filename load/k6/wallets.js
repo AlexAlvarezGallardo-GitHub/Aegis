@@ -1,7 +1,12 @@
-// k6 load test: wallet creation + listing
+// k6 load test: create (once per VU) + list wallets via BFF (UC-003)
+// Wallet creation is one-time onboarding; the common read path is listing.
+// Each iteration uses a fresh authenticated session (login per iteration).
 // Run: k6 run --vus 30 --duration 2m load/k6/wallets.js
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import {
+  BASE_URL, login, userEmail, PASSWORD, ensureWallet, trends,
+} from './lib.js';
 
 export const options = {
   stages: [
@@ -11,34 +16,29 @@ export const options = {
   ],
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<300'],
+    // SLO for the wallet read path (docs/observability/slo.md: p95 = 300 ms).
+    aegis_list_wallets_latency: ['p(95)<300'],
+    aegis_create_wallet_latency: ['p(95)<300'],
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8082';
-
 export default function () {
-  const userId = `user-${__VU}-${__ITER}`;
+  const vu = __VU;
+  login(userEmail(vu), PASSWORD);
 
-  const create = http.post(`${BASE_URL}/api/bff/wallets`, JSON.stringify({
-    currency: 'EUR',
-  }), {
-    headers: {
-      'Content-Type': 'application/json',
-      'X-User-Id': userId,
-    },
-  });
-
-  check(create, {
-    'create wallet status is 201': (r) => r.status === 201,
-  });
+  const walletId = ensureWallet(vu, 'EUR');
+  if (!walletId) {
+    return;
+  }
 
   const list = http.get(`${BASE_URL}/api/bff/wallets`, {
-    headers: { 'X-User-Id': userId },
+    headers: { 'Content-Type': 'application/json' },
+    tags: { name: 'list_wallets' },
   });
-
+  trends.listWallets.add(list.timings.duration);
   check(list, {
-    'list wallets status is 200': (r) => r.status === 200,
+    'list wallets returns 200': (r) => r.status === 200,
+    'list returns the created wallet': (r) => r.status === 200 && r.body.includes(walletId),
   });
 
   sleep(1);
