@@ -65,6 +65,7 @@ public class WalletRepositoryAdapter implements WalletRepository {
                         entry.amount(),
                         entry.currency(),
                         entry.reference(),
+                        entry.reversalOf(),
                         entry.timestamp()
                 ));
             }
@@ -108,7 +109,8 @@ public class WalletRepositoryAdapter implements WalletRepository {
                         e.getAmount(),
                         e.getCurrency(),
                         e.getReference(),
-                        e.getCreatedAt()
+                        e.getCreatedAt(),
+                        e.getReversalOf()
                 ))
                 .collect(Collectors.toList());
 

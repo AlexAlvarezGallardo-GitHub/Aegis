@@ -185,6 +185,24 @@ When testing Angular components, the test-engineer MUST verify:
 - **finalize guarantee**: Use a spy and verify `isLoading` transitions: `false → true → false` always completes
 - **HTTP mock**: Use `HttpTestingController` to flush/expect requests and verify loading states
 
+## Test Tiers & Evidence Reporting
+
+Tests are organized in four tiers. Every tier MUST be runnable and MUST produce a report under `evidence/`.
+
+| Tier | Where | Run | Report |
+|------|-------|-----|--------|
+| Unit | `backend/*/src/test/java/**/*Test.java` | `mvn -pl <service> -am test` | surefire (console + XML) |
+| Integration | `backend/*/src/test/java/**/*IT.java` | `mvn verify -Pintegration-tests` | failsafe |
+| E2E | `e2e/` (Playwright) | `npx playwright test` (in `e2e/`) | `evidence/e2e/` |
+| Load | `load/k6/*.js` | `.\load\run-load-tests.ps1` | `evidence/load*/RESULTS.md` + summary JSON |
+
+Rules:
+
+- **Run and fix before handoff**: the test-engineer MUST execute the tests it generates (unit/integration) and fix them until green. Never hand off a red build. The `service-builder` must run `mvn test` + checkstyle for every service it touches.
+- **Report every tier**: each test effort writes `evidence/<tier>/<feature>-<tier>.md` with: scope, the exact command run, pass/fail summary, any failures, and coverage notes.
+- **Load tests** report to `evidence/load*/RESULTS.md` (one per sandbox: `load`, `load-k8s`, `load-k8s-fixed`) with the metric table (p95, throughput, errors) and findings. Raw outputs (`*.txt`, `*-summary.json`) are reproducible via `run-load-tests.ps1` and are NOT committed.
+- **E2E** reports a Playwright summary under `evidence/e2e/`; the sandbox must be running (BFF on `:8082`) before executing.
+
 ## Mermaid Diagrams (Vault + Service READMEs)
 
 The Mermaid rules below apply to `docs/obsidian/` files AND to the `## Architecture` section of every service `README.md` (`backend/*/README.md`). No ASCII/plain-text diagrams allowed anywhere.

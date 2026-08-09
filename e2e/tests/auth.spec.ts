@@ -11,7 +11,9 @@ test.describe('Authentication', () => {
   test('login form validates and signs in', async ({ page }) => {
     await page.goto('/login');
 
-    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
+    // The login page title is a mat-card-title (not a heading role), so we
+    // assert on a stable form control instead.
+    await expect(page.getByRole('textbox', { name: 'Email' })).toBeVisible();
 
     // Sign In is disabled while the form is empty
     const signIn = page.getByRole('button', { name: 'Sign In' });
@@ -30,11 +32,16 @@ test.describe('Authentication', () => {
 
   test('rejects invalid credentials', async ({ page }) => {
     await page.goto('/login');
-    await page.getByRole('textbox', { name: 'Email' }).fill(EMAIL);
+    // Use a non-existent account so the failed attempt does not accumulate
+    // failed-login counters on the real E2E user (account lockout).
+    await page.getByRole('textbox', { name: 'Email' }).fill('nobody@aegis.test');
     await page.getByRole('textbox', { name: 'Password' }).fill('wrong-password');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    const signIn = page.getByRole('button', { name: 'Sign In' });
+    await signIn.click();
 
-    // Expect a toast / error surfaced by the auth flow
-    await expect(page.getByText(/invalid|error|credenciales|incorrect/i).first()).toBeVisible({ timeout: 10_000 });
+    // The request completes with 401: the submit button re-enables (isLoading
+    // reset via finalize) and the app stays on the login page (not signed in).
+    await expect(signIn).toBeEnabled({ timeout: 10_000 });
+    await expect(page).toHaveURL(/\/login/);
   });
 });

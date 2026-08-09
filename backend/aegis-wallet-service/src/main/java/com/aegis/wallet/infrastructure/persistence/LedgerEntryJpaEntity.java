@@ -31,19 +31,23 @@ public class LedgerEntryJpaEntity {
     @Column(length = 255)
     private String reference;
 
+    @Column(name = "reversal_of")
+    private UUID reversalOf;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     protected LedgerEntryJpaEntity() {}
 
     public LedgerEntryJpaEntity(UUID id, UUID walletId, String type, BigDecimal amount,
-                                 String currency, String reference, Instant createdAt) {
+                                 String currency, String reference, UUID reversalOf, Instant createdAt) {
         this.id = id;
         this.walletId = walletId;
         this.type = type;
         this.amount = amount;
         this.currency = currency;
         this.reference = reference;
+        this.reversalOf = reversalOf;
         this.createdAt = createdAt;
     }
 
@@ -53,5 +57,6 @@ public class LedgerEntryJpaEntity {
     public BigDecimal getAmount() { return amount; }
     public String getCurrency() { return currency; }
     public String getReference() { return reference; }
+    public UUID getReversalOf() { return reversalOf; }
     public Instant getCreatedAt() { return createdAt; }
 }

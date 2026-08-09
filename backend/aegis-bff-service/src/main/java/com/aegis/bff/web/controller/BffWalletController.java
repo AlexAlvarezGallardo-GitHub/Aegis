@@ -101,7 +101,8 @@ public class BffWalletController {
         String effectiveCorrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
 
         JsonNode response = walletClient.depositFunds(accessToken, userId, walletId,
-                request.amount(), request.method(), request.reference(), effectiveCorrId);
+                request.amount(), request.currency(), request.source(), request.reference(),
+                effectiveCorrId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

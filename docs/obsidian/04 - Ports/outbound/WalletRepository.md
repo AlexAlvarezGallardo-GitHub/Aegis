@@ -15,14 +15,22 @@ Outbound port for wallet persistence.
 
 | Method | Description |
 |--------|-------------|
-| `findById(walletId)` | Lookup by ID |
-| `findByUserId(userId)` | List user's wallets |
-| `save(wallet)` | Persist new or updated wallet |
-| `countByUserId(userId)` | Count user's wallets |
-| `countActiveWalletsByUserId(userId)` | Count active wallets (deactivation check) |
+| `save(wallet)` → `Wallet` | Persist new or updated wallet |
+| `findById(WalletId walletId)` → `Optional<Wallet>` | Lookup by [[02 - Domain Models/WalletId\|WalletId]] |
+| `findByUserId(userId)` → `List<Wallet>` | List user's wallets |
+| `countByUserId(userId)` → `long` | Count user's wallets (limit check) |
 
 ## Implementation
 
 - **Adapter**: `WalletRepositoryAdapter` in `infrastructure/persistence/`
 - **Spring Data**: `WalletJpaRepository`, `LedgerEntryJpaRepository`
 - **JPA Entities**: `WalletJpaEntity`, `LedgerEntryJpaEntity`
+
+## Used By
+
+- [[04 - Ports/inbound/CreateWalletUseCase|CreateWalletUseCase]]
+- [[04 - Ports/inbound/UpdateWalletUseCase|UpdateWalletUseCase]]
+- [[04 - Ports/inbound/DepositFundsUseCase|DepositFundsUseCase]]
+- [[04 - Ports/inbound/ReverseDepositUseCase|ReverseDepositUseCase]]
+- [[04 - Ports/inbound/ListWalletsUseCase|ListWalletsUseCase]]
+- [[04 - Ports/inbound/GetWalletDetailUseCase|GetWalletDetailUseCase]]
