@@ -158,7 +158,7 @@ class RestWalletClientTest {
         assertFalse(body.contains("reason"));
     }
 
-    @DisplayName("depositFunds - should POST with amount, method and optional reference")
+    @DisplayName("depositFunds - should POST with amount, currency, source and optional reference")
     @org.junit.jupiter.api.Test
     void shouldDepositFundsWithReference() throws Exception {
         // Arrange
@@ -170,7 +170,7 @@ class RestWalletClientTest {
 
         // Act
         JsonNode result = client.depositFunds("access-token", "user-1", "w1",
-                new BigDecimal("100.00"), "BANK_TRANSFER", "ref-123", "corr-4");
+                new BigDecimal("100.00"), "EUR", "BANK_TRANSFER", "ref-123", "corr-4");
 
         // Assert
         assertEquals("COMPLETED", result.get("status").asText());
@@ -179,7 +179,9 @@ class RestWalletClientTest {
         assertEquals("POST", request.getMethod());
         assertEquals("/api/v1/wallets/w1/deposits", request.getPath());
         String body = request.getBody().readUtf8();
-        assertTrue(body.contains("\"method\":\"BANK_TRANSFER\""));
+        assertTrue(body.contains("\"amount\":100.00"));
+        assertTrue(body.contains("\"currency\":\"EUR\""));
+        assertTrue(body.contains("\"source\":\"BANK_TRANSFER\""));
         assertTrue(body.contains("\"reference\":\"ref-123\""));
     }
 
@@ -195,14 +197,15 @@ class RestWalletClientTest {
 
         // Act
         JsonNode result = client.depositFunds("access-token", "user-1", "w1",
-                new BigDecimal("25.00"), "CARD", null, "corr-5");
+                new BigDecimal("25.00"), "EUR", "CARD", null, "corr-5");
 
         // Assert
         assertEquals("COMPLETED", result.get("status").asText());
 
         RecordedRequest request = server.takeRequest();
         String body = request.getBody().readUtf8();
-        assertTrue(body.contains("\"method\":\"CARD\""));
+        assertTrue(body.contains("\"currency\":\"EUR\""));
+        assertTrue(body.contains("\"source\":\"CARD\""));
         assertFalse(body.contains("reference"));
     }
 

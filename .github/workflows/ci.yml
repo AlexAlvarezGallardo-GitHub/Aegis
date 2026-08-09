@@ -201,6 +201,117 @@ jobs:
           tags: ${{ github.sha }},latest
           push: 'true'
 
+  e2e:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [detect-changes, docker-build-push]
+    if: ${{ always() && needs.docker-build-push.result != 'failure' && needs.docker-build-push.result != 'cancelled' && (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.e2e == 'true' || needs.detect-changes.outputs.workflows == 'true') }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare infra env
+        run: cp infra/.env.example infra/.env
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Determine image tag
+        id: img
+        run: |
+          if [ "${{ needs.docker-build-push.result }}" = "success" ]; then
+            echo "TAG=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "TAG=latest" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull and tag service images
+        run: |
+          TAG="${{ steps.img.outputs.TAG }}"
+          pull_with_fallback() {
+            local image="$1"
+            local local_name="$2"
+            for attempt in 1 2 3; do
+              if docker pull "$image:$TAG"; then
+                docker tag "$image:$TAG" "$local_name:latest"
+                return 0
+              fi
+              echo "pull of $image:$TAG failed (attempt $attempt/3); retrying..."
+              sleep 5
+            done
+            # Image for this service was not built in this run (filter did not change).
+            # Fall back to the last published 'latest' tag.
+            echo "::warning::$image:$TAG not found; falling back to :latest"
+            docker pull "$image:latest"
+            docker tag "$image:latest" "$local_name:latest"
+          }
+          for svc in identity wallet bff audit fraud reporting; do
+            pull_with_fallback "ghcr.io/$GHCR_OWNER/$svc-service" "infra-aegis-$svc"
+          done
+          pull_with_fallback "ghcr.io/$GHCR_OWNER/frontend" "infra-aegis-frontend"
+      - name: Start the full stack
+        run: docker compose -f infra/docker-compose.yml up -d
+      - name: Wait for BFF readiness
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8082/actuator/health >/dev/null; then
+              echo "BFF ready after $((i*5))s"
+              break
+            fi
+            sleep 5
+          done
+          curl -sf http://localhost:8082/actuator/health || {
+            echo "::error::BFF never became ready"
+            docker compose -f infra/docker-compose.yml logs --tail=120
+            exit 1
+          }
+      - name: Seed E2E user
+        run: |
+          echo "Waiting for Identity service..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8081/actuator/health >/dev/null; then
+              echo "Identity ready after $((i*5))s"
+              break
+            fi
+            sleep 5
+          done
+          echo "Registering E2E user..."
+          for i in $(seq 1 12); do
+            if curl -sf -X POST http://localhost:8081/api/v1/users/register \
+              -H 'Content-Type: application/json' \
+              -d '{"email":"alex@aegis.test","password":"StrongPass123!","firstName":"Alex","lastName":"Test"}'; then
+              echo "E2E user registered"
+              break
+            fi
+            echo "registration attempt ${i} failed, retrying..."
+            sleep 5
+          done
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run Playwright E2E
+        working-directory: e2e
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-playwright-report
+          path: |
+            e2e/playwright-report/
+            evidence/html-report/
+            evidence/e2e/
+          if-no-files-found: ignore
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
+
   security-scan:
     name: Trivy Security Scan (${{ matrix.image }})
     runs-on: ubuntu-latest
@@ -431,6 +542,7 @@ jobs:
       - mutation-testing
       - frontend-build
       - docker-build-push
+      - e2e
       - sbom
       - security-scan
       - cosign-sign

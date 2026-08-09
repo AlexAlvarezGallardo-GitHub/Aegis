@@ -31,7 +31,7 @@
   },
   "environments": [
     { "name": "local", "status": "functional" },
-    { "name": "dev", "status": "functional", "note": "docker-compose stack verified; Kubernetes/Argo CD structure prepared but not an operating cluster" },
+    { "name": "dev", "status": "functional", "note": "docker-compose stack verified; Kubernetes/Argo CD structure has partial minikube evidence (2026-08-07) but Argo CD bootstrap is not independently confirmed" },
     { "name": "pre", "status": "prepared" },
     { "name": "stage", "status": "prepared" },
     { "name": "prod", "status": "prepared" }
@@ -41,9 +41,9 @@
       { "id": "identity", "module": "aegis-identity-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
       { "id": "bff", "module": "aegis-bff-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
       { "id": "wallet", "module": "aegis-wallet-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
-      { "id": "fraud", "module": "aegis-fraud-service", "status": "validated", "gitops": { "chart": false, "application": { "dev": false, "pre": false, "stage": false, "prod": false } } },
-      { "id": "audit", "module": "aegis-audit-service", "status": "validated", "gitops": { "chart": false, "application": { "dev": false, "pre": false, "stage": false, "prod": false } } },
-      { "id": "reporting", "module": "aegis-reporting-service", "status": "partial", "gitops": { "chart": false, "application": { "dev": false, "pre": false, "stage": false, "prod": false } } }
+      { "id": "fraud", "module": "aegis-fraud-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } },
+      { "id": "audit", "module": "aegis-audit-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } },
+      { "id": "reporting", "module": "aegis-reporting-service", "status": "partial", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } }
     ],
     "frontend": { "id": "frontend", "module": "aegis-frontend", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
     "sharedLibraries": [
@@ -57,10 +57,10 @@
   },
   "gitops": {
     "appOfApps": { "dev": true, "pre": false, "stage": false, "prod": false },
-    "monitoringInAppOfApps": false,
-    "loggingInAppOfApps": false,
-    "charts": ["bff", "frontend", "identity", "wallet"],
-    "applicationsDev": ["bff", "database", "frontend", "identity", "kafka", "redis", "wallet"]
+    "monitoringInAppOfApps": true,
+    "loggingInAppOfApps": true,
+    "charts": ["audit", "bff", "fraud", "frontend", "identity", "reporting", "wallet"],
+    "applicationsDev": ["audit", "bff", "database", "fraud", "frontend", "identity", "kafka", "logging", "monitoring", "redis", "reporting", "wallet"]
   },
   "metrics": {
     "commitsOnMain": 141,

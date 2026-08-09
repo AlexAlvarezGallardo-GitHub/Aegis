@@ -26,13 +26,13 @@ public interface ProcessedEventJpaRepository extends JpaRepository<ProcessedEven
      */
     @Modifying
     @Query(value = """
-            INSERT INTO processed_events (event_id, topic, partition, offset, processed_at)
-            VALUES (:eventId, :topic, :partition, :offset, :processedAt)
+            INSERT INTO processed_events (event_id, topic, partition, kafka_offset, processed_at)
+            VALUES (:eventId, :topic, :partition, :kafkaOffset, :processedAt)
             ON CONFLICT (event_id) DO NOTHING
             """, nativeQuery = true)
     int insertIfAbsent(@Param("eventId") UUID eventId,
                        @Param("topic") String topic,
                        @Param("partition") int partition,
-                       @Param("offset") long offset,
+                       @Param("kafkaOffset") long offset,
                        @Param("processedAt") Instant processedAt);
 }
