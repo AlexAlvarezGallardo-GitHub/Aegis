@@ -5,15 +5,36 @@ export type ToastType = 'success' | 'error' | 'warning' | 'info';
 export interface ToastAction {
   label: string;
   callback: () => void;
+  kind?: 'primary' | 'ghost';
+}
+
+export interface ToastOptions {
+  description?: string;
+  metadata?: string;
+  action?: ToastAction;
+  duration?: number;
+  dismissible?: boolean;
 }
 
 export interface Toast {
   id: number;
   type: ToastType;
-  message: string;
-  duration: number;
+  title: string;
+  description?: string;
+  metadata?: string;
   action?: ToastAction;
+  duration: number;
+  dismissible: boolean;
 }
+
+const MAX_VISIBLE = 3;
+
+const DEFAULT_DURATION: Record<ToastType, number> = {
+  success: 4000,
+  info: 4500,
+  warning: 6000,
+  error: 7000,
+};
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -22,30 +43,40 @@ export class ToastService {
 
   readonly toasts = this.toastsSignal.asReadonly();
 
-  private addToast(type: ToastType, message: string, duration?: number, action?: ToastAction): void {
+  private addToast(type: ToastType, title: string, opts: ToastOptions = {}): void {
     const id = this.nextId++;
-    const toast: Toast = { id, type, message, duration: duration ?? 5000, action };
-    this.toastsSignal.update((list) => [...list, toast]);
+    const toast: Toast = {
+      id,
+      type,
+      title,
+      description: opts.description,
+      metadata: opts.metadata,
+      action: opts.action,
+      duration: opts.duration ?? DEFAULT_DURATION[type],
+      dismissible: opts.dismissible ?? true,
+    };
+    // Stack with a hard cap of 3 visible notifications (oldest are dropped).
+    this.toastsSignal.update((list) => [...list, toast].slice(-MAX_VISIBLE));
 
     if (toast.duration > 0) {
       setTimeout(() => this.dismiss(id), toast.duration);
     }
   }
 
-  success(message: string, duration?: number, action?: ToastAction): void {
-    this.addToast('success', message, duration, action);
+  success(title: string, opts?: ToastOptions): void {
+    this.addToast('success', title, opts);
   }
 
-  error(message: string, duration?: number, action?: ToastAction): void {
-    this.addToast('error', message, duration, action);
+  error(title: string, opts?: ToastOptions): void {
+    this.addToast('error', title, opts);
   }
 
-  warning(message: string, duration?: number, action?: ToastAction): void {
-    this.addToast('warning', message, duration, action);
+  warning(title: string, opts?: ToastOptions): void {
+    this.addToast('warning', title, opts);
   }
 
-  info(message: string, duration?: number, action?: ToastAction): void {
-    this.addToast('info', message, duration, action);
+  info(title: string, opts?: ToastOptions): void {
+    this.addToast('info', title, opts);
   }
 
   dismiss(id: number): void {

@@ -22,7 +22,7 @@ describe('ToastService', () => {
     const toasts = service.toasts();
     expect(toasts.length).toBe(1);
     expect(toasts[0].type).toBe('success');
-    expect(toasts[0].message).toBe('Operation completed');
+    expect(toasts[0].title).toBe('Operation completed');
   });
 
   it('should add an error toast', () => {
@@ -54,19 +54,30 @@ describe('ToastService', () => {
     expect(toasts[1].id).toBe(1);
   });
 
-  it('should use default duration of 5000', () => {
+  it('should use default duration per type', () => {
     service.success('Test');
-    expect(service.toasts()[0].duration).toBe(5000);
+    expect(service.toasts()[0].duration).toBe(4000);
+    service.error('Err');
+    expect(service.toasts()[1].duration).toBe(7000);
   });
 
   it('should use provided duration', () => {
-    service.info('Test', 10000);
+    service.info('Test', { duration: 10000 });
     expect(service.toasts()[0].duration).toBe(10000);
   });
 
   it('should use duration of 0 for persistence', () => {
-    service.warning('Sticky', 0);
+    service.warning('Sticky', { duration: 0 });
     expect(service.toasts()[0].duration).toBe(0);
+  });
+
+  it('should cap visible toasts at 3', () => {
+    service.success('One');
+    service.success('Two');
+    service.success('Three');
+    service.success('Four');
+    expect(service.toasts().length).toBe(3);
+    expect(service.toasts()[0].title).toBe('Two');
   });
 
   it('should dismiss a toast by id', () => {
@@ -87,7 +98,7 @@ describe('ToastService', () => {
 
   it('should auto-dismiss after duration', (done) => {
     jasmine.clock().install();
-    service.success('Auto dismiss', 100);
+    service.success('Auto dismiss', { duration: 100 });
     expect(service.toasts().length).toBe(1);
     jasmine.clock().tick(101);
     expect(service.toasts().length).toBe(0);
@@ -97,7 +108,7 @@ describe('ToastService', () => {
 
   it('should accept an action callback', () => {
     const action = { label: 'Undo', callback: () => undefined };
-    service.success('Deleted', 5000, action);
+    service.success('Deleted', { duration: 5000, action });
     expect(service.toasts()[0].action).toEqual(action);
   });
 });

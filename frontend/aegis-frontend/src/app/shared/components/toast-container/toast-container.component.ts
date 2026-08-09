@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { ToastService } from '../../services/toast.service';
+import { ToastService, Toast } from '../../services/toast.service';
 
 @Component({
   selector: 'app-toast-container',
@@ -14,4 +14,9 @@ import { ToastService } from '../../services/toast.service';
 })
 export class ToastContainerComponent {
   readonly toastService = inject(ToastService);
+
+  runAction(toast: Toast): void {
+    toast.action?.callback();
+    this.toastService.dismiss(toast.id);
+  }
 }

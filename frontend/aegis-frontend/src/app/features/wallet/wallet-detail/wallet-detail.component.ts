@@ -163,7 +163,10 @@ export class WalletDetailComponent {
             status: 'COMPLETED',
             timestamp: receipt.timestamp,
           });
-          this.toastService.success(`Deposit completed\n${formatMoney(receipt.amount, receipt.currency)} · ${receipt.source}`, 4000);
+          this.toastService.success('Deposit completed', {
+            description: `+${formatMoney(receipt.amount, receipt.currency)} · ${receipt.source}`,
+            action: { label: 'View transaction', callback: () => this.goToTab('transactions') },
+          });
         },
         error: (err) => {
           if (err?.status === 409) {
@@ -177,9 +180,9 @@ export class WalletDetailComponent {
               status: 'REJECTED',
               timestamp: new Date().toISOString(),
             });
-            this.toastService.warning('Duplicate deposit reference', 4000);
+            this.toastService.warning('Unable to complete deposit', { description: 'Duplicate deposit reference.' });
           } else {
-            this.toastService.error('Failed to deposit', 4000);
+            this.toastService.error('Unable to complete deposit', { description: 'Please try again.' });
           }
         },
       });
@@ -204,9 +207,12 @@ export class WalletDetailComponent {
             status: 'COMPLETED',
             timestamp: new Date().toISOString(),
           });
-          this.toastService.success(`Withdrawal completed\n${formatMoney(result.amount, wallet.currency)}`, 4000);
+          this.toastService.success('Withdrawal completed', {
+            description: `-${formatMoney(result.amount, wallet.currency)}`,
+            action: { label: 'View transaction', callback: () => this.goToTab('transactions') },
+          });
         },
-        error: () => this.toastService.error('Failed to withdraw', 4000),
+        error: () => this.toastService.error('Unable to complete withdrawal', { description: 'Please try again.' }),
       });
   }
 
@@ -242,9 +248,9 @@ export class WalletDetailComponent {
             status: 'COMPLETED',
             timestamp: new Date().toISOString(),
           });
-          this.toastService.success(`Balance adjusted\n${formatMoney(result.amount, wallet.currency)}`, 4000);
+          this.toastService.success('Balance adjusted', { description: formatMoney(result.amount, wallet.currency) });
         },
-        error: () => this.toastService.error('Failed to adjust balance', 4000),
+        error: () => this.toastService.error('Unable to adjust balance', { description: 'Please try again.' }),
       });
   }
 
@@ -279,9 +285,9 @@ export class WalletDetailComponent {
         .subscribe({
           next: (updated) => {
             this.applyWalletUpdate(updated);
-            this.toastService.success(`Wallet ${status === 'CLOSED' ? 'deactivated' : 'frozen'}`, 4000);
+            this.toastService.success(status === 'CLOSED' ? 'Wallet deactivated' : 'Wallet frozen');
           },
-          error: () => this.toastService.error('Failed to update wallet status', 4000),
+          error: () => this.toastService.error('Unable to update wallet status', { description: 'Please try again.' }),
         });
     });
   }

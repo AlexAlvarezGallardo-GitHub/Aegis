@@ -170,7 +170,11 @@ export class WalletComponent implements OnInit {
           this.wallets.update(w => [wallet, ...w]);
           this.walletForm.reset();
           this.showCreatePanel.set(false);
-          this.toastService.success(`Wallet created! ID: ${wallet.walletId.slice(0, 8)}...`, 5000);
+          const walletId = wallet.walletId;
+          this.toastService.success('Wallet created successfully', {
+            metadata: `ID ${walletId.slice(0, 8)}...`,
+            action: { label: 'Copy', callback: () => this.copyToClipboard(walletId) },
+          });
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
@@ -178,6 +182,15 @@ export class WalletComponent implements OnInit {
 
   shortId(id: string): string {
     return id.slice(0, 8) + '...';
+  }
+
+  private copyToClipboard(text: string): void {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(
+        () => this.toastService.info('ID copied to clipboard'),
+        () => undefined,
+      );
+    }
   }
 
   getStatusVariant(status: string): ChipVariant {

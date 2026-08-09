@@ -544,3 +544,47 @@ No horizontal page scrolling ✅ · no clipped content ✅ · no overlapping hea
 ### Failures
 
 None.
+
+---
+
+## Scope Change 3 — Refined Toast Notification System (Product request)
+
+**Request**: the toast looked like a wide top-right banner competing with the header. Wanted: subtle bottom-right (desktop) / bottom-center (mobile) transient feedback with a clear hierarchy, financial context, capped stacking, and proper ARIA.
+
+### Changes
+
+- **`ToastService`**: richer model — `Toast { type, title, description?, metadata?, action?, duration, dismissible }`; API `success/error/warning/info(title, opts)`; **per-type default durations** (success 4000, info 4500, warning 6000, error 7000; `duration: 0` = sticky); **max 3 visible** (oldest dropped via `slice(-3)`); manual `dismiss`/`dismissAll` kept.
+- **`ToastContainerComponent`**:
+  - Position: **bottom-right** desktop; **bottom-center** mobile with safe margins (`width: calc(100vw - 24px)`, `max-width: calc(100vw - 32px)`).
+  - Style: dark card, hairline border, subtle shadow, **3px left accent** in the status color (not a full colored border); small status icon; no glow/gradient.
+  - Hierarchy: title (semibold) → description → metadata (mono) → optional action (`View transaction →`, `Copy`); small close button (44px touch target on mobile).
+  - ARIA: `role="status"` for success/info, `role="alert"` for error/warning; `aria-live="polite"` container.
+  - Animation: 150ms fade + 6px slide-in, `prefers-reduced-motion` respected; no bounce.
+- **Call sites updated** to the new API: login/registration welcome messages (title + description), wallet created (title + `ID` metadata + **Copy** action → clipboard + "ID copied" info toast), deposits/withdrawals (title + `+$150.00 · BANK_TRANSFER` description + **View transaction** action → `?tab=transactions`), errors (title + friendly description, no raw API text), 409 duplicate reference, freeze/deactivate status toasts.
+- Specs updated for the new API (+ `role status/alert` and `max 3` assertions).
+
+### Commands executed
+
+| # | Command | Result |
+|---|---------|--------|
+| 1 | `npm run lint` | ✅ PASS |
+| 2 | `npm run build` | ✅ PASS |
+| 3 | `npx ng test --watch=false --browsers=ChromeHeadless` | ✅ PASS — **152/152** |
+| 4 | `npx playwright test` (e2e, dedicated user `e2e-wallet@aegis.test`) | ✅ PASS — **6/6** |
+
+> Note: the e2e `creates a wallet` test failed against `alex@aegis.test` because that user reached the backend's **5-wallet limit** from repeated runs ("User cannot have more than 5 wallets" — the error toast worked as intended). Validated green with a dedicated test user.
+
+### Live verification (Playwright)
+
+- Desktop (1440×900): toast at bottom-right (left 1060 / bottom 880), compact (~388px), title "Deposit completed", description "+$150.00 · BANK_TRANSFER", action "View transaction" navigates to `?tab=transactions`, `role="status"`, no full colored border.
+- Mobile (390×844): toast bottom-centered (left 12 / right 378, within viewport), `max-width: calc(100vw - 24px)`, close button 44px.
+- Wallet-limit error toast renders correctly (backend 409 → "User cannot have more than 5 wallets").
+- 0 console errors.
+
+### Acceptance criteria check
+
+Not a large top-right banner ✅ · does not overlap header ✅ · compact ✅ · bottom-right desktop ✅ · responsive mobile ✅ · success/error/warning/info variants ✅ · financial ops show amount + context ✅ · IDs secondary + Copy ✅ · auto-dismiss per type ✅ · manual dismiss ✅ · stacking + max 3 ✅ · no excessive glow/animation ✅ · Aegis identity preserved ✅ · nothing broken ✅ · no TS/build/lint errors ✅.
+
+### Failures
+
+None.

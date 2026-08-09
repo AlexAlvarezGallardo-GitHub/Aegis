@@ -81,7 +81,7 @@ export class RegistrationComponent {
       .subscribe({
         next: (response) => {
           this.successResponse.set(response);
-          this.toastService.success('Registration successful! Please check your email.', 5000);
+          this.toastService.success('Registration successful', { description: 'Please check your email for verification instructions.' });
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
