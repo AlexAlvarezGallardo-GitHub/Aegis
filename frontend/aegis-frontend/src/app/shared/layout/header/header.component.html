@@ -3,11 +3,13 @@
     <button class="mobile-menu-btn" (click)="menuToggle.emit()" aria-label="Toggle menu">
       <mat-icon>menu</mat-icon>
     </button>
-    <div class="breadcrumb">
-      <span class="breadcrumb-root">Aegis</span>
-      <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
-      <span class="breadcrumb-current">{{ currentPage() }}</span>
-    </div>
+    <span class="mobile-brand" aria-hidden="true">AEGIS</span>
+  </div>
+
+  <div class="breadcrumb">
+    <span class="breadcrumb-root">Aegis</span>
+    <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+    <span class="breadcrumb-current">{{ currentPage() }}</span>
   </div>
 
   <div class="header-center">
@@ -21,6 +23,9 @@
   </div>
 
   <div class="header-right">
+    <button class="mobile-search-btn" (click)="openSearch()" aria-label="Search">
+      <mat-icon>search</mat-icon>
+    </button>
     <span class="env-badge" [class]="environmentClass">{{ environment }}</span>
 
     <button

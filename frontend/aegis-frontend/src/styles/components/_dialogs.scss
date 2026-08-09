@@ -11,6 +11,10 @@
   background-color: var(--aegis-surface-overlay);
   z-index: var(--aegis-z-modal);
   padding: var(--aegis-space-4);
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
 }
 
 .dialog-panel {

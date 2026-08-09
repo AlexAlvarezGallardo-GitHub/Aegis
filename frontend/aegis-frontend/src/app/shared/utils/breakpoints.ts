@@ -7,4 +7,5 @@ export const BREAKPOINTS = {
 
 export type Breakpoint = keyof typeof BREAKPOINTS;
 
-export const MOBILE_BREAKPOINT = BREAKPOINTS.sm;
+// Sidebar becomes an off-canvas drawer below desktop (>=1024px).
+export const MOBILE_BREAKPOINT = BREAKPOINTS.md;

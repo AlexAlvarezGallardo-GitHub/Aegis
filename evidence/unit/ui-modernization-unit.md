@@ -490,3 +490,57 @@ Wallet Detail is no longer a drawer ✅ · full-page experience ✅ · header wi
 ### Failures
 
 None.
+
+---
+
+## Scope Change 2 — Genuinely Responsive Mobile Experience (Product request)
+
+**Request**: the desktop layout was rendered inside narrow viewports instead of providing a real mobile layout. Requirements: no page-level horizontal scrolling, mobile app shell (drawer instead of sidebar), mobile header, toast that never covers navigation, wallets/detail/modals/table responsive, touch targets ≥44px, tablet usable, desktop intact.
+
+### Root cause found
+
+The layout was "responsive" at the page level, but at **tablet width (768–1023) the fixed 240px desktop sidebar stayed visible**, leaving ~527px for content that then overflowed to the right and was silently clipped by `overflow:hidden` (diagnosed live: `.aegis-content` right edge at 786px on a 768px viewport).
+
+### Changes
+
+- **Breakpoints**: `MOBILE_BREAKPOINT` 768 → **1024** — the sidebar becomes an off-canvas drawer below desktop (≥1024px = desktop sidebar), matching the requested Desktop/Tablet/Mobile split.
+- **Mobile app shell**: below 1024 the desktop sidebar is never shown in-flow; hamburger opens the drawer with the same sections (Payments / Wallets / Monitoring / Settings); closes on backdrop click, on selection (navigates), and on Escape; scroll-lock while open.
+- **Mobile header**: two-row layout — row 1 `[☰] AEGIS · [Search] [avatar]`, row 2 breadcrumb (truncates with ellipsis); wide search trigger hidden on mobile, icon-only search button opens the command palette; env badge hidden on mobile; hamburger/search/user touch targets 44px.
+- **Toast**: on mobile positioned **below the header** (new `--aegis-header-height-mobile: 88px`), `max-width: calc(100vw - 24px)`, centered, wraps text — never covers navigation; compact two-line format.
+- **Wallets page**: KPI grid collapses to 1 column on mobile (`<768`); search field `width:100%; min-width:0`; Create Wallet button wraps below the title (never clipped); wallet cards `min-width:0`; action buttons 40px (44px on mobile).
+- **Wallet detail**: overview cards stack to 1 column on mobile; balance/typography scale down without breaking hierarchy; header actions wrap; tabs scroll internally (no page-level scroll); transaction table scrolls inside its container.
+- **Modals**: near full-width on small screens (`<480px` overlay padding 12px).
+- **Global**: `min-width:0` added to grid/flex children (stat-card, wallet-card, overview cards) to stop content-forced overflow; long IDs/amounts use `overflow-wrap: anywhere`.
+
+### Commands executed
+
+| # | Command | Result |
+|---|---------|--------|
+| 1 | `npm run lint` | ✅ PASS |
+| 2 | `npm run build` | ✅ PASS (wallet-detail SCSS kept under the 6 kB budget) |
+| 3 | `npx ng test --watch=false --browsers=ChromeHeadless` | ✅ PASS — **150/150** |
+| 4 | `npx playwright test --config=playwright.config.ts` | ✅ PASS — **6/6** |
+
+### Live validation (Playwright) — 6 viewports
+
+| Viewport | Wallets overflow | Detail overflow | Sidebar |
+|----------|-----------------|-----------------|---------|
+| 375×812 | ✅ no | ✅ no | drawer (off-canvas) |
+| 390×844 | ✅ no | ✅ no | drawer |
+| 412×915 | ✅ no | ✅ no | drawer |
+| 768×1024 | ✅ no | ✅ no | drawer (tablet fixed) |
+| 1024×768 | ✅ no | ✅ no | desktop sidebar |
+| 1440×900 | ✅ no | ✅ no | desktop sidebar |
+
+- Mobile header = 2 rows (85px) with breadcrumb on its own row; desktop = 1 row (57px).
+- Toast on 390px: `top:96` > header bottom `85` (below header), within viewport, `max-width: calc(100vw - 24px)`.
+- Drawer flow verified: open → sections present → close via backdrop → open → select "Transactions" → navigates + closes.
+- 0 console errors across all viewports.
+
+### Acceptance criteria check
+
+No horizontal page scrolling ✅ · no clipped content ✅ · no overlapping header elements ✅ · sidebar becomes mobile navigation ✅ · search works ✅ · create wallet works ✅ · cards fit ✅ · detail fits ✅ · deposit/withdraw/adjust modals fit ✅ · tables don't overflow page ✅ · toasts don't cover navigation ✅ · ≥44px touch targets on mobile ✅ · desktop intact ✅ · tablet usable ✅ · genuinely responsive ✅ · business logic/APIs unchanged ✅ · no TS/build/lint errors ✅ · tests pass ✅.
+
+### Failures
+
+None.

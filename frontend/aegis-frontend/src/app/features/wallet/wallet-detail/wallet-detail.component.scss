@@ -89,7 +89,7 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, xs)}) {
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
     grid-template-columns: 1fr;
   }
 }
@@ -103,6 +103,7 @@
   border-radius: var(--aegis-radius-lg);
   border: 1px solid var(--aegis-border-default);
   background-color: var(--aegis-surface-card);
+  min-width: 0;
 }
 
 .balance-card {
@@ -130,7 +131,6 @@
 }
 
 .overview-value {
-  font-family: var(--aegis-font-display);
   font-size: var(--aegis-text-2xl);
   font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text);
@@ -150,7 +150,6 @@
 }
 
 .tab-title {
-  font-family: var(--aegis-font-display);
   font-size: var(--aegis-text-xl);
   font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text);
@@ -158,11 +157,15 @@
 }
 
 .tab-subtitle {
-  font-family: var(--aegis-font-display);
   font-size: var(--aegis-text-base);
   font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text);
   margin: var(--aegis-space-2) 0 0;
+}
+
+.tab-title,
+.tab-subtitle {
+  font-family: var(--aegis-font-display);
 }
 
 .tab-hint {
@@ -191,7 +194,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--aegis-space-3);
-  padding: var(--aegis-space-4) 0;
+  padding: var(--aegis-space-3) 0;
   border-bottom: 1px solid var(--aegis-border-subtle);
 
   &:last-child {
@@ -202,8 +205,8 @@
 .activity-icon {
   flex-shrink: 0;
   margin-top: 2px;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--aegis-radius-md);
   display: flex;
   align-items: center;
@@ -299,10 +302,6 @@
     border-bottom: 1px solid var(--aegis-border-subtle);
     color: var(--aegis-color-text);
     white-space: nowrap;
-
-    &:last-child {
-      white-space: nowrap;
-    }
   }
 
   tr:last-child td {
@@ -319,13 +318,6 @@
   align-items: center;
   gap: var(--aegis-space-2);
   font-weight: var(--aegis-font-weight-medium);
-
-  mat-icon {
-    font-size: var(--aegis-icon-size-md);
-    width: var(--aegis-icon-size-md);
-    height: var(--aegis-icon-size-md);
-    color: var(--aegis-color-text-muted);
-  }
 }
 
 .positive {
@@ -347,4 +339,27 @@
 .skeleton-block {
   display: block;
   height: 96px;
+}
+
+// ── Responsive (mobile) ──────────────────────────────────────────────────────
+
+@media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
+  .detail-title {
+    font-size: var(--aegis-text-2xl);
+  }
+
+  .detail-id {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .detail-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .balance-value {
+    font-size: var(--aegis-text-3xl);
+    overflow-wrap: anywhere;
+  }
 }

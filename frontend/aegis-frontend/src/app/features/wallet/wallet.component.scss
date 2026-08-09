@@ -15,6 +15,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--aegis-space-4);
+  flex-wrap: wrap;
 }
 
 .page-title {
@@ -72,7 +73,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, xs)}) {
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
     grid-template-columns: 1fr;
   }
 }
@@ -83,6 +84,10 @@
   display: flex;
   align-items: center;
   gap: var(--aegis-space-3);
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
+    width: 100%;
+  }
 }
 
 .search-box {
@@ -90,7 +95,7 @@
   align-items: center;
   gap: var(--aegis-space-2);
   padding: 0 var(--aegis-space-3);
-  height: 36px;
+  height: 40px;
   border: 1px solid var(--aegis-border-default);
   border-radius: var(--aegis-radius-md);
   background-color: var(--aegis-surface-elevated);
@@ -99,6 +104,11 @@
 
   &:focus-within {
     border-color: var(--aegis-border-focus);
+  }
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -140,6 +150,7 @@
   flex-direction: column;
   gap: var(--aegis-space-3);
   box-shadow: var(--aegis-shadow-card);
+  min-width: 0;
   transition: transform var(--aegis-duration-fast) var(--aegis-ease-out),
               box-shadow var(--aegis-duration-fast) var(--aegis-ease-out),
               border-color var(--aegis-duration-fast) var(--aegis-ease-out);
@@ -232,8 +243,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: var(--aegis-radius-md);
   background: transparent;
@@ -258,9 +269,14 @@
   }
 
   mat-icon {
-    font-size: var(--aegis-icon-size-md);
-    width: var(--aegis-icon-size-md);
-    height: var(--aegis-icon-size-md);
+    font-size: var(--aegis-icon-size-lg);
+    width: var(--aegis-icon-size-lg);
+    height: var(--aegis-icon-size-lg);
+  }
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
+    width: 44px;
+    height: 44px;
   }
 }
 

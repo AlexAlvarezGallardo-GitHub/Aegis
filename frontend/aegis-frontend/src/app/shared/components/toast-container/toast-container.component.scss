@@ -1,3 +1,4 @@
+@use 'sass:map';
 @use 'styles/tokens' as tokens;
 
 .toast-arena {
@@ -11,6 +12,16 @@
   max-width: 420px;
   width: 100%;
   pointer-events: none;
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
+    // Below the mobile header (2 rows); never cover navigation; never exceed the viewport
+    top: calc(var(--aegis-header-height-mobile) + var(--aegis-space-2));
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 24px);
+    width: calc(100vw - 24px);
+  }
 }
 
 .toast {

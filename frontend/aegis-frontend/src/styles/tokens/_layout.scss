@@ -45,6 +45,7 @@ $aegis-dimensions: (
   sidebar-width: 240px,
   sidebar-width-collapsed: 64px,
   header-height: 56px,
+  header-height-mobile: 88px,
   nav-item-height: 40px,
   content-max-width: 1280px,
 );
@@ -86,6 +87,7 @@ $aegis-dimensions: (
   --aegis-sidebar-width: #{map.get($aegis-dimensions, sidebar-width)};
   --aegis-sidebar-width-collapsed: #{map.get($aegis-dimensions, sidebar-width-collapsed)};
   --aegis-header-height: #{map.get($aegis-dimensions, header-height)};
+  --aegis-header-height-mobile: #{map.get($aegis-dimensions, header-height-mobile)};
   --aegis-nav-item-height: #{map.get($aegis-dimensions, nav-item-height)};
   --aegis-content-max-width: #{map.get($aegis-dimensions, content-max-width)};
 }

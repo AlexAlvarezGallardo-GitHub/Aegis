@@ -27,8 +27,8 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: var(--aegis-radius-md);
   background: transparent;
@@ -40,13 +40,65 @@
     color: var(--aegis-color-text);
   }
 
-  mat-icon {
-    font-size: var(--aegis-icon-size-lg);
-    width: var(--aegis-icon-size-lg);
-    height: var(--aegis-icon-size-lg);
+  &:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: var(--aegis-focus-ring-offset);
   }
 
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
+  mat-icon {
+    font-size: var(--aegis-icon-size-xl);
+    width: var(--aegis-icon-size-xl);
+    height: var(--aegis-icon-size-xl);
+  }
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
+    display: flex;
+  }
+}
+
+.mobile-brand {
+  display: none;
+  font-family: var(--aegis-font-display);
+  font-size: var(--aegis-text-lg);
+  font-weight: var(--aegis-font-weight-semibold);
+  letter-spacing: var(--aegis-tracking-wider);
+  color: var(--aegis-color-primary);
+  white-space: nowrap;
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
+    display: inline-block;
+  }
+}
+
+.mobile-search-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--aegis-radius-md);
+  background: transparent;
+  color: var(--aegis-color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--aegis-surface-hover);
+    color: var(--aegis-color-text);
+  }
+
+  &:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: var(--aegis-focus-ring-offset);
+  }
+
+  mat-icon {
+    font-size: var(--aegis-icon-size-xl);
+    width: var(--aegis-icon-size-xl);
+    height: var(--aegis-icon-size-xl);
+  }
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
     display: flex;
   }
 }
@@ -55,6 +107,7 @@
   display: flex;
   align-items: center;
   gap: var(--aegis-space-1);
+  min-width: 0;
 }
 
 .breadcrumb-root {
@@ -68,12 +121,16 @@
   width: var(--aegis-icon-size-sm);
   height: var(--aegis-icon-size-sm);
   color: var(--aegis-color-text-muted);
+  flex-shrink: 0;
 }
 
 .breadcrumb-current {
   font-size: var(--aegis-text-sm);
   font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // ── Center (Search) ──────────────────────────────────────────────────────────
@@ -220,4 +277,41 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// ── Responsive (< desktop) ───────────────────────────────────────────────────
+// Row 1: [☰] AEGIS  ·  [Search] [avatar]
+// Row 2: breadcrumb
+
+@media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
+  .header {
+    flex-wrap: wrap;
+    height: auto;
+    padding: var(--aegis-space-2) var(--aegis-space-4);
+    row-gap: var(--aegis-space-1);
+  }
+
+  .header-left {
+    order: 1;
+  }
+
+  .header-right {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .header-center {
+    display: none;
+  }
+
+  .breadcrumb {
+    order: 3;
+    width: 100%;
+    padding-left: var(--aegis-space-1);
+    padding-top: 2px;
+  }
+
+  .env-badge {
+    display: none;
+  }
 }
