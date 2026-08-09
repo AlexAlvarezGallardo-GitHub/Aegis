@@ -636,3 +636,25 @@ No UUID on cards ✅ · none in primary detail ✅ · none in creation toasts �
 ### Failures
 
 None.
+
+---
+
+## Evidence Classification (by feature)
+
+Evidencia regenerada con la UI actual y clasificada por feature (commit/PR) en `evidence/README.md`:
+
+| Feature / PR | Commit | Capturas |
+|--------------|--------|----------|
+| Design system & app shell | `55b0138` | `01-login-filled`, `02-wallets`, `07-create-wallet-form`, `08-two-wallets` |
+| Wallet Detail full-page | `bfb86a1` | `03-wallet-detail`, `04-deposit-modal` |
+| Responsive mobile | `83dd3ba` | `mobile/01-wallets-mobile`, `mobile/02-drawer-open`, `mobile/03-wallet-detail-mobile`, `mobile/04-toast-mobile` |
+| Toast system | `5f31de0` | `toast/01-toast-creation`, `toast/02-toast-deposit`, `toast/03-toast-error`, `toast/04-toast-stack` |
+| UUID cleanup | `45c36ac` | `uuid/technical-details-dialog` (+ `02-wallets`/`03-wallet-detail` regeneradas sin UUID) |
+| Flujos e2e (login, depósito, 409) | — | `05-deposit-success-toast`, `06-dup-reference-rejected` |
+| Kafka / observability (no frontend) | — | `09-…`–`12-…`, `observability/` |
+
+**Mobile** (390×844, feature responsive): wallets (header 2 filas + 1 col), drawer abierto, wallet detail, toast bottom-center.
+**Toast** (feature toast): creación sin UUID, depósito +$150.00 · BANK_TRANSFER + View transaction, error 409, stacking vertical.
+**UUID**: dialog técnico bajo More actions con Wallet ID + Copy (único lugar con UUID).
+
+Regla aplicada: cuando una feature modifica una pantalla ya capturada, la captura se re-genera (mismo escenario, nuevo estado). Sin screenshots obsoletos en git.
