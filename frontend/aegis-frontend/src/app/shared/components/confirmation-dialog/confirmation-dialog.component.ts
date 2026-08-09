@@ -35,4 +35,10 @@ export class ConfirmationDialogComponent {
   cancel(): void {
     this.dialogRef.close(false);
   }
+
+  onOverlayKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      this.cancel();
+    }
+  }
 }

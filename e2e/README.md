@@ -42,13 +42,13 @@ Capturas obtenidas con Playwright contra el stack en vivo, en `evidence/`:
 
 | # | Archivo | Evidencia |
 |---|---------|-----------|
-| 1 | `01-login-filled.png` | Formulario de login completo |
-| 2 | `02-wallets-premium.png` | Lista de wallets con badge **PREMIUM** |
-| 3 | `03-wallet-detail-deposit-section.png` | Nueva sección **Deposit Funds** |
+| 1 | `01-login-filled.png` | Formulario de login completo (nuevo diseño zinc + logo Aegis) |
+| 2 | `02-wallets-premium.png` | Lista de wallets (badge PREMIUM aparece solo si el backend marca la wallet como premium — ver `wallet.model` `premium`) |
+| 3 | `03-wallet-detail-deposit-section.png` | Sección **Deposit Funds** del detalle |
 | 4 | `04-deposit-form-filled.png` | Formulario de depósito (amount/source/reference) |
-| 5 | `05-deposit-receipt.png` | Recibo: 150 EUR from BANK_TRANSFER (ref) |
+| 5 | `05-deposit-receipt.png` | Recibo: 150 EUR from BANK_TRANSFER (ref `UI-MODERNIZATION-001`) |
 | 6 | `06-dup-reference-rejected.png` | Referencia duplicada rechazada (balance sin cambios) |
-| 7 | `07-create-wallet-form.png` | Crear wallet USD |
+| 7 | `07-create-wallet-form.png` | Crear wallet (form EUR) |
 | 8 | `08-two-wallets.png` | 2 wallets creadas, 2 monedas |
 | 9 | `09-kafka-topics-list.png` | Topics con mensajes (wallet.funds.deposited=7, fraud=6) |
 | 10 | `10-kafka-topic-wallet-funds.png` | Topic `wallet.funds.deposited` — 7 eventos |

@@ -1,5 +1,6 @@
 @use 'theme' as *;
 @use 'styles/tokens' as tokens;
+@use 'styles/components/panels';
 
 // =============================================================================
 // Aegis Global Styles
@@ -15,17 +16,13 @@
   @include tokens.aegis-radius-tokens;
   @include tokens.aegis-shadow-tokens;
   @include tokens.aegis-transition-tokens;
+  @include tokens.aegis-layout-tokens;
 }
 
 // Dark theme tokens (default)
 :root,
 html[data-theme='dark'] {
   @include tokens.aegis-color-tokens;
-}
-
-// Light theme tokens
-html[data-theme='light'] {
-  @include tokens.aegis-color-tokens-light;
 }
 
 // -- Base Reset ----------------------------------------------------------------
@@ -59,8 +56,13 @@ a {
 }
 
 ::selection {
-  background-color: var(--aegis-color-primary-subtle);
-  color: var(--aegis-color-primary-light);
+  background-color: rgba(212, 175, 55, 0.30);
+  color: var(--aegis-color-text);
+}
+
+:focus-visible {
+  outline: var(--aegis-focus-ring);
+  outline-offset: var(--aegis-focus-ring-offset);
 }
 
 ::-webkit-scrollbar {
@@ -84,6 +86,7 @@ a {
 // -- Typography ----------------------------------------------------------------
 
 h1, h2, h3, h4, h5, h6 {
+  font-family: var(--aegis-font-display);
   font-weight: var(--aegis-font-weight-semibold);
   line-height: var(--aegis-leading-snug);
   margin: 0;
@@ -135,7 +138,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: var(--aegis-font-weight-semibold);
   line-height: var(--aegis-leading-tight);
   color: var(--aegis-color-text);
-  font-family: var(--aegis-font-brand);
+  font-family: var(--aegis-font-display);
 }
 
 .kpi-label {
@@ -149,6 +152,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .mono {
   font-family: var(--aegis-font-mono);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 .status-dot {

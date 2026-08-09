@@ -10,8 +10,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 1000;
+  background-color: var(--aegis-surface-overlay);
+  z-index: var(--aegis-z-modal);
   padding: var(--aegis-space-4);
 }
 
@@ -91,6 +91,6 @@
 
   &.destructive {
     --mdc-protected-button-container-color: var(--aegis-color-error);
-    --mdc-protected-button-label-text-color: #FFFFFF;
+    --mdc-protected-button-label-text-color: var(--aegis-color-on-error);
   }
 }

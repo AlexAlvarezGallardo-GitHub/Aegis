@@ -25,25 +25,9 @@ $aegis-dark-theme: mat.define-theme((
 @mixin aegis-dark-theme-overrides {
   @include mat.all-component-themes($aegis-dark-theme);
 
-  $navy: (
-    900: #0a0e1a,
-    800: #0f1525,
-    700: #141b2d,
-    600: #1a2237,
-    500: #212a41,
-    400: #2a3550,
-    300: #3d4a6b,
-    200: #5c6b8f,
-    100: #8895b7,
-    50:  #b8c3db,
-  );
-  $gold: (
-    400: #e0b85c,
-    500: #d4a843,
-    600: #c49a35,
-    700: #a8842a,
-    900: #362B00,
-  );
+  // Single source of truth: token maps (portfolio-aligned zinc + gold #d4af37)
+  $navy: map.get(colors.$aegis-colors, navy);
+  $gold: map.get(colors.$aegis-colors, gold);
 
   /* ── M3 System Overrides ─────────────────────────────────────────────── */
   --mat-sys-primary: #{map.get($gold, 500)};
@@ -54,17 +38,17 @@ $aegis-dark-theme: mat.define-theme((
   --mat-sys-on-secondary: #{map.get($navy, 900)};
   --mat-sys-secondary-container: #{map.get($navy, 700)};
   --mat-sys-on-secondary-container: #{map.get($navy, 50)};
-  --mat-sys-tertiary: #3B82F6;
+  --mat-sys-tertiary: var(--aegis-color-info);
   --mat-sys-on-tertiary: #FFFFFF;
   --mat-sys-background: #{map.get($navy, 900)};
-  --mat-sys-on-background: #e8ecf4;
+  --mat-sys-on-background: #fafafa;
   --mat-sys-surface: #{map.get($navy, 800)};
-  --mat-sys-on-surface: #e8ecf4;
+  --mat-sys-on-surface: #fafafa;
   --mat-sys-surface-variant: #{map.get($navy, 700)};
   --mat-sys-on-surface-variant: #{map.get($navy, 100)};
   --mat-sys-outline: #{map.get($navy, 500)};
   --mat-sys-outline-variant: #{map.get($navy, 600)};
-  --mat-sys-error: #EF4444;
+  --mat-sys-error: var(--aegis-color-error);
   --mat-sys-on-error: #FFFFFF;
   --mat-sys-surface-container-lowest: #{map.get($navy, 900)};
   --mat-sys-surface-container-low: #{map.get($navy, 800)};
@@ -85,10 +69,10 @@ $aegis-dark-theme: mat.define-theme((
 
   /* ── Card overrides ──────────────────────────────────────────────────── */
   --mat-card-container-background-color: #{map.get($navy, 800)};
-  --mat-card-container-color: #e8ecf4;
+  --mat-card-container-color: #fafafa;
 
   /* ── Form field overrides ────────────────────────────────────────────── */
-  --mat-form-field-container-text-color: #e8ecf4;
+  --mat-form-field-container-text-color: #fafafa;
   --mat-form-field-subscript-text-color: #{map.get($navy, 100)};
   --mat-form-field-outline-color: #{map.get($navy, 500)};
   --mat-form-field-hover-outline-color: #{map.get($navy, 400)};
@@ -107,11 +91,11 @@ $aegis-dark-theme: mat.define-theme((
   --mat-table-background-color: #{map.get($navy, 800)};
   --mat-table-row-item-container-background-color: #{map.get($navy, 800)};
   --mat-table-header-headline-color: #{map.get($navy, 100)};
-  --mat-table-row-item-label-text-color: #e8ecf4;
+  --mat-table-row-item-label-text-color: #fafafa;
 
   /* ── Dialog overrides ────────────────────────────────────────────────── */
   --mat-dialog-container-color: #{map.get($navy, 800)};
-  --mat-dialog-subhead-color: #e8ecf4;
+  --mat-dialog-subhead-color: #fafafa;
   --mat-dialog-supporting-text-color: #{map.get($navy, 100)};
 
   /* ── Snackbar / Toast overrides ──────────────────────────────────────── */
@@ -119,23 +103,23 @@ $aegis-dark-theme: mat.define-theme((
 
   /* ── Menu overrides ──────────────────────────────────────────────────── */
   --mat-menu-container-color: #{map.get($navy, 700)};
-  --mat-menu-item-label-text-color: #e8ecf4;
+  --mat-menu-item-label-text-color: #fafafa;
   --mat-menu-item-hover-state-layer-color: #{map.get($navy, 600)};
 
   /* ── Tooltip overrides ───────────────────────────────────────────────── */
   --mat-tooltip-container-color: #{map.get($navy, 600)};
-  --mat-tooltip-supporting-text-color: #e8ecf4;
+  --mat-tooltip-supporting-text-color: #fafafa;
 
   /* ── Sidenav overrides ───────────────────────────────────────────────── */
   --mat-sidenav-container-background-color: #{map.get($navy, 900)};
   --mat-sidenav-content-background-color: transparent;
 
   /* ── Toolbar overrides ───────────────────────────────────────────────── */
-  --mat-toolbar-container-background-color: rgba(10, 14, 26, 0.85);
-  --mat-toolbar-container-text-color: #e8ecf4;
+  --mat-toolbar-container-background-color: var(--aegis-surface-header);
+  --mat-toolbar-container-text-color: #fafafa;
 
   /* ── List overrides ──────────────────────────────────────────────────── */
-  --mat-list-active-indicator-color: rgba(212, 168, 67, 0.08);
+  --mat-list-active-indicator-color: var(--aegis-gold-50);
   --mat-list-list-item-label-text-color: #{map.get($navy, 100)};
   --mat-list-list-item-leading-icon-color: #{map.get($navy, 200)};
 

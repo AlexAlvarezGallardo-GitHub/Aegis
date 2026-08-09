@@ -1,0 +1,210 @@
+// =============================================================================
+// Aegis — Slide-over Panel (shared by feature pages, e.g. wallets)
+// =============================================================================
+// Tokenized overlay + right-side panel with responsive full-width on mobile.
+// =============================================================================
+
+@use 'sass:map';
+@use '../tokens' as tokens;
+
+.panel-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--aegis-surface-overlay);
+  z-index: var(--aegis-z-overlay);
+  animation: aegis-overlay-fade-in 200ms var(--aegis-ease-out) both;
+}
+
+.slide-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 100vw;
+  background-color: var(--aegis-surface-card);
+  border-left: 1px solid var(--aegis-border-default);
+  box-shadow: var(--aegis-shadow-xl);
+  z-index: var(--aegis-z-drawer);
+  display: flex;
+  flex-direction: column;
+  animation: aegis-panel-slide-in 300ms var(--aegis-ease-out) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
+    width: 100%;
+  }
+}
+
+@keyframes aegis-panel-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes aegis-overlay-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--aegis-space-4) var(--aegis-space-5);
+  border-bottom: 1px solid var(--aegis-border-default);
+}
+
+.panel-title {
+  font-family: var(--aegis-font-display);
+  font-size: var(--aegis-text-lg);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text);
+  margin: 0;
+}
+
+.panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--aegis-radius-md);
+  background: transparent;
+  color: var(--aegis-color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--aegis-duration-fast) var(--aegis-ease-out),
+              color var(--aegis-duration-fast) var(--aegis-ease-out);
+
+  &:hover {
+    background-color: var(--aegis-surface-hover);
+    color: var(--aegis-color-text);
+  }
+
+  &:focus-visible {
+    outline: var(--aegis-focus-ring);
+    outline-offset: 2px;
+  }
+
+  mat-icon {
+    font-size: var(--aegis-icon-size-lg);
+    width: var(--aegis-icon-size-lg);
+    height: var(--aegis-icon-size-lg);
+  }
+}
+
+.panel-body {
+  flex: 1;
+  padding: var(--aegis-space-5);
+  overflow-y: auto;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aegis-space-4);
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.uppercase-input {
+  text-transform: uppercase;
+}
+
+// ── Panel detail sections (wallet detail panel) ─────────────────────────────
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-3);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--aegis-space-2);
+}
+
+.detail-label {
+  font-size: var(--aegis-text-sm);
+  color: var(--aegis-color-text-muted);
+  font-weight: var(--aegis-font-weight-medium);
+  min-width: 80px;
+}
+
+.detail-value {
+  font-size: var(--aegis-text-sm);
+  color: var(--aegis-color-text);
+  text-align: right;
+  word-break: break-all;
+}
+
+.detail-subtitle {
+  font-size: var(--aegis-text-base);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text);
+  margin: 0;
+}
+
+.detail-divider {
+  margin: var(--aegis-space-4) 0;
+}
+
+.detail-hint {
+  font-size: var(--aegis-text-xs);
+  color: var(--aegis-color-text-muted);
+  margin: 0;
+}
+
+.adjust-form,
+.deposit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-3);
+}
+
+.adjust-input,
+.deposit-input {
+  width: 100%;
+}
+
+.adjust-actions,
+.deposit-actions {
+  display: flex;
+  gap: var(--aegis-space-2);
+}
+
+.deposit-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-1);
+  padding: var(--aegis-space-3);
+  margin-top: var(--aegis-space-3);
+  background-color: var(--aegis-surface-success);
+  border: 1px solid var(--aegis-border-success);
+  border-radius: var(--aegis-radius-md);
+}
+
+.receipt-label {
+  font-size: var(--aegis-text-xs);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.receipt-value {
+  font-size: var(--aegis-text-sm);
+  font-family: var(--aegis-font-mono, 'SF Mono', 'Fira Code', monospace);
+  color: var(--aegis-color-text);
+}

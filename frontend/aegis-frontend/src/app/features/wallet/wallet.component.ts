@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, DestroyRef, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject, DestroyRef, signal, HostListener } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { A11yModule } from '@angular/cdk/a11y';
 import { WalletService } from './wallet.service';
 import { DepositReceipt, WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
@@ -17,6 +19,7 @@ import { ToastService } from '../../shared/services/toast.service';
 import { StatusChipComponent, ChipVariant } from '../../shared/data-display/status-chip/status-chip.component';
 import { EmptyStateComponent } from '../../shared/data-display/empty-state/empty-state.component';
 import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card.component';
+import { AegisCurrencyPipe, formatMoney } from '../../shared/utils/currency.pipe';
 
 @Component({
   selector: 'app-wallet',
@@ -29,6 +32,9 @@ import { StatCardComponent } from '../../shared/data-display/stat-card/stat-card
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
+    MatTooltipModule,
+    A11yModule,
+    AegisCurrencyPipe,
     LoadingButtonComponent,
     FormFieldErrorComponent,
     StatusChipComponent,
@@ -49,6 +55,7 @@ export class WalletComponent implements OnInit {
   isLoading = false;
   isLoadingList = false;
   wallets = signal<WalletResponse[]>([]);
+  loadError = signal(false);
   showCreatePanel = signal(false);
   showDetailPanel = signal(false);
   selectedWallet = signal<WalletResponse | null>(null);
@@ -62,6 +69,8 @@ export class WalletComponent implements OnInit {
   readonly fieldLabels: Record<string, string> = {
     currency: 'Currency',
   };
+
+  private lastFocused: HTMLElement | null = null;
 
   constructor() {
     this.walletForm = this.fb.group({
@@ -83,9 +92,18 @@ export class WalletComponent implements OnInit {
     );
   }
 
-  get totalBalance(): string {
-    const sum = this.wallets().reduce((acc, w) => acc + w.balance, 0);
-    return '$' + sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  totalBalances(): { currency: string; amount: number }[] {
+    const byCurrency = new Map<string, number>();
+    for (const w of this.wallets()) {
+      byCurrency.set(w.currency, (byCurrency.get(w.currency) ?? 0) + w.balance);
+    }
+    return [...byCurrency.entries()].map(([currency, amount]) => ({ currency, amount }));
+  }
+
+  get totalBalanceLabel(): string {
+    const totals = this.totalBalances();
+    if (totals.length === 0) return '$0.00';
+    return totals.map(t => formatMoney(t.amount, t.currency)).join(' · ');
   }
 
   get activeCount(): number {
@@ -98,6 +116,7 @@ export class WalletComponent implements OnInit {
 
   loadWallets(): void {
     this.isLoadingList = true;
+    this.loadError.set(false);
     this.walletService.getWallets()
       .pipe(
         finalize(() => this.isLoadingList = false),
@@ -107,27 +126,61 @@ export class WalletComponent implements OnInit {
         next: (wallets) => {
           this.wallets.set(wallets);
         },
-        error: () => { /* handled by HttpErrorInterceptor */ },
+        error: () => {
+          this.loadError.set(true);
+        },
       });
   }
 
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    if (this.showDetailPanel() || this.showCreatePanel()) {
+      this.closeCreatePanel();
+      this.closeDetail();
+    }
+  }
+
   openCreatePanel(): void {
+    this.lastFocused = document.activeElement as HTMLElement | null;
     this.showCreatePanel.set(true);
+    this.focusPanel();
   }
 
   closeCreatePanel(): void {
     this.showCreatePanel.set(false);
     this.walletForm.reset();
+    this.lastFocused?.focus();
+    this.lastFocused = null;
   }
 
   openDetail(wallet: WalletResponse): void {
+    this.lastFocused = document.activeElement as HTMLElement | null;
     this.selectedWallet.set(wallet);
     this.showDetailPanel.set(true);
+    this.focusPanel();
+  }
+
+  openDeposit(wallet: WalletResponse): void {
+    this.lastFocused = document.activeElement as HTMLElement | null;
+    this.selectedWallet.set(wallet);
+    this.showDepositForm.set(true);
+    this.showDetailPanel.set(true);
+    this.focusPanel();
   }
 
   closeDetail(): void {
     this.showDetailPanel.set(false);
     this.selectedWallet.set(null);
+    this.showDepositForm.set(false);
+    this.lastFocused?.focus();
+    this.lastFocused = null;
+  }
+
+  private focusPanel(): void {
+    setTimeout(() => {
+      const panel = document.querySelector('.slide-panel') as HTMLElement | null;
+      panel?.focus();
+    });
   }
 
   adjustBalance(type: 'DEPOSIT' | 'WITHDRAW', amountStr: string, description: string): void {
@@ -198,20 +251,13 @@ export class WalletComponent implements OnInit {
           this.depositSource.set('');
           this.depositReference.set('');
           this.showDepositForm.set(false);
-          this.toastService.success(`$${receipt.amount.toLocaleString()} deposited successfully (ref: ${receipt.reference})`);
+          this.toastService.success(`${formatMoney(receipt.amount, receipt.currency)} deposited successfully (ref: ${receipt.reference})`);
         },
         error: (err) => {
           const msg = err.status === 409 ? 'Duplicate deposit reference' : 'Failed to deposit';
           this.toastService.warning(msg);
         },
       });
-  }
-
-  formatCurrency(balance: number, currency: string): string {
-    const prefix = balance < 0 ? '-' : '';
-    const abs = Math.abs(balance);
-    const symbols: Record<string, string> = { EUR: '€', USD: '$', GBP: '£' };
-    return prefix + (symbols[currency] || currency + ' ') + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   onSubmit(): void {
@@ -256,9 +302,7 @@ export class WalletComponent implements OnInit {
   }
 
   formatBalance(balance: number): string {
-    const prefix = balance < 0 ? '-' : '';
-    const abs = Math.abs(balance);
-    return prefix + '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return formatMoney(balance);
   }
 
   getBalanceClass(balance: number): string {

@@ -1,22 +1,67 @@
 @use 'styles/tokens' as tokens;
 
 .registration-container {
+  position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   min-height: calc(100vh - var(--aegis-space-16));
-  padding: var(--aegis-space-5);
+  padding: var(--aegis-space-8);
   background-color: var(--aegis-color-bg);
+  overflow: hidden;
+
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.10) 0%, transparent 55%);
+  background-size: 56px 56px, 56px 56px, 100% 100%;
+  background-position: center top;
+}
+
+.auth-brand {
+  margin-bottom: var(--aegis-space-6);
+}
+
+.auth-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--aegis-radius-lg);
+  box-shadow: var(--aegis-shadow-gold);
 }
 
 .registration-card {
   max-width: 500px;
   width: 100%;
   padding: var(--aegis-space-6);
+  background-color: var(--aegis-surface-card);
+  border: 1px solid var(--aegis-border-default);
+  border-radius: var(--aegis-radius-xl);
+  box-shadow: var(--aegis-shadow-xl);
+
+  mat-card-header {
+    margin-bottom: var(--aegis-space-5);
+    text-align: center;
+
+    mat-card-title {
+      font-family: var(--aegis-font-display);
+      font-size: var(--aegis-text-3xl);
+      margin-bottom: var(--aegis-space-1);
+    }
+  }
 }
 
 .full-width {
   width: 100%;
+}
+
+.auth-links {
+  text-align: center;
+  margin-top: var(--aegis-space-2);
+
+  a {
+    text-decoration: none;
+  }
 }
 
 .name-fields {
@@ -47,5 +92,9 @@
   p {
     margin: var(--aegis-space-2) 0;
     color: var(--aegis-color-text-secondary);
+  }
+
+  .success-action {
+    margin-top: var(--aegis-space-4);
   }
 }

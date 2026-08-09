@@ -1,4 +1,8 @@
 <div class="auth-container">
+  <div class="auth-brand">
+    <img src="/assets/aegis-icon.png" alt="Aegis" class="auth-logo" />
+  </div>
+
   <mat-card class="auth-card" role="region" aria-labelledby="auth-title">
     <mat-card-header>
       <mat-card-title id="auth-title">Sign In</mat-card-title>
@@ -9,7 +13,7 @@
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" placeholder="john@example.com">
+          <input matInput formControlName="email" type="email" placeholder="john@example.com" autocomplete="email">
           <app-aegis-form-field-error [form]="loginForm" controlName="email" [labels]="fieldLabels" />
         </mat-form-field>
 
@@ -17,6 +21,7 @@
           label="Password"
           placeholder="Enter your password"
           [fullWidth]="true"
+          autocomplete="current-password"
           formControlName="password"
         />
 

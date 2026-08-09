@@ -27,6 +27,7 @@ export class PasswordInputComponent implements ControlValueAccessor {
   readonly required = input<boolean>(false);
   readonly fullWidth = input<boolean>(true);
   readonly appearance = input<'fill' | 'outline'>('outline');
+  readonly autocomplete = input<string>('current-password');
 
   readonly hidePassword = signal<boolean>(true);
   readonly isDisabled = signal<boolean>(false);

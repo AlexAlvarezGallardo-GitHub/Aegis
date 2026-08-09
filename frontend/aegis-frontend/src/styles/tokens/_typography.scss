@@ -10,6 +10,7 @@
 
 $aegis-font-families: (
   brand: 'Inter, "Helvetica Neue", sans-serif',
+  display: 'Geist, Inter, "Helvetica Neue", sans-serif',
   mono: '"JetBrains Mono", "Fira Code", "Consolas", monospace',
 );
 
@@ -57,6 +58,7 @@ $aegis-letter-spacings: (
 @mixin aegis-typography-tokens {
   /* Font families */
   --aegis-font-brand: #{map.get($aegis-font-families, brand)};
+  --aegis-font-display: #{map.get($aegis-font-families, display)};
   --aegis-font-mono: #{map.get($aegis-font-families, mono)};
 
   /* Font sizes */

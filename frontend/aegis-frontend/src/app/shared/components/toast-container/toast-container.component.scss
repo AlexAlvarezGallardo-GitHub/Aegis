@@ -4,7 +4,7 @@
   position: fixed;
   top: var(--aegis-space-4);
   right: var(--aegis-space-4);
-  z-index: 1100;
+  z-index: var(--aegis-z-toast);
   display: flex;
   flex-direction: column;
   gap: var(--aegis-space-3);
@@ -63,9 +63,9 @@
 
 .toast-icon {
   flex-shrink: 0;
-  font-size: var(--aegis-space-5);
-  width: var(--aegis-space-5);
-  height: var(--aegis-space-5);
+  font-size: var(--aegis-icon-size-lg);
+  width: var(--aegis-icon-size-lg);
+  height: var(--aegis-icon-size-lg);
 }
 
 .toast-message {
@@ -89,9 +89,9 @@
   line-height: var(--aegis-space-6);
 
   .mat-icon {
-    font-size: var(--aegis-space-4);
-    width: var(--aegis-space-4);
-    height: var(--aegis-space-4);
+    font-size: var(--aegis-icon-size-sm);
+    width: var(--aegis-icon-size-sm);
+    height: var(--aegis-icon-size-sm);
   }
 }
 

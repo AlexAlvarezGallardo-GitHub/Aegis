@@ -81,7 +81,7 @@ export class AuthComponent {
       .subscribe({
         next: () => {
           this.toastService.success('Welcome back, Architect. Loading your financial workspace...', 4000);
-          setTimeout(() => this.navigateAfterLogin(), 800);
+          this.navigateAfterLogin();
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
@@ -102,7 +102,7 @@ export class AuthComponent {
       .subscribe({
         next: () => {
           this.toastService.success('Welcome back, Architect. Loading your financial workspace...', 4000);
-          setTimeout(() => this.navigateAfterLogin(), 800);
+          this.navigateAfterLogin();
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });

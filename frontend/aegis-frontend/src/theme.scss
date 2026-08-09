@@ -1,18 +1,11 @@
 @use 'styles/themes' as themes;
 
 // =============================================================================
-// Aegis Material Theme — Applied via data-theme attribute
+// Aegis Material Theme — Dark only (UC-013 D2)
+// The app ships a single dark theme aligned to the Aegis portfolio.
 // =============================================================================
 
-html[data-theme='dark'] {
-  @include themes.aegis-dark-theme-overrides;
-}
-
-html[data-theme='light'] {
-  @include themes.aegis-light-theme-overrides;
-}
-
-// Default: dark theme (no attribute)
+html[data-theme='dark'],
 html:not([data-theme]) {
   @include themes.aegis-dark-theme-overrides;
 }

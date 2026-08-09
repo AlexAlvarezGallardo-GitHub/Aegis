@@ -39,9 +39,9 @@
 }
 
 .chip-icon {
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
+  font-size: var(--aegis-icon-size-xs);
+  width: var(--aegis-icon-size-xs);
+  height: var(--aegis-icon-size-xs);
 }
 
 .chip-label {
@@ -51,7 +51,7 @@
 // ── Variants ─────────────────────────────────────────────────────────────────
 
 .neutral {
-  background-color: rgba(100, 116, 139, 0.12);
+  background-color: var(--aegis-color-neutral-bg);
   color: var(--aegis-neutral-300);
 
   .chip-dot { background-color: var(--aegis-neutral-400); }

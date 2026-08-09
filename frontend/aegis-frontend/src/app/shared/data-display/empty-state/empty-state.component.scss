@@ -30,13 +30,13 @@
   height: 64px;
   border-radius: var(--aegis-radius-xl);
   background: var(--aegis-gold-50);
-  border: 1px solid rgba(212, 168, 67, 0.15);
+  border: 1px solid var(--aegis-gold-100);
 }
 
 .empty-state-icon {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+  font-size: var(--aegis-icon-size-xxl);
+  width: var(--aegis-icon-size-xxl);
+  height: var(--aegis-icon-size-xxl);
   color: var(--aegis-color-primary);
 }
 

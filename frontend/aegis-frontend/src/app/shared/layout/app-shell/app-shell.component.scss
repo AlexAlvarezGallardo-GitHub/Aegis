@@ -1,3 +1,29 @@
+@use 'sass:map';
+@use 'styles/tokens' as tokens;
+
+.skip-link {
+  position: fixed;
+  top: var(--aegis-space-2);
+  left: var(--aegis-space-2);
+  z-index: var(--aegis-z-toast);
+  padding: var(--aegis-space-2) var(--aegis-space-3);
+  border-radius: var(--aegis-radius-md);
+  background-color: var(--aegis-surface-card);
+  border: 1px solid var(--aegis-border-hover);
+  color: var(--aegis-color-text);
+  font-size: var(--aegis-text-sm);
+  font-weight: var(--aegis-font-weight-semibold);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform var(--aegis-duration-fast) var(--aegis-ease-out);
+
+  &:focus-visible {
+    transform: translateY(0);
+    outline: var(--aegis-focus-ring);
+    outline-offset: var(--aegis-focus-ring-offset);
+  }
+}
+
 .aegis-shell {
   display: flex;
   height: 100vh;
@@ -15,13 +41,20 @@
 
 .aegis-content {
   flex: 1;
+  width: 100%;
+  max-width: var(--aegis-content-max-width);
+  margin: 0 auto;
   padding: var(--aegis-space-8);
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--aegis-color-bg);
 
-  // Subtle background pattern
+  // Subtle background pattern (portfolio-inspired, restrained)
   background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(212, 168, 67, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.015) 0%, transparent 50%);
+
+  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
+    padding: var(--aegis-space-6);
+  }
 }

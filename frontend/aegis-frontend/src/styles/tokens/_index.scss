@@ -11,6 +11,7 @@
 @forward 'radius';
 @forward 'shadows';
 @forward 'transitions';
+@forward 'layout';
 
 // Re-export all maps for direct SCSS consumption
 @use 'colors' as colors;
@@ -19,6 +20,7 @@
 @use 'radius' as radius;
 @use 'shadows' as shadows;
 @use 'transitions' as transitions;
+@use 'layout' as layout;
 
 $aegis-colors: colors.$aegis-colors;
 $aegis-font-families: typography.$aegis-font-families;
@@ -31,3 +33,6 @@ $aegis-radius: radius.$aegis-radius;
 $aegis-shadows: shadows.$aegis-shadows;
 $aegis-durations: transitions.$aegis-durations;
 $aegis-easings: transitions.$aegis-easings;
+$aegis-z-index: layout.$aegis-z-index;
+$aegis-breakpoints: layout.$aegis-breakpoints;
+$aegis-icon-sizes: layout.$aegis-icon-sizes;

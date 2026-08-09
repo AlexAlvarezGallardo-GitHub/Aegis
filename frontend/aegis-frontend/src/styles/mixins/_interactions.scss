@@ -51,7 +51,7 @@
 
   &:focus {
     border-color: $color;
-    box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.2);
+    box-shadow: 0 0 0 3px var(--aegis-focus-ring-color);
     outline: none;
   }
 }
@@ -110,7 +110,10 @@
     var(--aegis-color-navy-600) 75%
   );
   background-size: 200% 100%;
-  animation: aegis-shimmer 1.5s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: aegis-shimmer 1.5s ease-in-out infinite;
+  }
 
   @keyframes aegis-shimmer {
     0% { background-position: 200% 0; }
