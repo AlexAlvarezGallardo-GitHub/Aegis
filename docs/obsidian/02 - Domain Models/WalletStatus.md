@@ -12,21 +12,20 @@ Enum representing wallet lifecycle states.
 
 ## Values
 
-| Value | Color | Description |
-|-------|-------|-------------|
-| `ACTIVE` | 🟢 Green | Fully operational |
-| `FROZEN` | 🔵 Blue | Temporarily frozen |
-| `CLOSED` | ⚫ Grey | Deactivated |
+| Value | Description |
+|-------|-------------|
+| `ACTIVE` | Fully operational |
+| `FROZEN` | Temporarily frozen |
+| `CLOSED` | Closed (deactivated) |
 
 ## State Transitions
 
 ```mermaid
 stateDiagram-v2
-    [*] --> ACTIVE
-    ACTIVE --> FROZEN: freeze (balance = 0)
-    ACTIVE --> CLOSED: close (balance = 0)
-    FROZEN --> ACTIVE: reactivate
-    CLOSED --> ACTIVE: reactivate
+    [*] --> ACTIVE: Wallet.create()
+    ACTIVE --> FROZEN: deactivate(FROZEN), balance = 0
+    ACTIVE --> CLOSED: deactivate(CLOSED), balance = 0
+    FROZEN --> CLOSED: deactivate(CLOSED), balance = 0
     CLOSED --> [*]
 ```
 

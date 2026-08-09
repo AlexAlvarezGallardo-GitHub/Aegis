@@ -21,6 +21,7 @@ export const httpErrorInterceptor: HttpInterceptorFn = (
       if (error.error instanceof ErrorEvent) {
         message = 'Network error. Please check your connection.';
       } else {
+        const isLoginRequest = req.url.endsWith('/auth/login') || req.url.endsWith('/auth/mock-login');
         switch (error.status) {
           case 0:
             message = 'Unable to connect to the server.';
@@ -29,11 +30,15 @@ export const httpErrorInterceptor: HttpInterceptorFn = (
             message = error.error?.message || 'Invalid request.';
             break;
           case 401:
-            message = 'Session expired. Please log in again.';
-            authService.setUnauthenticated();
-            router.navigate(['/login'], {
-              queryParams: { returnUrl: router.url },
-            });
+            if (isLoginRequest) {
+              message = error.error?.message || 'Invalid email or password.';
+            } else {
+              message = 'Session expired. Please log in again.';
+              authService.setUnauthenticated();
+              router.navigate(['/login'], {
+                queryParams: { returnUrl: router.url },
+              });
+            }
             break;
           case 403:
             message = 'You do not have permission to perform this action.';

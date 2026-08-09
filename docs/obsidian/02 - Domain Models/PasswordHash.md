@@ -8,23 +8,29 @@ status: implemented
 
 # PasswordHash
 
-Value object for BCrypt password hashes.
+Value object wrapping a hashed password. The BCrypt hash is produced by the [[04 - Ports/outbound/PasswordHasher|PasswordHasher]] adapter.
 
 ## Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `value` | String | BCrypt hash (60 chars) |
+| `hash` | String | BCrypt hash (e.g., `$2a$10$...`) |
 
 ## Validation
 
-- Must match BCrypt hash pattern (`$2a$10$...`)
 - Non-null
+- Non-blank
+- `toString()` returns `[PROTECTED]` to avoid leaking the hash in logs
+
+## Factory Methods
+
+- `PasswordHash.of(hash)` → validated instance
 
 ## Used By
 
-- [[02 - Domain Models/User\|User]] aggregate root
-- [[04 - Ports/outbound/PasswordHasher\|PasswordHasher]] port (creation + verification)
+- [[02 - Domain Models/User|User]] aggregate root
+- [[02 - Domain Models/Password|Password]] (validated plain-text source)
+- [[04 - Ports/outbound/PasswordHasher|PasswordHasher]] port (creation + verification)
 
 ## JPA Mapping
 

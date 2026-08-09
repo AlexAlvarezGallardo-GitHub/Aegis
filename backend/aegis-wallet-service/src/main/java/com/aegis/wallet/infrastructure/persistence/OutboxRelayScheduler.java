@@ -1,6 +1,8 @@
 package com.aegis.wallet.infrastructure.persistence;
 
 import com.aegis.wallet.infrastructure.config.KafkaTopicsProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Gauge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class OutboxRelayScheduler {
@@ -24,20 +27,28 @@ public class OutboxRelayScheduler {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final KafkaTopicsProperties topicsProperties;
     private final int batchSize;
+    private final AtomicLong pendingEvents = new AtomicLong();
 
     public OutboxRelayScheduler(OutboxEventJpaRepository outboxRepository,
                                  KafkaTemplate<String, String> kafkaTemplate,
                                  KafkaTopicsProperties topicsProperties,
+                                 MeterRegistry meterRegistry,
                                  @Value("${aegis.wallet.outbox.batch-size:50}") int batchSize) {
         this.outboxRepository = outboxRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.topicsProperties = topicsProperties;
         this.batchSize = batchSize;
+        Gauge.builder("aegis.outbox.pending_events", pendingEvents, AtomicLong::get)
+                .description("Number of outbox events not yet published to Kafka")
+                .register(meterRegistry);
     }
 
     @Scheduled(fixedDelayString = "${aegis.wallet.outbox.polling-interval-ms:1000}")
     @Transactional
     public void relayPendingEvents() {
+        long count = outboxRepository.countByStatus("PENDING");
+        pendingEvents.set(count);
+
         List<OutboxEventJpaEntity> pending = outboxRepository
                 .findPendingEventsForProcessing("PENDING", PageRequest.of(0, batchSize));
 

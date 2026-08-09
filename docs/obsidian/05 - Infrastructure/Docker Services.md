@@ -74,7 +74,7 @@ graph TB
 | `postgres-fraud` | postgres:16.4-alpine | 5436 | Fraud DB |
 | `zookeeper` | confluentinc/cp-zookeeper:7.5.0 | 2181 | Kafka coordinator |
 | `kafka` | confluentinc/cp-kafka:7.5.0 | 9092 | Event broker |
-| `kafka-ui` | provectuslabs/kafka-ui:v0.7.5 | 8090 | Kafka management UI |
+| `kafka-ui` | provectuslabs/kafka-ui:latest | 8090 | Kafka management UI |
 | `redis` | redis:7-alpine | 6379 | BFF session store |
 | `dbgate` | dbgate/dbgate:6.2.0 | 3000 | DB management UI |
 

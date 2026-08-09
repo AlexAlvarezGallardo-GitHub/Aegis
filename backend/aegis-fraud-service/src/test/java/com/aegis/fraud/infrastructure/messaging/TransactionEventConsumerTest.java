@@ -3,6 +3,7 @@ package com.aegis.fraud.infrastructure.messaging;
 import com.aegis.fraud.domain.model.FraudAssessment;
 import com.aegis.fraud.domain.model.FraudDecision;
 import com.aegis.fraud.domain.port.inbound.AssessFraudUseCase;
+import com.aegis.fraud.infrastructure.persistence.ProcessedEventJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,6 +19,9 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,11 +31,14 @@ class TransactionEventConsumerTest {
     @Mock
     private AssessFraudUseCase assessFraudUseCase;
 
+    @Mock
+    private ProcessedEventJpaRepository processedEventRepository;
+
     private TransactionEventConsumer consumer;
 
     @BeforeEach
     void setUp() {
-        consumer = new TransactionEventConsumer(assessFraudUseCase);
+        consumer = new TransactionEventConsumer(assessFraudUseCase, processedEventRepository);
     }
 
     @Nested
@@ -55,10 +62,12 @@ class TransactionEventConsumerTest {
             FraudAssessment mockAssessment = FraudAssessment.rehydrate(
                     UUID.randomUUID(), transactionId, "TRANSFER", 0,
                     FraudDecision.APPROVE, List.of(), java.time.Instant.now());
+            when(processedEventRepository.insertIfAbsent(eq(eventId), any(), anyInt(), anyLong(), any()))
+                    .thenReturn(1);
             when(assessFraudUseCase.assess(any(AssessFraudUseCase.AssessmentCommand.class)))
                     .thenReturn(mockAssessment);
 
-            consumer.onTransferRequested(event);
+            consumer.onTransferRequested(event, "payment.transfer.requested", 0, 12L);
 
             ArgumentCaptor<AssessFraudUseCase.AssessmentCommand> captor =
                     ArgumentCaptor.forClass(AssessFraudUseCase.AssessmentCommand.class);
@@ -73,6 +82,8 @@ class TransactionEventConsumerTest {
             assertEquals(destWalletId, command.destWalletId());
             assertEquals(userId, command.userId());
             assertNull(command.countryCode());
+            verify(processedEventRepository).insertIfAbsent(eq(eventId),
+                    eq("payment.transfer.requested"), eq(0), eq(12L), any());
         }
 
         @Test
@@ -83,16 +94,37 @@ class TransactionEventConsumerTest {
                             UUID.randomUUID(), UUID.randomUUID(), BigDecimal.TEN, "EUR",
                             UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
 
+            when(processedEventRepository.insertIfAbsent(any(), any(), anyInt(), anyLong(), any()))
+                    .thenReturn(1);
             when(assessFraudUseCase.assess(any())).thenReturn(
                     FraudAssessment.rehydrate(UUID.randomUUID(), UUID.randomUUID(), "TRANSFER", 0,
                             FraudDecision.APPROVE, List.of(), java.time.Instant.now()));
 
-            consumer.onTransferRequested(event);
+            consumer.onTransferRequested(event, "payment.transfer.requested", 0, 12L);
 
             ArgumentCaptor<AssessFraudUseCase.AssessmentCommand> captor =
                     ArgumentCaptor.forClass(AssessFraudUseCase.AssessmentCommand.class);
             verify(assessFraudUseCase).assess(captor.capture());
             assertNull(captor.getValue().countryCode());
+        }
+
+        @Test
+        @DisplayName("Should skip already-processed events without assessing twice")
+        void shouldSkipDuplicateEvents() {
+            UUID eventId = UUID.randomUUID();
+            TransactionEventConsumer.TransferRequestedEvent event =
+                    new TransactionEventConsumer.TransferRequestedEvent(
+                            eventId, UUID.randomUUID(), BigDecimal.TEN, "EUR",
+                            UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+
+            when(processedEventRepository.insertIfAbsent(eq(eventId), any(), anyInt(), anyLong(), any()))
+                    .thenReturn(0);
+
+            consumer.onTransferRequested(event, "payment.transfer.requested", 3, 77L);
+
+            verify(assessFraudUseCase, never()).assess(any());
+            verify(processedEventRepository).insertIfAbsent(eq(eventId),
+                    eq("payment.transfer.requested"), eq(3), eq(77L), any());
         }
     }
 

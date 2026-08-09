@@ -10,7 +10,7 @@ Argo CD is the GitOps engine of the Aegis platform. It is bootstrapped via GitOp
 
 ## Bootstrap
 
-Argo CD installs itself from the upstream manifests. The `app-of-apps-dev` Application is the single bootstrap point — applied once, then every child Application is auto-discovered from `applications/dev/`.
+Argo CD installs itself from the upstream manifests. The `app-of-apps-dev` Application is the single bootstrap point — applied once, then every child Application is auto-discovered from `applications/dev/`. `scripts/setup-minikube.ps1` automates the full bootstrap (cluster creation, Argo CD install via `infrastructure/argocd/install`, GHCR pull secret creation, app-of-apps apply).
 
 ```mermaid
 sequenceDiagram
@@ -29,7 +29,7 @@ sequenceDiagram
 
 ## App of Apps (per environment)
 
-The root `app-of-apps-dev` manages every child Application in `applications/dev/` (services + infrastructure). Each active environment gets its own app-of-apps. `pre`, `stage` and `prod` app-of-apps are created when those environments go live.
+The root `app-of-apps-dev` manages every child Application in `applications/dev/` (services + infrastructure). Only DEV has an app-of-apps root today; `pre`, `stage` and `prod` already have individual Applications (`applications/pre|stage|prod/`) that are promotion-ready but not yet wired to their own app-of-apps.
 
 ```mermaid
 graph TB
@@ -74,6 +74,8 @@ sequenceDiagram
 ## Applications
 
 Each service and infrastructure component is a separate Application, auto-discovered by `app-of-apps-dev`. Service applications point at their Helm chart with the overlay values; infrastructure applications point at a kustomize overlay.
+
+Only the four charted services (`identity`, `wallet`, `bff`, `frontend`) plus infrastructure (`database`, `kafka`, `redis`) and observability (`monitoring`, `logging`) are managed by Argo CD. **`audit`, `fraud` and `reporting` have no Application and are not deployed via GitOps** — they run via docker-compose and push images to GHCR through CI.
 
 Service application (`identity`):
 ```yaml
@@ -128,12 +130,14 @@ Infrastructure components follow the Kustomize `base/` + `overlays/<env>/` patte
 
 ## Sync Policies
 
-| Environment | Status | Sync | Prune | Self-Heal |
-|-------------|--------|------|-------|-----------|
-| DEV   | Active (minikube) | Auto | Yes | Yes |
-| PRE   | Not deployed | Auto (planned) | Yes | Yes |
-| STAGE | Not deployed | Manual/Approval (planned) | Yes | Yes |
-| PROD  | Not deployed | Manual/Approval (planned) | No  | Yes |
+| Environment | Namespace | Sync | Prune | Self-Heal |
+|-------------|-----------|------|-------|-----------|
+| DEV   | `aegis-dev`   | Auto | Yes | Yes |
+| PRE   | `aegis-pre`   | Auto | Yes | Yes |
+| STAGE | `aegis-stage` | Manual/Approval | Yes | Yes |
+| PROD  | `aegis-prod`  | Manual/Approval | No  | Yes |
+
+`prune: false` on PROD prevents Argo CD from deleting resources that drift from the declared state — the safest mode for production. STAGE and PROD require a manual sync (approval gate) before promotion.
 
 ## Health Checks
 

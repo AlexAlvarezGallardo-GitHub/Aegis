@@ -9,21 +9,22 @@ port: 4200
 
 # Frontend
 
-**Purpose**: Angular 22 SPA with Material Design — the user-facing interface for the Aegis platform.
+**Purpose**: Angular 22 SPA with Material Design — the user-facing interface for the Aegis platform. It exposes three real features (auth, registration, wallet) and guards the rest as placeholder routes.
 
 ```mermaid
 graph TB
-    subgraph "Angular 22 SPA"
+    subgraph "Angular 22 SPA (standalone)"
         direction TB
-        Features["Features<br/>Dashboard, Wallet, Auth, Registration"]
-        Shared["Shared<br/>Layout, DataDisplay, Guards, Interceptors"]
-        Core["Core<br/>ThemeService, AuthGuard, HTTP Interceptors"]
+        Features["Features<br/>Auth, Registration, Wallet"]
+        Shared["Shared<br/>Layout, DataDisplay, Forms, Interceptors"]
+        Core["Core<br/>AuthGuard, HTTP Interceptors, Signals"]
         Features --> Shared --> Core
     end
     Browser["Browser"] -->|HTTP| Angular["Angular SPA :4200"]
-    Angular -->|/api/* via proxy| BFF["BFF Service :8082"]
+    Angular -->|/api/bff/* via proxy| BFF["BFF Service :8082"]
     style Angular fill:#bbf,stroke:#333,color:#000
-    style Features fill:#fdb,stroke:#333,color:#000
+    style BFF fill:#bbf,stroke:#333,color:#000
+    style Features fill:#bbf,stroke:#333,color:#000
     style Shared fill:#fdb,stroke:#333,color:#000
     style Core fill:#fdb,stroke:#333,color:#000
 ```
@@ -32,20 +33,23 @@ graph TB
 sequenceDiagram
     participant User as User (Browser)
     participant Angular as Angular SPA
+    participant Guard as AuthGuard
     participant Proxy as proxy.conf.json
     participant BFF as BFF Service
-    participant Identity as Identity Service
     participant Wallet as Wallet Service
 
     User->>Angular: Navigate to /wallets
-    Angular->>Angular: AuthGuard checks session
+    Angular->>Guard: canActivate checks session (GET /me)
+    Guard->>Proxy: GET /api/bff/auth/me
+    Proxy->>BFF: forward to :8082
+    BFF-->>Angular: 200 session
     Angular->>Proxy: GET /api/bff/wallets
     Proxy->>BFF: forward to :8082
     BFF->>BFF: extract JWT from session
     BFF->>Wallet: GET /api/v1/wallets (X-User-Id)
     Wallet-->>BFF: wallet list
     BFF-->>Angular: 200 wallets
-    Angular-->>User: render WalletListComponent
+    Angular-->>User: render WalletComponent
 ```
 
 ## Tech Stack
@@ -55,49 +59,41 @@ sequenceDiagram
 | Angular | 22 |
 | Angular Material | 22 |
 | TypeScript | 6 |
-| Reactive Forms | — |
-| Chart.js / ng2-charts | Dashboard |
-| Design Tokens | Custom SCSS |
+| State management | Angular Signals (no NgRx) |
+| Build | Standalone components, lazy loading |
 
 ## Architecture
 
-### Features
-- **Dashboard** — KPI cards, charts, activity feed, system health
-- **Wallet List** — Stripe-style table with status badges, CRUD actions
-- **Wallet Detail** — Overview, balance cards, transaction history, timeline, analytics
-- **Auth** — Login, registration, profile
-- **Layout** — Sidebar navigation, header, theme toggle
+### Features (real)
+- **Auth** — Login with email/password against the BFF session API
+- **Registration** — New user sign-up
+- **Wallet** — Wallet list, create, detail, balance adjust, deposits
 
-### Core Modules
-- `AppShellComponent` — Layout wrapper with sidebar + header
-- `ThemeService` — Dark/light mode with design tokens
-- `AuthGuard` — Route protection
-- HTTP interceptors — Auth token injection + error handling
+### Placeholder routes
+`payments`, `transactions`, `payouts`, `currencies`, `fraud`, `alerts`, `health`, `settings`, `users`, `api-keys` — all render the shared `PagePlaceholderComponent`. There is **no `/dashboard`** route.
 
-### Shared Components (UX Foundation)
-- `StatCardComponent` — KPI metric cards
-- `StatusChipComponent` — Colored status badges
-- `LoadingSkeletonComponent` — Skeleton loaders
-- `EmptyStateComponent` — Empty state display
-- `AegisIconComponent` — Custom SVG icons
+### Shared Modules
+- **Layout**: `AppShellComponent`, `HeaderComponent`, `SidebarComponent`, `PagePlaceholderComponent`
+- **Data Display**: `StatCardComponent`, `StatusChipComponent`, `LoadingSkeletonComponent`, `EmptyStateComponent`
+- **Forms**: `FormFieldErrorComponent`, `LoadingButtonComponent`, `PasswordInputComponent`
+- **Components**: `ThemeToggleComponent`, `ToastContainerComponent`, `ConfirmationDialogComponent`, `CommandPaletteComponent`, `KeyboardShortcutCheatSheetComponent`
+- **Guards**: `AuthGuard` — protects `/wallets` and redirects to `/login` when the session is invalid
+- **Interceptors**: `http-timeout` (15s timeout), `http-auth` (auth header stub), `http-error` (toast + redirect to `/login` on 401)
+- **Services**: `ThemeService`, `ToastService`, `ConfirmationService`, `CommandPaletteService`, `KeyboardShortcutsService`
 
-### Design System
-- Gold (#D4AF37) brand palette
-- Design tokens: colors, typography, spacing, radius, shadows
-- Dark/light theme support
-- WCAG 2.1 AA compliant
+### Mock Login
+`MockLoginService` is enabled via `environment.enableMockLogin` (dev only) and posts to `/api/bff/auth/mock-login`.
 
 ## Routes
 
 | Path | Component | Auth |
 |------|-----------|------|
-| `/dashboard` | DashboardComponent | ✅ |
-| `/wallets` | WalletListComponent | ✅ |
-| `/wallets/:id` | WalletDetailComponent | ✅ |
-| `/login` | AuthComponent | ❌ |
-| `/register` | RegistrationComponent | ❌ |
+| `/login` | `AuthComponent` | ❌ |
+| `/register` | `RegistrationComponent` | ❌ |
+| `/wallets` | `WalletComponent` | ✅ |
+| `/payments`, `/transactions`, `/payouts`, `/currencies`, `/fraud`, `/alerts`, `/health`, `/settings`, `/users`, `/api-keys` | `PagePlaceholderComponent` | ✅ |
 
 ## Dependencies
 
-- **Depends on**: [[01 - Services/BFF Service\|BFF Service]] (all API calls)
-- **Proxy**: `proxy.conf.json` routes `/api/*` → BFF `:8082`
+- **Depends on**: [[01 - Services/BFF Service\|BFF Service]] (all API calls go through BFF)
+- **Proxy**: `proxy.conf.json` routes `/api/bff/*` → BFF `:8082` (and `/api/*` → Identity `:8081`)

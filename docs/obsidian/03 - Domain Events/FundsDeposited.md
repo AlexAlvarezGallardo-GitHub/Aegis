@@ -14,12 +14,12 @@ Published when funds are deposited into a wallet via the dedicated deposit endpo
 ```mermaid
 graph LR
     Wallet[Wallet Service] -->|publishes| Topic[wallet.funds.deposited]
-    Topic --> Report[Reporting Service]
     Topic --> Audit[Audit Service]
+    Topic --> Report[Reporting Service]
     style Wallet fill:#bbf,stroke:#333,color:#000
     style Topic fill:#fdb,stroke:#333,color:#000
-    style Report fill:#bfb,stroke:#333,color:#000
     style Audit fill:#bfb,stroke:#333,color:#000
+    style Report fill:#bfb,stroke:#333,color:#000
 ```
 
 ```mermaid
@@ -29,15 +29,15 @@ sequenceDiagram
     participant Pub as KafkaEventPublisher
     participant DB as PostgreSQL (Outbox)
     participant Kafka as Kafka Topic
-    participant Report as Reporting Consumer
     participant Audit as Audit Consumer
+    participant Report as Reporting Consumer
 
     Wallet->>Svc: depositFunds()
     Svc->>Pub: publish(FundsDeposited)
     Pub->>DB: INSERT outbox_event (payload=FundsDeposited JSON)
     DB-->>Kafka: OutboxRelayScheduler polls & sends
-    Kafka->>Report: Consume (group=reporting-group)
-    Kafka->>Audit: Consume (group=audit-group)
+    Kafka->>Audit: Consume (group=audit-group) → persist AuditRecord
+    Kafka->>Report: Consume (group=reporting-group) → upsert BalanceProjection
 ```
 
 ## Schema
@@ -59,7 +59,7 @@ sequenceDiagram
 
 ## Details
 
-- **Producer**: [[01 - Services/Wallet Service\|Wallet Service]] via [[04 - Ports/outbound/EventPublisher\|EventPublisher]]
-- **Topic**: `wallet.funds.deposited` ([[05 - Infrastructure/Kafka Topics\|Kafka Topics]])
+- **Producer**: [[01 - Services/Wallet Service|Wallet Service]] via [[04 - Ports/outbound/EventPublisher|EventPublisher]]
+- **Topic**: `wallet.funds.deposited` ([[05 - Infrastructure/Kafka Topics|Kafka Topics]])
 - **Trigger**: `POST /api/v1/wallets/{id}/deposits`
-- **Consumed by**: [[01 - Services/Reporting Service\|Reporting Service]], [[01 - Services/Audit Service\|Audit Service]]
+- **Consumed by**: [[01 - Services/Audit Service|Audit Service]] (persists [[02 - Domain Models/AuditRecord|AuditRecord]]), [[01 - Services/Reporting Service|Reporting Service]] (persists [[02 - Domain Models/BalanceProjection|BalanceProjection]])
