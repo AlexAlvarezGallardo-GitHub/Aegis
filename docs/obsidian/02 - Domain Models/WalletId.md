@@ -16,14 +16,20 @@ Value object wrapping a UUID v7 identifier.
 |-------|------|-------------|
 | `value` | UUID | UUID v7 (time-ordered) |
 
-## Display Format
+## Factory Methods
 
-- Human-readable: `WLT-XXXXXXXX` (e.g., `WLT-001`)
+- `WalletId.generate()` → new identifier via `UuidV7Generator`
+- `WalletId.of(UUID value)` → wraps an existing value
+
+## Generation
+
+- Uses `UuidV7Generator` from [[01 - Services/Common Module|Common Module]]
+- Time-ordered for DB index performance
 
 ## Used By
 
-- [[02 - Domain Models/Wallet\|Wallet]] aggregate root
-- [[04 - Ports/outbound/WalletRepository\|WalletRepository]] (lookup key)
+- [[02 - Domain Models/Wallet|Wallet]] aggregate root
+- [[04 - Ports/outbound/WalletRepository|WalletRepository]] (lookup key)
 - JPA entity ID
 - REST API path parameter
 

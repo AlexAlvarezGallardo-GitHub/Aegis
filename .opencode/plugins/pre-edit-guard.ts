@@ -23,6 +23,11 @@ const FORBIDDEN_CONTROLLER_IMPORTS = [
   "Repository",
 ]
 
+// Normalize Windows separators so the layer checks work on every OS.
+function normalizePath(filePath: string): string {
+  return filePath.replace(/\\/g, "/")
+}
+
 function isDomainLayer(filePath: string): boolean {
   return DOMAIN_LAYER_PATTERNS.some((pattern) => filePath.includes(pattern))
 }
@@ -34,9 +39,13 @@ function isControllerLayer(filePath: string): boolean {
 export default (async ({ project }) => {
   return {
     "tool.execute.before": async (input, output) => {
-      if (output.tool !== "edit" && output.tool !== "write") return
+      // The tool name lives on `input`, not `output` — reading `output.tool`
+      // made this guard a silent no-op.
+      if (input.tool !== "edit" && input.tool !== "write") return
 
-      const filePath = String(output.args?.filePath ?? output.args?.path ?? "")
+      const filePath = normalizePath(
+        String(output.args?.filePath ?? output.args?.path ?? "")
+      )
       const content = String(output.args?.content ?? output.args?.newString ?? "")
 
       if (!filePath.match(/\.(java|kt)$/)) return
@@ -46,10 +55,11 @@ export default (async ({ project }) => {
           content.includes(imp)
         )
         if (violations.length > 0) {
-          output.args._guardWarning =
+          console.warn(
             `[pre-edit-guard] Domain layer violation detected in ${filePath}. ` +
-            `Forbidden imports: ${violations.join(", ")}. ` +
-            `Domain model must not depend on infrastructure, web, or persistence layers.`
+              `Forbidden imports: ${violations.join(", ")}. ` +
+              `Domain model must not depend on infrastructure, web, or persistence layers.`
+          )
         }
       }
 
@@ -58,10 +68,11 @@ export default (async ({ project }) => {
           content.includes(imp)
         )
         if (violations.length > 0) {
-          output.args._guardWarning =
+          console.warn(
             `[pre-edit-guard] Controller layer violation in ${filePath}. ` +
-            `Direct repository access detected: ${violations.join(", ")}. ` +
-            `Controllers must use application services, not repositories.`
+              `Direct repository access detected: ${violations.join(", ")}. ` +
+              `Controllers must use application services, not repositories.`
+          )
         }
       }
     },

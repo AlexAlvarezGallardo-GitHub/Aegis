@@ -25,6 +25,27 @@ outputs:
   any:
     description: 'True if any of the tracked paths changed'
     value: ${{ steps.filter.outputs.any }}
+  common:
+    description: 'True if aegis-common changed'
+    value: ${{ steps.filter.outputs.common }}
+  identity:
+    description: 'True if the identity service changed'
+    value: ${{ steps.filter.outputs.identity }}
+  wallet:
+    description: 'True if the wallet service changed'
+    value: ${{ steps.filter.outputs.wallet }}
+  bff:
+    description: 'True if the BFF service changed'
+    value: ${{ steps.filter.outputs.bff }}
+  audit:
+    description: 'True if the audit service changed'
+    value: ${{ steps.filter.outputs.audit }}
+  fraud:
+    description: 'True if the fraud service changed'
+    value: ${{ steps.filter.outputs.fraud }}
+  reporting:
+    description: 'True if the reporting service changed'
+    value: ${{ steps.filter.outputs.reporting }}
 
 runs:
   using: 'composite'

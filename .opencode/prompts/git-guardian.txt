@@ -128,11 +128,12 @@ git diff --cached --stat
 ```
 Verify the changes make sense for the intended commit scope.
 
-### Validate PR (when GitHub MCP is available)
+### Validate PR (use the gh CLI)
+- `gh pr view <n> --json title,body,statusCheckRollup,reviewDecision` (set the repo token inline per AGENTS.md)
 - Check PR title format
 - Check PR body has required sections
-- Check CI status
-- Check review status
+- Check CI status: `gh pr checks <n>`
+- Check review status: `gh pr view <n> --json reviewDecision`
 
 ## Actions
 

@@ -16,8 +16,15 @@ useDefault = true
     '''change-me''',
     '''your-.*-secret''',
     '''password\s*[:=]\s*["']?aegis''',
+    # Truncated example JWT fragments in OpenAPI contracts and specs
+    # (e.g. "eyJhbGciOiJSUzI1NiIs..."). These are documentation placeholders,
+    # never usable credentials.
+    '''eyJ[A-Za-z0-9_-]*\.{2,}''',
+    '''eyJ[A-Za-z0-9_-]{8,}\.\s*$''',
   ]
   paths = [
     '''.*/src/test/.*''',
     '''.*/test/.*''',
+    '''.*/specs/.*/contracts/.*''',
+    '''.*/specs/.*\.md''',
   ]

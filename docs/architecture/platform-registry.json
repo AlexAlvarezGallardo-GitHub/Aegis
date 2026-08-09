@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "lastVerified": "2026-08-08",
+  "sourceOfTruth": "https://github.com/AlexAlvarezGallardo-GitHub/Aegis/blob/main/docs/architecture/platform-registry.json",
+  "platform": {
+    "name": "Aegis",
+    "kind": "reference-architecture",
+    "positioning": "Production-oriented financial reference architecture, designed, specified, implemented and documented through an AI-assisted engineering workflow.",
+    "realities": {
+      "operatesRealMoney": false,
+      "multiTenant": false,
+      "cryptographicAuditChain": false,
+      "doubleEntryLedger": false,
+      "fraudInAuthorizationPath": false,
+      "productionEnvironmentRunning": false,
+      "commercialSla": false,
+      "aiAtRuntime": false
+    },
+    "forbiddenClaimPhrases": [
+      "enterprise-grade financial platform",
+      "multi-tenant financial platform",
+      "cryptographically-linked audit",
+      "no manual deployments exist",
+      "real SaaS company"
+    ]
+  },
+  "repositories": {
+    "code": { "owner": "AlexAlvarezGallardo-GitHub", "name": "Aegis", "branch": "main" },
+    "gitops": { "owner": "AlexAlvarezGallardo-GitHub", "name": "Aegis-GitOps", "branch": "main" },
+    "portfolio": { "owner": "AlexAlvarezGallardo-GitHub", "name": "Aegis-Portfolio", "branch": "main" }
+  },
+  "environments": [
+    { "name": "local", "status": "functional" },
+    { "name": "dev", "status": "functional", "note": "docker-compose stack verified; Kubernetes/Argo CD structure has partial minikube evidence (2026-08-07) but Argo CD bootstrap is not independently confirmed" },
+    { "name": "pre", "status": "prepared" },
+    { "name": "stage", "status": "prepared" },
+    { "name": "prod", "status": "prepared" }
+  ],
+  "artifacts": {
+    "backendServices": [
+      { "id": "identity", "module": "aegis-identity-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
+      { "id": "bff", "module": "aegis-bff-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
+      { "id": "wallet", "module": "aegis-wallet-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
+      { "id": "fraud", "module": "aegis-fraud-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } },
+      { "id": "audit", "module": "aegis-audit-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } },
+      { "id": "reporting", "module": "aegis-reporting-service", "status": "partial", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } }
+    ],
+    "frontend": { "id": "frontend", "module": "aegis-frontend", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
+    "sharedLibraries": [
+      { "id": "common", "module": "aegis-common", "status": "implemented" }
+    ],
+    "planned": [
+      { "id": "payment", "name": "Payment Service" },
+      { "id": "notification", "name": "Notification Service" },
+      { "id": "api-gateway", "name": "API Gateway" }
+    ]
+  },
+  "gitops": {
+    "appOfApps": { "dev": true, "pre": false, "stage": false, "prod": false },
+    "monitoringInAppOfApps": true,
+    "loggingInAppOfApps": true,
+    "charts": ["audit", "bff", "fraud", "frontend", "identity", "reporting", "wallet"],
+    "applicationsDev": ["audit", "bff", "database", "fraud", "frontend", "identity", "kafka", "logging", "monitoring", "redis", "reporting", "wallet"]
+  },
+  "metrics": {
+    "commitsOnMain": 141,
+    "backendServices": 6,
+    "adrs": 12,
+    "specs": 8,
+    "measuredAt": "2026-08-08"
+  }
+}

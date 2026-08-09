@@ -22,6 +22,7 @@ graph TB
     Templates --> Ingress[ingress.yaml]
     Templates --> HPA[hpa.yaml]
     Templates --> PDB[pdb.yaml]
+    Templates --> SA[serviceaccount.yaml]
 
     style Chart fill:#fdb,color:#000
     style ChartYaml fill:#afa,color:#000
@@ -33,6 +34,7 @@ graph TB
     style Ingress fill:#bbf,color:#000
     style HPA fill:#bbf,color:#000
     style PDB fill:#bbf,color:#000
+    style SA fill:#bbf,color:#000
 ```
 
 ## Overlay Strategy
@@ -55,11 +57,13 @@ graph LR
 
 ## Environment Parameters
 
+Actual per-environment values in `overlays/<env>/*-values.yaml`:
+
 | Parameter | DEV | PRE | STAGE | PROD |
 |-----------|-----|-----|-------|------|
 | Replicas | 1 | 2 | 2 | 3 (HPA 3-10) |
-| CPU request | 250m | 250m | 250m | 500m |
-| Memory request | 384Mi | 256Mi | 256Mi | 512Mi |
+| CPU request / limit | 250m / 500m | 250m / 500m | 250m / 500m | 500m / 1 |
+| Memory request / limit | 384Mi / 768Mi | 256Mi / 512Mi | 256Mi / 512Mi | 512Mi / 1Gi |
 | HPA | No | No | No | Yes |
 | PDB | No | No | Yes (1) | Yes (2) |
 | Affinity | No | No | No | Yes (anti-affinity) |
@@ -74,6 +78,7 @@ Each chart renders these Kubernetes resources:
 - **Ingress**: optional, enabled via `.Values.ingress.enabled`.
 - **HorizontalPodAutoscaler**: optional, enabled via `.Values.autoscaling.enabled`.
 - **PodDisruptionBudget**: optional, enabled via `.Values.podDisruptionBudget.enabled`.
+- **ServiceAccount**: default service account for the pod.
 
 ## Probes
 
@@ -88,12 +93,16 @@ The probe delays must be present in the chart template — without them, kubelet
 
 ## Services
 
+Only four services ship a Helm chart and are deployable via GitOps. Images are pulled from GHCR (`ghcr.io/alexalvarezgallardo-github/`) using the `ghcr-pull` imagePullSecret with immutable SHA tags:
+
 | Service | Chart | Image | Port | Probe |
 |---------|-------|-------|------|-------|
 | [[01 - Services/Identity Service\|Identity Service]] | `charts/identity` | `identity-service` | 8081 | `/actuator/health` |
 | [[01 - Services/Wallet Service\|Wallet Service]] | `charts/wallet` | `wallet-service` | 8083 | `/actuator/health` |
 | [[01 - Services/BFF Service\|BFF Service]] | `charts/bff` | `bff-service` | 8082 | `/actuator/health` |
 | [[01 - Services/Frontend\|Frontend]] | `charts/frontend` | `frontend` | 80 | `/` |
+
+> **Note:** `audit`, `fraud` and `reporting` have **no Helm chart** (no `charts/audit`, `charts/fraud`, `charts/reporting`). They run via docker-compose and ship images to GHCR through CI, but are not deployable via GitOps today.
 
 ## Validation
 

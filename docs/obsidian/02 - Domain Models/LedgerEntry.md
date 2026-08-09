@@ -8,19 +8,26 @@ status: implemented
 
 # LedgerEntry
 
-Value object representing a single transaction on a wallet's ledger.
+Immutable value object representing a single transaction on a wallet's ledger. Entries are append-only: corrections and reversals are recorded as new entries referencing the original (ADR-004), never by editing an existing entry.
 
 ## Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `entryId` | UUID | Unique entry ID |
-| `type` | [[02 - Domain Models/LedgerEntryType\|LedgerEntryType]] | Credit/debit/reserve/release |
-| `amount` | BigDecimal | Transaction amount |
+| `id` | UUID | Unique entry ID (UUID v7) |
+| `walletId` | UUID | The wallet the entry belongs to |
+| `type` | [[02 - Domain Models/LedgerEntryType\|LedgerEntryType]] | Entry classification |
+| `amount` | BigDecimal | Absolute, non-negative amount |
 | `currency` | String | ISO 4217 |
-| `description` | String | Transaction reference |
-| `referenceId` | String | External reference |
-| `createdAt` | Instant | Timestamp |
+| `reference` | String | External reference (idempotency key for deposits) |
+| `timestamp` | Instant | When the entry was created |
+| `reversalOf` | UUID | ID of the entry this entry reverses, or `null` |
+
+## Validation
+
+- `amount` must not be negative
+- `REVERSAL` entries must reference the original entry (`reversalOf` not null)
+- All fields required except `reversalOf`
 
 ## Used By
 

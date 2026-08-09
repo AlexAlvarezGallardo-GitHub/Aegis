@@ -16,6 +16,8 @@ public interface OutboxEventJpaRepository extends JpaRepository<OutboxEventJpaEn
 
     List<OutboxEventJpaEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
 
+    long countByStatus(String status);
+
     /**
      * Finds PENDING outbox events with a pessimistic write lock and SKIP LOCKED
      * to prevent race conditions in multi-instance deployments.

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aegis — Observability Evidence</title>
+<style>
+  :root { --bg:#09090B; --surface:#111113; --card:#18181B; --primary:#D4AF37; --accent:#E6C15A; --text:#FAFAFA; --muted:#A1A1AA; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter','Segoe UI',sans-serif; padding:32px; }
+  .header { display:flex; align-items:center; gap:16px; margin-bottom:28px; }
+  .logo { width:40px; height:40px; border-radius:8px; background:linear-gradient(135deg,var(--primary),var(--accent)); display:flex; align-items:center; justify-content:center; font-weight:700; color:#09090B; font-size:18px; }
+  h1 { font-size:22px; font-weight:700; }
+  .sub { color:var(--muted); font-size:13px; margin-top:2px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px; }
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:20px; }
+  .card h2 { font-size:14px; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:.05em; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .pill { background:rgba(212,175,55,.15); color:var(--primary); font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; }
+  .metric { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:13px; }
+  .metric:last-child { border-bottom:none; }
+  .metric .label { color:var(--muted); }
+  .metric .value { font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  td { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,.05); font-family:'JetBrains Mono',monospace; }
+  td.name { color:var(--muted); }
+  .bar { display:inline-block; height:10px; border-radius:3px; background:linear-gradient(90deg,var(--primary),var(--accent)); vertical-align:middle; margin-right:8px; min-width:3px; }
+  .trace-badge { display:inline-block; background:rgba(212,175,55,.12); color:var(--primary); font-size:10px; padding:1px 6px; border-radius:4px; font-family:'JetBrains Mono',monospace; margin-bottom:8px; }
+  .ok { color:#4ade80; } .warn { color:#facc15; }
+  .foot { margin-top:24px; color:var(--muted); font-size:12px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">A</div>
+  <div>
+    <h1>Observability Evidence</h1>
+    <div class="sub">Real OTLP traces + load results captured from the running minikube + Aegis-GitOps stack</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Trace — Outbox Relay <span class="pill">real</span></h2>
+    <div class="trace-badge">6453d64c1255b774b2248ba0bd9a8eb8</div>
+    <table>
+      <tr><td class="name">service.name</td><td>aegis-wallet-service</td></tr>
+      <tr><td class="name">sdk</td><td>opentelemetry 1.37.0</td></tr>
+      <tr><td class="name">span</td><td>task outbox-relay-scheduler.relay-pending-events</td></tr>
+      <tr><td class="name">outcome</td><td><span class="ok">SUCCESS</span></td></tr>
+      <tr><td class="name">exception</td><td>none</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Trace — HTTP + Security <span class="pill">real</span></h2>
+    <div class="trace-badge">17ca3c037147e63d39f2af979b0446cb</div>
+    <table>
+      <tr><td class="name" colspan="2">span waterfall (Spring Security filterchain)</td></tr>
+      <tr><td class="name">http get /actuator/health</td><td><div class="bar" style="width:89px"></div>2.98 ms</td></tr>
+      <tr><td class="name">&nbsp; secured request</td><td><div class="bar" style="width:63px"></div>2.09 ms</td></tr>
+      <tr><td class="name">&nbsp;&nbsp; security filterchain before</td><td><div class="bar" style="width:8px"></div>0.28 ms</td></tr>
+      <tr><td class="name">&nbsp;&nbsp;&nbsp; authorize request</td><td><div class="bar" style="width:4px"></div>0.08 ms</td></tr>
+      <tr><td class="name">&nbsp; security filterchain after</td><td><div class="bar" style="width:4px"></div>0.13 ms</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Trace — Prometheus Scrape <span class="pill">real</span></h2>
+    <div class="trace-badge">42805887cbf99f42ce68df4aa5d8e0fc</div>
+    <table>
+      <tr><td class="name">service.name</td><td>aegis-wallet-service</td></tr>
+      <tr><td class="name">span</td><td>http get /actuator/prometheus</td></tr>
+      <tr><td class="name">status</td><td><span class="ok">OK</span></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Load Test — Concurrent Deposits <span class="pill">real</span></h2>
+    <div class="metric"><span class="label">Requests</span><span class="value">40</span></div>
+    <div class="metric"><span class="label">Success (201)</span><span class="value ok">40</span></div>
+    <div class="metric"><span class="label">Errors</span><span class="value">0</span></div>
+    <div class="metric"><span class="label">Throughput</span><span class="value">4.8 req/s</span></div>
+    <div class="metric"><span class="label">Latency p50</span><span class="value">153 ms</span></div>
+    <div class="metric"><span class="label">Latency p95</span><span class="value">247 ms</span></div>
+    <div class="metric"><span class="label">Latency max</span><span class="value">315 ms</span></div>
+    <div class="metric"><span class="label">SLO (p95 ≤ 400 ms)</span><span class="value ok">MET</span></div>
+  </div>
+</div>
+
+<div class="foot">Captured 2026-08-07 · minikube (K8s 1.30) · OTLP → Tempo (tempo.monitoring.svc:4318) · evidence/observability/</div>
+</body>
+</html>

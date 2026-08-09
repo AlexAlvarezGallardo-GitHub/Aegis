@@ -35,14 +35,22 @@ spring:
       properties:
         spring.json.trusted.packages: com.aegis.reporting.domain.event
         spring.json.value.default.type: com.aegis.reporting.domain.event.FundsDepositedEvent
+      observation-enabled: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
 aegis:
   kafka:
     topics:
       funds-deposited: wallet.funds.deposited
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+    dlt-suffix: .dlt
 
 logging:
   level:

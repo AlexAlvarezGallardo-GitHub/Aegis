@@ -2,19 +2,23 @@ package com.aegis.wallet.web.controller;
 
 import com.aegis.wallet.application.dto.CreateWalletCommand;
 import com.aegis.wallet.application.dto.DepositReceipt;
+import com.aegis.wallet.application.dto.ReversalReceipt;
 import com.aegis.wallet.application.dto.WalletDetailResponse;
 import com.aegis.wallet.application.dto.WalletResponse;
 import com.aegis.wallet.application.service.CreateWalletService;
 import com.aegis.wallet.application.service.DepositFundsService;
+import com.aegis.wallet.application.service.ReverseDepositService;
 import com.aegis.wallet.application.service.UpdateWalletService;
 import com.aegis.wallet.domain.model.WalletStatus;
 import com.aegis.wallet.domain.port.inbound.DepositFundsUseCase;
 import com.aegis.wallet.domain.port.inbound.GetWalletDetailUseCase;
 import com.aegis.wallet.domain.port.inbound.ListWalletsUseCase;
+import com.aegis.wallet.domain.port.inbound.ReverseDepositUseCase;
 import com.aegis.wallet.domain.port.inbound.UpdateWalletUseCase;
 import com.aegis.wallet.web.dto.AdjustBalanceRequest;
 import com.aegis.wallet.web.dto.CreateWalletRequest;
 import com.aegis.wallet.web.dto.DepositFundsRequest;
+import com.aegis.wallet.web.dto.ReversalRequest;
 import com.aegis.wallet.web.dto.UpdateStatusRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -38,17 +42,20 @@ public class WalletController {
     private final CreateWalletService createWalletService;
     private final UpdateWalletService updateWalletService;
     private final DepositFundsService depositFundsService;
+    private final ReverseDepositService reverseDepositService;
     private final ListWalletsUseCase listWalletsUseCase;
     private final GetWalletDetailUseCase getWalletDetailUseCase;
 
     public WalletController(CreateWalletService createWalletService,
                              UpdateWalletService updateWalletService,
                              DepositFundsService depositFundsService,
+                             ReverseDepositService reverseDepositService,
                              ListWalletsUseCase listWalletsUseCase,
                              GetWalletDetailUseCase getWalletDetailUseCase) {
         this.createWalletService = createWalletService;
         this.updateWalletService = updateWalletService;
         this.depositFundsService = depositFundsService;
+        this.reverseDepositService = reverseDepositService;
         this.listWalletsUseCase = listWalletsUseCase;
         this.getWalletDetailUseCase = getWalletDetailUseCase;
     }
@@ -136,6 +143,31 @@ public class WalletController {
                 result.currency(),
                 result.source(),
                 result.reference(),
+                result.timestamp()
+        ));
+    }
+
+    @PostMapping("/{walletId}/deposits/{depositId}/reversal")
+    public ResponseEntity<ReversalReceipt> reverseDeposit(
+            @PathVariable UUID walletId,
+            @PathVariable UUID depositId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
+            @Valid @RequestBody ReversalRequest request) {
+
+        String effectiveCorrelationId = correlationId != null
+                ? correlationId
+                : UUID.randomUUID().toString();
+
+        var result = reverseDepositService.reverse(new ReverseDepositUseCase.ReverseCommand(
+                walletId, userId, depositId, request.reference(), effectiveCorrelationId));
+
+        return ResponseEntity.ok(new ReversalReceipt(
+                result.reversalId(),
+                result.walletId(),
+                result.newBalance(),
+                result.reversedAmount(),
+                result.currency(),
                 result.timestamp()
         ));
     }

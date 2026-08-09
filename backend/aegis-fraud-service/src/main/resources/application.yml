@@ -34,9 +34,13 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "com.aegis.fraud.*"
+      observation-enabled: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
 aegis:
   fraud:
@@ -50,6 +54,10 @@ aegis:
     topics:
       FRAUD_ASSESSMENT_COMPLETED: fraud.assessment.completed
       payment-transfer-requested: payment.transfer.requested
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+    dlt-suffix: .dlt
 
 logging:
   level:
