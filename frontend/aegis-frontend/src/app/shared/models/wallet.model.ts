@@ -34,3 +34,17 @@ export interface DepositReceipt {
   reference: string;
   timestamp: string;
 }
+
+export type WalletActivityType = 'DEPOSIT' | 'WITHDRAWAL' | 'ADJUSTMENT';
+
+export interface WalletActivity {
+  id: string;
+  walletId: string;
+  type: WalletActivityType;
+  amount: number;
+  currency: string;
+  source?: string;
+  reference?: string;
+  status: 'COMPLETED' | 'REJECTED';
+  timestamp: string;
+}

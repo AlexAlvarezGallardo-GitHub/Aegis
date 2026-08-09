@@ -18,7 +18,14 @@
         }
       </mat-icon>
 
-      <span class="toast-message">{{ toast.message }}</span>
+      @if (toast.message.includes('\n')) {
+        <span class="toast-message">
+          <span class="toast-title">{{ toast.message.split('\n')[0] }}</span>
+          <span class="toast-sub">{{ toast.message.split('\n').slice(1).join('\n') }}</span>
+        </span>
+      } @else {
+        <span class="toast-message">{{ toast.message }}</span>
+      }
 
       @if (toast.action) {
         <button

@@ -1,0 +1,81 @@
+// =============================================================================
+// Aegis — Shared Dialog (CDK Dialog based modal)
+// =============================================================================
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--aegis-surface-overlay);
+  z-index: var(--aegis-z-modal);
+  padding: var(--aegis-space-4);
+}
+
+.dialog-panel {
+  background-color: var(--aegis-surface-card);
+  border: 1px solid var(--aegis-border-default);
+  border-radius: var(--aegis-radius-lg);
+  box-shadow: var(--aegis-shadow-xl);
+  max-width: 440px;
+  width: 100%;
+  padding: var(--aegis-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-4);
+
+  @media (max-width: 480px) {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: aegis-dialog-enter var(--aegis-duration-normal) var(--aegis-ease-out);
+  }
+}
+
+@keyframes aegis-dialog-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: var(--aegis-space-3);
+}
+
+.dialog-title {
+  font-family: var(--aegis-font-display);
+  font-size: var(--aegis-text-xl);
+  font-weight: var(--aegis-font-weight-semibold);
+  color: var(--aegis-color-text);
+  margin: 0;
+  line-height: var(--aegis-leading-tight);
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-space-4);
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aegis-space-4);
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--aegis-space-3);
+  padding-top: var(--aegis-space-2);
+}

@@ -9,8 +9,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { A11yModule } from '@angular/cdk/a11y';
+import { Router } from '@angular/router';
 import { WalletService } from './wallet.service';
-import { DepositReceipt, WalletResponse } from '../../shared/models/wallet.model';
+import { WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
 import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
@@ -49,6 +50,7 @@ export class WalletComponent implements OnInit {
   private fb = inject(FormBuilder);
   private walletService = inject(WalletService);
   private toastService = inject(ToastService);
+  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   walletForm: FormGroup;
@@ -57,20 +59,11 @@ export class WalletComponent implements OnInit {
   wallets = signal<WalletResponse[]>([]);
   loadError = signal(false);
   showCreatePanel = signal(false);
-  showDetailPanel = signal(false);
-  selectedWallet = signal<WalletResponse | null>(null);
   searchQuery = signal('');
-  showDepositForm = signal(false);
-  isDepositing = signal(false);
-  depositSource = signal('');
-  depositReference = signal('');
-  lastDeposit = signal<DepositReceipt | null>(null);
 
   readonly fieldLabels: Record<string, string> = {
     currency: 'Currency',
   };
-
-  private lastFocused: HTMLElement | null = null;
 
   constructor() {
     this.walletForm = this.fb.group({
@@ -134,130 +127,26 @@ export class WalletComponent implements OnInit {
 
   @HostListener('window:keydown.escape')
   onEscape(): void {
-    if (this.showDetailPanel() || this.showCreatePanel()) {
+    if (this.showCreatePanel()) {
       this.closeCreatePanel();
-      this.closeDetail();
     }
   }
 
   openCreatePanel(): void {
-    this.lastFocused = document.activeElement as HTMLElement | null;
     this.showCreatePanel.set(true);
-    this.focusPanel();
   }
 
   closeCreatePanel(): void {
     this.showCreatePanel.set(false);
     this.walletForm.reset();
-    this.lastFocused?.focus();
-    this.lastFocused = null;
   }
 
   openDetail(wallet: WalletResponse): void {
-    this.lastFocused = document.activeElement as HTMLElement | null;
-    this.selectedWallet.set(wallet);
-    this.showDetailPanel.set(true);
-    this.focusPanel();
+    this.router.navigate(['/wallets', wallet.walletId]);
   }
 
   openDeposit(wallet: WalletResponse): void {
-    this.lastFocused = document.activeElement as HTMLElement | null;
-    this.selectedWallet.set(wallet);
-    this.showDepositForm.set(true);
-    this.showDetailPanel.set(true);
-    this.focusPanel();
-  }
-
-  closeDetail(): void {
-    this.showDetailPanel.set(false);
-    this.selectedWallet.set(null);
-    this.showDepositForm.set(false);
-    this.lastFocused?.focus();
-    this.lastFocused = null;
-  }
-
-  private focusPanel(): void {
-    setTimeout(() => {
-      const panel = document.querySelector('.slide-panel') as HTMLElement | null;
-      panel?.focus();
-    });
-  }
-
-  adjustBalance(type: 'DEPOSIT' | 'WITHDRAW', amountStr: string, description: string): void {
-    const wallet = this.selectedWallet();
-    if (!wallet) return;
-
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) {
-      this.toastService.warning('Please enter a valid positive amount');
-      return;
-    }
-
-    const finalAmount = type === 'WITHDRAW' ? -amount : amount;
-
-    this.walletService.adjustBalance(wallet.walletId, finalAmount, description || undefined)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (updated) => {
-          this.wallets.update(list =>
-            list.map(w => w.walletId === updated.walletId ? { ...w, balance: updated.balance, premium: updated.premium, updatedAt: updated.updatedAt } : w)
-          );
-          this.selectedWallet.set(updated);
-          this.toastService.success(`Balance ${type === 'DEPOSIT' ? 'deposited' : 'withdrawn'} successfully`);
-        },
-        error: () => this.toastService.warning('Failed to adjust balance')
-      });
-  }
-
-  depositFunds(amountStr: string): void {
-    const wallet = this.selectedWallet();
-    if (!wallet) return;
-
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) {
-      this.toastService.warning('Please enter a valid positive amount');
-      return;
-    }
-    if (!this.depositSource().trim()) {
-      this.toastService.warning('Please specify the source of funds');
-      return;
-    }
-    if (!this.depositReference().trim()) {
-      this.toastService.warning('Please enter a deposit reference');
-      return;
-    }
-
-    this.isDepositing.set(true);
-    this.lastDeposit.set(null);
-
-    this.walletService.depositFunds(wallet.walletId, {
-      amount,
-      currency: wallet.currency,
-      source: this.depositSource(),
-      reference: this.depositReference(),
-    }).pipe(
-      finalize(() => this.isDepositing.set(false)),
-      takeUntilDestroyed(this.destroyRef),
-    )
-      .subscribe({
-        next: (receipt) => {
-          this.wallets.update(list =>
-            list.map(w => w.walletId === receipt.walletId
-              ? { ...w, balance: receipt.newBalance }
-              : w)
-          );
-          this.selectedWallet.update(w => w ? { ...w, balance: receipt.newBalance, updatedAt: receipt.timestamp } : null);
-          this.lastDeposit.set(receipt);
-          this.depositSource.set('');
-          this.depositReference.set('');
-          this.showDepositForm.set(false);
-          this.toastService.success(`${formatMoney(receipt.amount, receipt.currency)} deposited successfully (ref: ${receipt.reference})`);
-        },
-        error: (err) => {
-          const msg = err.status === 409 ? 'Duplicate deposit reference' : 'Failed to deposit';
-          this.toastService.warning(msg);
-        },
-      });
+    this.router.navigate(['/wallets', wallet.walletId], { queryParams: { tab: 'deposits' } });
   }
 
   onSubmit(): void {

@@ -1,0 +1,67 @@
+<div class="dialog-overlay" (click)="cancel()" (keydown)="onOverlayKeydown($event)" (keydown.escape)="cancel()" role="button" tabindex="0" aria-label="Close dialog">
+  <div class="dialog-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" role="dialog" aria-labelledby="money-title" cdkTrapFocus>
+    <div class="dialog-header">
+      <h2 id="money-title" class="dialog-title">{{ title }}</h2>
+    </div>
+
+    <div class="dialog-body">
+      <p class="dialog-wallet">Wallet: <span class="mono">{{ data.wallet.currency }}</span> · <span class="mono">{{ data.wallet.walletId }}</span></p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Amount</mat-label>
+          <input matInput type="number" formControlName="amount" placeholder="0.00" [attr.aria-label]="'Amount in ' + data.wallet.currency">
+          <span matTextSuffix> {{ data.wallet.currency }}</span>
+          <app-aegis-form-field-error [form]="form" controlName="amount" [labels]="fieldLabels" />
+        </mat-form-field>
+
+        @if (isDeposit) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Source</mat-label>
+            <input matInput formControlName="source" placeholder="BANK_TRANSFER, CARD, ...">
+            <app-aegis-form-field-error [form]="form" controlName="source" [labels]="fieldLabels" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Reference</mat-label>
+            <input matInput formControlName="reference" placeholder="Unique transaction ID">
+            <app-aegis-form-field-error [form]="form" controlName="reference" [labels]="fieldLabels" />
+          </mat-form-field>
+        }
+
+        @if (isWithdraw) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Reason</mat-label>
+            <input matInput formControlName="reason" placeholder="Optional reason">
+          </mat-form-field>
+        }
+
+        @if (isAdjust) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Reason</mat-label>
+            <input matInput formControlName="reason" placeholder="Required reason for audit">
+            <app-aegis-form-field-error [form]="form" controlName="reason" [labels]="fieldLabels" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Reference</mat-label>
+            <input matInput formControlName="reference" placeholder="Internal reference">
+            <app-aegis-form-field-error [form]="form" controlName="reference" [labels]="fieldLabels" />
+          </mat-form-field>
+          <div class="adjust-warning" role="alert">
+            <mat-icon aria-hidden="true">warning_amber</mat-icon>
+            <span>Administrative operation. This directly changes the balance and will be audited.</span>
+          </div>
+        }
+      </form>
+    </div>
+
+    <div class="dialog-actions">
+      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+      <app-aegis-loading-button
+        [label]="resultLabel() ? confirmLabel + ' ' + resultLabel() : confirmLabel"
+        [variant]="confirmVariant"
+        [disabled]="form.invalid"
+        (click)="submit()"
+      />
+    </div>
+  </div>
+</div>

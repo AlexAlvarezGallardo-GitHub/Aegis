@@ -448,3 +448,45 @@ None.
 | 11 Evidence | **G8** | ✅ e2e 5/5, evidence regenerated, no stale screenshots |
 
 **Final engineering state:** lint clean · build clean (budgets respected) · unit **150/150** · e2e **5/5** · 0 console errors · grep gates FR-001/FR-002 clean.
+
+---
+
+## Scope Change — Wallet Detail Full-Page Refactor (Product request)
+
+**Request**: transform Wallet Detail from a right-side drawer into a dedicated full-page experience; deposit/withdraw as modal dialogs; adjust balance as an administrative operation. Reuse the existing design system; preserve functionality and API contracts.
+
+### Changes
+
+- **Route** `wallets/:walletId` → new `WalletDetailComponent` (lazy, inside the app shell); Wallet list "View/Deposit" now navigate to the detail page instead of opening a drawer.
+- **`WalletDetailComponent`** (`features/wallet/wallet-detail/`): back nav `← Wallets`, header (currency wallet name, full ID, status chip, primary actions), 3-card balance overview (Available Balance / Currency / Status), and 5 tabs — **Overview, Transactions, Deposits & Withdrawals, Activity, Audit Log** — implemented as real application state via `?tab=` query params (navigable, default `overview`).
+- **`MoneyDialogComponent`** (CDK Dialog): `deposit` (amount + source + reference), `withdraw` (amount + reason), `adjust` (amount + reason + reference **with admin warning banner**); focus-trapped, responsive ≤480px; confirm button shows the computed amount (`Deposit $150.00`).
+- **Administrative separation**: Deposit/Withdraw are primary header actions; **Adjust Balance, Freeze (SUSPENDED), Deactivate (CLOSED)** and **View Audit Log** live under `More actions ⋮`; lifecycle changes require a confirmation dialog.
+- **Activity store** (session-scoped, `WalletService.activities`): records real completed/rejected deposit, withdrawal and adjustment operations → powers Overview recent activity, Transactions table and Activity tab. **No backend data model invented** (backend exposes no transaction/activity endpoints — those tabs show honest empty states when the session has no activity; Audit Log explains it is server-side).
+- **Compact toast**: `toast-message` now splits `\n` into a bold title + muted subtitle (e.g. `Deposit completed` / `$75.00 · BANK_TRANSFER`).
+- Wallet list component simplified (drawer detail, inline deposit/adjust forms and `lastDeposit` receipt removed).
+
+### Commands executed
+
+| # | Command | Result |
+|---|---------|--------|
+| 1 | `npm run lint` | ✅ PASS |
+| 2 | `npm run build` | ✅ PASS (wallet-detail SCSS trimmed to stay under 6 kB budget) |
+| 3 | `npx ng test --watch=false --browsers=ChromeHeadless` | ✅ PASS — **150/150** |
+| 4 | `npx playwright test --config=playwright.config.ts` (e2e) | ✅ PASS — **6/6** (added "navigates to the full-page wallet detail"; deposit/duplicate-ref tests updated to the modal flow) |
+
+### Live verification (Playwright)
+
+- Detail is a **full page** (`/wallets/<id>`), no `.slide-panel` drawer; header shows "USD Wallet" + ID + status; overview 3 cards; all 5 tabs present; tab switch updates the URL (`?tab=transactions`).
+- Deposit modal: dialog opens, submit → compact toast "Deposit completed / $75.00 · BANK_TRANSFER", balance updates ($600→$675).
+- Adjust Balance (More actions) → dialog with admin warning + required reason.
+- Back link returns to `/wallets`.
+- Mobile 390px: overview stacks to 1 column, no horizontal overflow, modal fits viewport.
+- Evidence `03–06` re-captured for the new UI; `e2e/README.md` captions updated. 0 console errors.
+
+### Acceptance criteria check
+
+Wallet Detail is no longer a drawer ✅ · full-page experience ✅ · header with name/ID/status/primary actions ✅ · balance immediately visible ✅ · Deposit/Withdraw primary + modal ✅ · Adjust Balance administrative ✅ · Overview/Transactions/Deposits & Withdrawals/Activity/Audit Log separated ✅ · recent activity on Overview ✅ · transactions easy to scan (table) ✅ · existing functionality works ✅ · API contracts preserved ✅ · visual identity preserved ✅ · desktop + mobile ✅ · no TS/build/lint errors ✅ · tests pass ✅.
+
+### Failures
+
+None.
