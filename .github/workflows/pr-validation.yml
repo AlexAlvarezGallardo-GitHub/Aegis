@@ -79,7 +79,7 @@ jobs:
   validate-branch-name:
     name: Branch Name
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' }}
     steps:
       - name: Validate branch name
         run: |
@@ -98,7 +98,7 @@ jobs:
   validate-commit-messages:
     name: Commit Messages
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -129,7 +129,7 @@ jobs:
   validate-pr-title:
     name: PR Title
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' }}
     steps:
       - name: Validate PR title
         run: |
@@ -148,7 +148,7 @@ jobs:
   validate-pr-body:
     name: PR Body
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' }}
     steps:
       - name: Validate PR body sections
         env:
