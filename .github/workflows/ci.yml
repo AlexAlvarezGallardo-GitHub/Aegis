@@ -297,6 +297,66 @@ jobs:
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
 
+  perf-baseline:
+    name: Performance Baseline (k6)
+    runs-on: ubuntu-latest
+    needs: [detect-changes, docker-build-push]
+    if: ${{ always() && needs.docker-build-push.result == 'success' }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare infra env
+        run: cp infra/.env.example infra/.env
+      - name: Compute GHCR owner
+        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull and tag service images
+        run: |
+          for svc in identity wallet bff audit fraud reporting; do
+            docker pull "ghcr.io/$GHCR_OWNER/$svc-service:${{ github.sha }}"
+            docker tag  "ghcr.io/$GHCR_OWNER/$svc-service:${{ github.sha }}" "infra-aegis-$svc:latest"
+          done
+          docker pull "ghcr.io/$GHCR_OWNER/frontend:${{ github.sha }}"
+          docker tag  "ghcr.io/$GHCR_OWNER/frontend:${{ github.sha }}" "infra-aegis-frontend:latest"
+      - name: Start the full stack
+        run: docker compose -f infra/docker-compose.yml up -d
+      - name: Wait for Identity and BFF readiness
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8081/actuator/health >/dev/null && break
+            sleep 5
+          done
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8082/actuator/health >/dev/null && break
+            sleep 5
+          done
+      - name: Seed perf users
+        run: |
+          for i in $(seq 1 10); do
+            curl -sf -X POST http://localhost:8081/api/v1/users/register -H 'Content-Type: application/json' \
+              -d "{\"email\":\"perfuser$i@aegis.test\",\"password\":\"LoadTest123!\",\"firstName\":\"Perf\",\"lastName\":\"User$i\"}" >/dev/null || true
+          done
+      - name: Run k6 perf smoke
+        run: |
+          docker run --rm -v "$PWD/load:/scripts" grafana/k6:latest run \
+            --summary-export /scripts/perf-baseline.json \
+            /scripts/k6/perf.js -e BASE_URL=http://host.docker.internal:8082 -e USER_PREFIX=perfuser
+      - name: Upload perf baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-baseline
+          path: load/perf-baseline.json
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
+
   security-scan:
     name: Trivy Security Scan (${{ matrix.image }})
     runs-on: ubuntu-latest
@@ -528,6 +588,7 @@ jobs:
       - frontend-build
       - docker-build-push
       - e2e
+      - perf-baseline
       - sbom
       - security-scan
       - cosign-sign
