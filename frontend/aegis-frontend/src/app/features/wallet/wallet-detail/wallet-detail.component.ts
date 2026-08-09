@@ -20,6 +20,7 @@ import { ConfirmationDialogComponent, ConfirmationData } from '../../../shared/c
 import { ToastService } from '../../../shared/services/toast.service';
 import { AegisCurrencyPipe, formatMoney } from '../../../shared/utils/currency.pipe';
 import { MoneyDialogComponent, MoneyDialogResult } from './money-dialog.component';
+import { TechnicalDetailsDialogComponent } from './technical-details-dialog.component';
 
 const TABS = ['overview', 'transactions', 'deposits', 'activity', 'audit'] as const;
 export type WalletTab = (typeof TABS)[number];
@@ -83,6 +84,11 @@ export class WalletDetailComponent {
     return walletId ? this.walletService.getActivitiesFor(walletId) : [];
   }
 
+  get lastActivity(): WalletActivity | null {
+    const acts = this.activities;
+    return acts.length > 0 ? acts[0] : null;
+  }
+
   loadWallet(): void {
     const walletId = this.walletIdSignal();
     if (!walletId) {
@@ -112,6 +118,12 @@ export class WalletDetailComponent {
 
   goToTab(tab: WalletTab): void {
     this.setTab(tab);
+  }
+
+  openTechnicalDetails(): void {
+    const wallet = this.wallet();
+    if (!wallet) return;
+    this.dialog.open(TechnicalDetailsDialogComponent, { data: { wallet } });
   }
 
   // ── Financial operations ───────────────────────────────────────────────────

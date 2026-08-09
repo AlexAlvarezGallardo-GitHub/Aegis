@@ -103,8 +103,15 @@
           </div>
 
           <div class="wallet-meta">
-            <span class="wallet-id mono">{{ shortId(wallet.walletId) }}</span>
-            <span class="wallet-date">{{ wallet.createdAt | date:'MMM d, y' }}</span>
+            @if (getLastActivity(wallet); as act) {
+              <span class="wallet-activity">
+                <span class="wallet-activity-label">Last activity</span>
+                <span class="wallet-activity-text">{{ activityLabel(act.type) }} · {{ act.amount > 0 ? '+' : '' }}{{ act.amount | aegisCurrency: act.currency }}</span>
+                <span class="wallet-date">{{ act.timestamp | date: 'MMM d, y' }}</span>
+              </span>
+            } @else {
+              <span class="wallet-date">Created {{ wallet.createdAt | date: 'MMM d, y' }}</span>
+            }
           </div>
 
           <div class="wallet-actions">

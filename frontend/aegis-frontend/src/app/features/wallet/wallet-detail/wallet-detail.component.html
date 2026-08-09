@@ -24,7 +24,6 @@
     <header class="detail-header">
       <div class="detail-title-block">
         <h1 class="detail-title">{{ wallet.currency }} Wallet</h1>
-        <span class="detail-id mono">{{ wallet.walletId }}</span>
         <app-status-chip [label]="wallet.status" [variant]="getStatusVariant(wallet.status)" size="sm" [pulse]="wallet.status.toLowerCase() === 'active'" />
       </div>
 
@@ -58,6 +57,10 @@
             <mat-icon>description</mat-icon>
             <span>View Audit Log</span>
           </button>
+          <button mat-menu-item (click)="openTechnicalDetails()">
+            <mat-icon>info_outline</mat-icon>
+            <span>Technical details</span>
+          </button>
         </mat-menu>
       </div>
     </header>
@@ -67,7 +70,11 @@
       <div class="balance-card">
         <span class="overview-label">Available Balance</span>
         <span class="balance-value mono tabular-nums">{{ wallet.balance | aegisCurrency: wallet.currency }}</span>
-        @if (wallet.updatedAt) {
+        @if (lastActivity; as act) {
+          <span class="overview-sub">
+            Last activity · {{ activityTypeLabel(act.type) }} {{ act.amount > 0 ? '+' : '' }}{{ act.amount | aegisCurrency: act.currency }} · {{ act.timestamp | date: 'MMM d, y · HH:mm' }}
+          </span>
+        } @else if (wallet.updatedAt) {
           <span class="overview-sub">Last updated: {{ wallet.updatedAt | date: 'MMM d, y · HH:mm' }}</span>
         }
       </div>

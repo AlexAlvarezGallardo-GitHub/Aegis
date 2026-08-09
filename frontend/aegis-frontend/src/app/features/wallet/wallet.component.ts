@@ -11,7 +11,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { A11yModule } from '@angular/cdk/a11y';
 import { Router } from '@angular/router';
 import { WalletService } from './wallet.service';
-import { WalletResponse } from '../../shared/models/wallet.model';
+import { WalletActivity, WalletResponse } from '../../shared/models/wallet.model';
 import { finalize } from 'rxjs/operators';
 import { LoadingButtonComponent } from '../../shared/forms/loading-button/loading-button.component';
 import { FormFieldErrorComponent } from '../../shared/forms/form-field-error/form-field-error.component';
@@ -79,10 +79,7 @@ export class WalletComponent implements OnInit {
     const query = this.searchQuery().toLowerCase();
     const all = this.wallets();
     if (!query) return all;
-    return all.filter(w =>
-      w.currency.toLowerCase().includes(query) ||
-      w.walletId.toLowerCase().includes(query)
-    );
+    return all.filter(w => w.currency.toLowerCase().includes(query));
   }
 
   totalBalances(): { currency: string; amount: number }[] {
@@ -170,27 +167,19 @@ export class WalletComponent implements OnInit {
           this.wallets.update(w => [wallet, ...w]);
           this.walletForm.reset();
           this.showCreatePanel.set(false);
-          const walletId = wallet.walletId;
-          this.toastService.success('Wallet created successfully', {
-            metadata: `ID ${walletId.slice(0, 8)}...`,
-            action: { label: 'Copy', callback: () => this.copyToClipboard(walletId) },
-          });
+          this.toastService.success(`${wallet.currency} wallet created successfully`);
         },
         error: () => { /* handled by HttpErrorInterceptor */ },
       });
   }
 
-  shortId(id: string): string {
-    return id.slice(0, 8) + '...';
+  getLastActivity(wallet: WalletResponse): WalletActivity | null {
+    const acts = this.walletService.getActivitiesFor(wallet.walletId);
+    return acts.length > 0 ? acts[0] : null;
   }
 
-  private copyToClipboard(text: string): void {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(
-        () => this.toastService.info('ID copied to clipboard'),
-        () => undefined,
-      );
-    }
+  activityLabel(type: string): string {
+    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : 'Adjustment';
   }
 
   getStatusVariant(status: string): ChipVariant {

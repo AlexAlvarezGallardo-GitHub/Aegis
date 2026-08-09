@@ -1,0 +1,43 @@
+<div class="dialog-overlay" (click)="close()" (keydown)="onOverlayKeydown($event)" (keydown.escape)="close()" role="button" tabindex="0" aria-label="Close dialog">
+  <div class="dialog-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" role="dialog" aria-labelledby="td-title" cdkTrapFocus>
+    <div class="dialog-header">
+      <h2 id="td-title" class="dialog-title">Technical details</h2>
+    </div>
+
+    <div class="dialog-body">
+      <div class="td-row">
+        <span class="td-label">Wallet ID</span>
+        <div class="td-value-wrap">
+          <span class="td-value mono">{{ data.wallet.walletId }}</span>
+          <button class="td-copy" (click)="copyId()" aria-label="Copy wallet ID" type="button">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="td-row">
+        <span class="td-label">Currency</span>
+        <span class="td-value">{{ data.wallet.currency }}</span>
+      </div>
+      <div class="td-row">
+        <span class="td-label">Created</span>
+        <span class="td-value">{{ data.wallet.createdAt | date: 'MMM d, y · HH:mm' }}</span>
+      </div>
+      @if (data.wallet.updatedAt) {
+        <div class="td-row">
+          <span class="td-label">Updated</span>
+          <span class="td-value">{{ data.wallet.updatedAt | date: 'MMM d, y · HH:mm' }}</span>
+        </div>
+      }
+      @if (data.wallet.userId) {
+        <div class="td-row">
+          <span class="td-label">Owner ID</span>
+          <span class="td-value mono">{{ data.wallet.userId }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="dialog-actions">
+      <button mat-stroked-button type="button" (click)="close()">Close</button>
+    </div>
+  </div>
+</div>

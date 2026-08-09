@@ -176,7 +176,6 @@
   font-size: var(--aegis-text-xl);
   font-weight: var(--aegis-font-weight-semibold);
   color: var(--aegis-color-text);
-  letter-spacing: 0.02em;
 }
 
 .wallet-balance {
@@ -219,11 +218,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--aegis-space-2);
+  min-width: 0;
 }
 
-.wallet-id {
+.wallet-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wallet-activity-label {
   font-size: var(--aegis-text-xs);
   color: var(--aegis-color-text-muted);
+}
+
+.wallet-activity-text {
+  font-size: var(--aegis-text-sm);
+  color: var(--aegis-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wallet-date {
@@ -283,7 +298,6 @@
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 
 .skeleton-card {
-  gap: var(--aegis-space-3);
   min-height: 184px;
 }
 

@@ -588,3 +588,51 @@ Not a large top-right banner ✅ · does not overlap header ✅ · compact ✅ �
 ### Failures
 
 None.
+
+---
+
+## Scope Change 4 — Hide Internal Wallet UUIDs from Primary UI (Product request)
+
+**Request**: the wallet GUID/UUID was displayed in the main Wallets experience; only its presentation changes (internal/API usage preserved).
+
+### Classification (searched `walletId` / `shortId` / UUID render sites)
+
+- **A. Internal/backend** (preserved): `wallet.service.ts` URLs, route param `/wallets/:walletId`, `track` keys, activity `reference` (business references).
+- **B. Primary user-facing UI** (changed): wallet card `shortId(wallet.walletId)`, wallet-detail header `detail-id`, money-dialog `Wallet: … · {id}`, wallet-creation toast `ID …`, search-by-walletId.
+- **C. Administrative/technical**: new **Technical details** dialog (under `More actions`) exposing Wallet ID + Copy, Currency, Created, Updated, Owner ID.
+- **D. Logs/debug**: none exposed.
+
+### Changes
+
+- **Wallet cards**: GUID removed → shows **Last activity** (type + signed amount + date) when available, else `Created {date}`. No artificial identifier substituted.
+- **Wallet detail**: header shows only `USD Wallet` + status chip; balance card shows `Last activity · Deposit +$150.00 · date` when available (else "Last updated").
+- **Wallet creation toast**: `USD wallet created successfully` (currency), no ID, no Copy on the toast.
+- **Search**: filters by currency only (UUID removed from the search predicate).
+- **Money dialog**: `Wallet: USD` (no UUID).
+- **Technical details** (secondary, under More actions): dialog with Wallet ID (mono) + Copy (copies silently → "Wallet ID copied" toast without the UUID), Currency, Created, Updated, Owner ID. De-emphasized styling.
+
+### Commands executed
+
+| # | Command | Result |
+|---|---------|--------|
+| 1 | `npm run lint` | ✅ PASS |
+| 2 | `npm run build` | ✅ PASS (wallet SCSS kept under budget) |
+| 3 | `npx ng test --watch=false --browsers=ChromeHeadless` | ✅ PASS — **152/152** |
+| 4 | `npx playwright test` (e2e, `e2e-wallet@aegis.test`) | ✅ PASS — **6/6** |
+
+### Live verification (Playwright)
+
+- Card meta: "Created Aug 9, 2026" (no UUID); full card text has no UUID.
+- Create-wallet toast: "JPY wallet created successfully" (no ID).
+- Detail header: "JPY Wallet", no UUID.
+- Technical details dialog: Wallet ID + Copy present (UUID only here, secondary).
+- Money dialog: "Wallet: JPY" (no UUID).
+- 0 console errors.
+
+### Acceptance criteria check
+
+No UUID on cards ✅ · none in primary detail ✅ · none in creation toasts ✅ · none in activity lists ✅ · IDs available internally ✅ · API contracts preserved ✅ · deposit/withdraw work ✅ · selection/routing work ✅ · technical ID available via secondary context ✅ · no technical identifier substituted for business info ✅ · no TS/build/lint errors ✅ · tests pass ✅.
+
+### Failures
+
+None.
