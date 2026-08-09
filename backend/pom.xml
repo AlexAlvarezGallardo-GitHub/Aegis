@@ -30,7 +30,7 @@
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <testcontainers.version>1.20.4</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <flyway.version>10.21.0</flyway.version>
         <springdoc.version>2.6.0</springdoc.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
