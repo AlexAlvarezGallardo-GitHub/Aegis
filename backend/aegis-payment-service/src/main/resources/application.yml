@@ -1,0 +1,89 @@
+server:
+  port: 8084
+
+spring:
+  task:
+    scheduling:
+      observation-enabled: false
+  application:
+    name: aegis-payment-service
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5437/aegis_payment
+    username: aegis
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: payment-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.aegis.payment.*"
+      observation-enabled: true
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      observation-enabled: true
+    listener:
+      observation-enabled: true
+
+aegis:
+  payment:
+    outbox:
+      polling-interval-ms: 1000
+      batch-size: 50
+  kafka:
+    topics:
+      TRANSFER_REQUESTED: payment.transfer.requested
+      TRANSFER_COMPLETED: payment.transfer.completed
+      TRANSFER_FAILED: payment.transfer.failed
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+    dlt-suffix: .dlt
+
+logging:
+  level:
+    com.aegis: INFO
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+      transport: http
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

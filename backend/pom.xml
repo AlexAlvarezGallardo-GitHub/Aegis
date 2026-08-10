@@ -25,6 +25,7 @@
         <module>aegis-reporting-service</module>
         <module>aegis-audit-service</module>
         <module>aegis-fraud-service</module>
+        <module>aegis-payment-service</module>
     </modules>
 
     <properties>

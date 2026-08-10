@@ -15,7 +15,7 @@
 | Fraud evaluation (Fraud) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Audit events (Audit) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Reporting (Reporting) | 🟡 | 🟡 | ✅ | 🟡 | ⚪ | ⚪ | ⚪ |
-| Payments (Payment) | — | — | — | — | — | — | — |
+| Payments (Payment) | 🟡 | 🟡 | ✅ | 🟡 | ⚪ | ⚪ | ⚪ |
 | Notifications (Notification) | — | — | — | — | — | — | — |
 
 ## Legend
@@ -33,7 +33,7 @@
 
 | Environment | Status | Notes |
 |-------------|--------|-------|
-| **Local** | Functional | `docker-compose` dev stack: all 6 services, frontend, PostgreSQL ×5, Kafka, Redis |
+| **Local** | Functional | `docker-compose` dev stack: all 7 services, frontend, PostgreSQL ×6, Kafka, Redis |
 | **DEV** | Functional (docker-compose) / Partial (minikube) | The docker-compose DEV stack is verified running. The Kubernetes + Argo CD structure exists in `Aegis-GitOps` (charts, `applications/dev/`, app-of-apps). Evidence from 2026-08-07 shows the wallet service deployed on minikube (`aegis-dev`) with a 40/40 deposit load test (p95 247 ms) and traces exported to Tempo — see `evidence/observability/`. Argo CD bootstrap/sync to `Aegis-GitOps` is still not independently confirmed — see `docs/HANDOVER.md` |
 | **PRE** | Prepared structure | Helm values and overlays exist in `Aegis-GitOps`; no operating cluster |
 | **STAGE** | Prepared structure | Helm values and overlays exist in `Aegis-GitOps`; no operating cluster |
