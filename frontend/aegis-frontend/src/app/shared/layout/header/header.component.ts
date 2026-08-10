@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, output, DestroyRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,8 +30,6 @@ export class HeaderComponent {
   private authService = inject(AuthService);
   private commandPaletteService = inject(CommandPaletteService);
   private destroyRef = inject(DestroyRef);
-
-  readonly menuToggle = output<void>();
 
   readonly userEmail = signal<string>('');
   readonly menuOpen = signal<boolean>(false);

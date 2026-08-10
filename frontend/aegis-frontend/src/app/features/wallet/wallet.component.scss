@@ -67,14 +67,6 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--aegis-space-4);
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, xs)}) {
-    grid-template-columns: 1fr;
-  }
 }
 
 // ── Actions Bar ──────────────────────────────────────────────────────────────

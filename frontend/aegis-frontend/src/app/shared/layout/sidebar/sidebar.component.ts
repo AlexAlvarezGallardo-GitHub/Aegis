@@ -33,10 +33,7 @@ export class SidebarComponent {
   private destroyRef = inject(DestroyRef);
 
   readonly collapsed = input<boolean>(this.loadCollapsedState());
-  readonly isMobile = input<boolean>(false);
-  readonly mobileOpen = input<boolean>(false);
   readonly collapsedChange = output<boolean>();
-  readonly mobileClose = output<void>();
 
   readonly currentRoute = signal<string>(this.router.url);
 
@@ -89,10 +86,6 @@ export class SidebarComponent {
   toggle(): void {
     this.collapsedChange.emit(!this.collapsed());
     this.saveCollapsedState(!this.collapsed());
-  }
-
-  close(): void {
-    this.mobileClose.emit();
   }
 
   private loadCollapsedState(): boolean {

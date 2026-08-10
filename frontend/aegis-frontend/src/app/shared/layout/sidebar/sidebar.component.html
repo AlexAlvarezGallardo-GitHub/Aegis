@@ -1,16 +1,13 @@
 <div
   class="sidebar"
-  [class.collapsed]="collapsed() && !isMobile()"
-  [class.mobile]="isMobile()"
-  [class.mobile-open]="isMobile() && mobileOpen()"
-  [attr.aria-hidden]="isMobile() && !mobileOpen()"
+  [class.collapsed]="collapsed()"
 >
   <!-- Brand -->
   <div class="sidebar-brand">
     <div class="brand-mark">
       <img src="/assets/aegis-icon.png" alt="Aegis" class="brand-logo" />
     </div>
-    @if (!collapsed() || isMobile()) {
+    @if (!collapsed()) {
       <span class="brand-name">AEGIS</span>
     }
   </div>
@@ -19,10 +16,10 @@
   <nav class="sidebar-nav" aria-label="Main navigation">
     @for (section of sections; track section.label) {
       <div class="nav-group">
-        @if (section.label && (!collapsed() || isMobile())) {
+        @if (section.label && !collapsed()) {
           <div class="nav-group-label">{{ section.label }}</div>
         }
-        @if (section.label && collapsed() && !isMobile()) {
+        @if (section.label && collapsed()) {
           <div class="nav-group-divider"></div>
         }
         @for (item of section.items; track item.route) {
@@ -30,13 +27,12 @@
             class="nav-item"
             [class.active]="isActive(item.route)"
             [routerLink]="item.route"
-            [matTooltip]="collapsed() && !isMobile() ? item.label : ''"
+            [matTooltip]="collapsed() ? item.label : ''"
             matTooltipPosition="right"
             matTooltipClass="aegis-tooltip"
-            (click)="close()"
           >
             <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-            @if (!collapsed() || isMobile()) {
+            @if (!collapsed()) {
               <span class="nav-label">{{ item.label }}</span>
             }
           </a>
@@ -47,27 +43,12 @@
 
   <!-- Footer -->
   <div class="sidebar-footer">
-    @if (!isMobile()) {
-      <button
-        class="collapse-toggle"
-        (click)="toggle()"
-        [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-      >
-        <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-      </button>
-    }
+    <button
+      class="collapse-toggle"
+      (click)="toggle()"
+      [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+    >
+      <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+    </button>
   </div>
 </div>
-
-<!-- Mobile overlay -->
-@if (isMobile() && mobileOpen()) {
-  <div
-    class="sidebar-overlay"
-    (click)="close()"
-    (keydown.enter)="close()"
-    (keydown.space)="close()"
-    tabindex="0"
-    role="button"
-    aria-label="Close sidebar"
-  ></div>
-}

@@ -6,5 +6,3 @@ export const BREAKPOINTS = {
 } as const;
 
 export type Breakpoint = keyof typeof BREAKPOINTS;
-
-export const MOBILE_BREAKPOINT = BREAKPOINTS.sm;

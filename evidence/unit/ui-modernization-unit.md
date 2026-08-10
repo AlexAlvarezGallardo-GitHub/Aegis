@@ -658,3 +658,17 @@ Evidencia regenerada con la UI actual y clasificada por feature (commit/PR) en `
 **UUID**: dialog técnico bajo More actions con Wallet ID + Copy (único lugar con UUID).
 
 Regla aplicada: cuando una feature modifica una pantalla ya capturada, la captura se re-genera (mismo escenario, nuevo estado). Sin screenshots obsoletos en git.
+
+---
+
+## Refactor 014 — Remove Mobile Layer (revertido)
+
+**Decisión del equipo**: la capa móvil/responsive no se mantiene — el frontend vuelve a ser **desktop-only** hasta que mobile sea un feature futuro real.
+
+- Revertido `83dd3ba` (responsive mobile experience).
+- Eliminado el drawer móvil del app-shell/sidebar (hamburger, off-canvas, overlay, scroll-lock).
+- Header de una fila (breadcrumb + search + user), sin elementos móviles.
+- Toast siempre bottom-right (sin media query móvil).
+- Quitados los media queries responsive restantes (grids KPIs fijos desktop, panels/dialogs sin variantes móviles).
+- Evidencia `mobile/` eliminada; `evidence/README.md` actualizado.
+- El trabajo de diseño mobile-first (Scope Change 5, working tree) fue descartado sin commitear.

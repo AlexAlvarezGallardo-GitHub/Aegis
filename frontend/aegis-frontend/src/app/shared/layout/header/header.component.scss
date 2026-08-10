@@ -23,34 +23,6 @@
   gap: var(--aegis-space-2);
 }
 
-.mobile-menu-btn {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: var(--aegis-radius-md);
-  background: transparent;
-  color: var(--aegis-color-text-muted);
-  cursor: pointer;
-
-  &:hover {
-    background-color: var(--aegis-surface-hover);
-    color: var(--aegis-color-text);
-  }
-
-  mat-icon {
-    font-size: var(--aegis-icon-size-lg);
-    width: var(--aegis-icon-size-lg);
-    height: var(--aegis-icon-size-lg);
-  }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
-    display: flex;
-  }
-}
-
 .breadcrumb {
   display: flex;
   align-items: center;

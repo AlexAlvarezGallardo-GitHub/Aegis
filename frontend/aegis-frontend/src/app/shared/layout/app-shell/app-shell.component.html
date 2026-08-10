@@ -4,14 +4,11 @@
 
     <app-sidebar
       [collapsed]="sidebarCollapsed()"
-      [isMobile]="isMobile()"
-      [mobileOpen]="mobileOpen()"
       (collapsedChange)="onSidebarCollapsedChange($event)"
-      (mobileClose)="closeMobile()"
     ></app-sidebar>
 
     <div class="aegis-main">
-      <app-header (menuToggle)="toggleSidebar()"></app-header>
+      <app-header></app-header>
 
       <main id="aegis-main-content" class="aegis-content" tabindex="-1">
         <router-outlet [@routeAnimation]="getRouteAnimation()"></router-outlet>

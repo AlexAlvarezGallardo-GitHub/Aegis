@@ -25,11 +25,6 @@
   flex-direction: column;
   gap: var(--aegis-space-4);
 
-  @media (max-width: 480px) {
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
   @media (prefers-reduced-motion: no-preference) {
     animation: aegis-dialog-enter var(--aegis-duration-normal) var(--aegis-ease-out);
   }

@@ -1,5 +1,5 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject, DestroyRef, HostListener, effect } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd, ChildrenOutletContexts } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,7 +13,6 @@ import { KeyboardShortcutCheatSheetComponent } from '../../components/keyboard-s
 import { KeyboardShortcutsService } from '../../services/keyboard-shortcuts.service';
 import { CommandPaletteComponent } from '../../components/command-palette/command-palette.component';
 import { CommandPaletteService } from '../../services/command-palette.service';
-import { MOBILE_BREAKPOINT } from '../../utils/breakpoints';
 
 const isMotionReduced = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -43,14 +42,11 @@ export const routeAnimation = trigger('routeAnimation', [
 })
 export class AppShellComponent {
   private router = inject(Router);
-  private destroyRef = inject(DestroyRef);
   private keyboardShortcutsService = inject(KeyboardShortcutsService);
   private commandPaletteService = inject(CommandPaletteService);
   private contexts = inject(ChildrenOutletContexts);
 
-  readonly isMobile = signal<boolean>(this.checkMobile());
   readonly sidebarCollapsed = signal<boolean>(false);
-  readonly mobileOpen = signal<boolean>(false);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -67,44 +63,11 @@ export class AppShellComponent {
   });
 
   constructor() {
-    // Close the mobile drawer on navigation; never touch the desktop rail state.
-    this.router.events
-      .pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (this.isMobile()) {
-          this.mobileOpen.set(false);
-        }
-      });
-
-    // Lock body scroll while the mobile drawer is open.
-    effect(() => {
-      if (this.isMobile() && this.mobileOpen()) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    });
-
     this.initKeyboardShortcuts();
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.isMobile.set(this.checkMobile());
-    if (!this.checkMobile()) {
-      this.mobileOpen.set(false);
-    }
-  }
-
-  @HostListener('window:keydown.escape')
-  onEscape(): void {
-    if (this.isMobile() && this.mobileOpen()) {
-      this.mobileOpen.set(false);
-    }
-  }
-
-  private checkMobile(): boolean {
-    return typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+  onSidebarCollapsedChange(collapsed: boolean): void {
+    this.sidebarCollapsed.set(collapsed);
   }
 
   private initKeyboardShortcuts(): void {
@@ -163,21 +126,5 @@ export class AppShellComponent {
 
   getRouteAnimation(): string {
     return this.contexts.getContext('primary')?.route?.snapshot?.data?.['animation'] ?? '';
-  }
-
-  toggleSidebar(): void {
-    if (this.isMobile()) {
-      this.mobileOpen.update((open) => !open);
-    } else {
-      this.sidebarCollapsed.update((collapsed) => !collapsed);
-    }
-  }
-
-  closeMobile(): void {
-    this.mobileOpen.set(false);
-  }
-
-  onSidebarCollapsedChange(collapsed: boolean): void {
-    this.sidebarCollapsed.set(collapsed);
   }
 }
