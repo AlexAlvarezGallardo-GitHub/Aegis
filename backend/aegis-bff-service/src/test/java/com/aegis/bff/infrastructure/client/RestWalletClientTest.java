@@ -110,9 +110,9 @@ class RestWalletClientTest {
         assertEquals("/api/v1/wallets/w1", request.getPath());
     }
 
-    @DisplayName("adjustBalance - should PATCH with type, amount and optional reason")
+    @DisplayName("adjustBalance - should PATCH with amount and optional description")
     @org.junit.jupiter.api.Test
-    void shouldAdjustBalanceWithReason() throws Exception {
+    void shouldAdjustBalanceWithDescription() throws Exception {
         // Arrange
         server.enqueue(new MockResponse()
                 .setBody("""
@@ -122,7 +122,7 @@ class RestWalletClientTest {
 
         // Act
         JsonNode result = client.adjustBalance("access-token", "user-1", "w1",
-                "CREDIT", new BigDecimal("50.00"), "bonus", "corr-2");
+                new BigDecimal("50.00"), "bonus", "corr-2");
 
         // Assert
         assertEquals(150, result.get("balance").asInt());
@@ -131,13 +131,13 @@ class RestWalletClientTest {
         assertEquals("PATCH", request.getMethod());
         assertEquals("/api/v1/wallets/w1/balance", request.getPath());
         String body = request.getBody().readUtf8();
-        assertTrue(body.contains("\"type\":\"CREDIT\""));
-        assertTrue(body.contains("\"reason\":\"bonus\""));
+        assertTrue(body.contains("\"amount\":50.00"));
+        assertTrue(body.contains("\"description\":\"bonus\""));
     }
 
-    @DisplayName("adjustBalance - should omit reason when null")
+    @DisplayName("adjustBalance - should omit description when null")
     @org.junit.jupiter.api.Test
-    void shouldAdjustBalanceWithoutReason() throws Exception {
+    void shouldAdjustBalanceWithoutDescription() throws Exception {
         // Arrange
         server.enqueue(new MockResponse()
                 .setBody("""
@@ -147,15 +147,15 @@ class RestWalletClientTest {
 
         // Act
         JsonNode result = client.adjustBalance("access-token", "user-1", "w1",
-                "DEBIT", new BigDecimal("10.00"), null, "corr-3");
+                new BigDecimal("10.00"), null, "corr-3");
 
         // Assert
         assertEquals(50, result.get("balance").asInt());
 
         RecordedRequest request = server.takeRequest();
         String body = request.getBody().readUtf8();
-        assertTrue(body.contains("\"type\":\"DEBIT\""));
-        assertFalse(body.contains("reason"));
+        assertTrue(body.contains("\"amount\":10.00"));
+        assertFalse(body.contains("description"));
     }
 
     @DisplayName("depositFunds - should POST with amount, currency, source and optional reference")

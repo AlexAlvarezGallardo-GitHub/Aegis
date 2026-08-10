@@ -29,7 +29,7 @@ paths:
       description: |
         Authenticates the user via the Identity Service and stores
         the JWT pair in the server-side session (Redis-backed).
-        Returns the access token for client-side use.
+        Returns token metadata for client-side use; tokens stay server-side.
       tags: [Auth]
       requestBody:
         required: true
@@ -348,15 +348,18 @@ components:
     AuthResponse:
       type: object
       properties:
-        accessToken:
+        tokenType:
           type: string
-          description: JWT access token
-        refreshToken:
-          type: string
-          description: JWT refresh token
+          description: Token type
+          example: "Bearer"
         expiresIn:
           type: integer
-          description: Token TTL in seconds
+          description: Access token TTL in seconds
+          example: 900
+        emailVerified:
+          type: boolean
+          description: Whether the user's email has been verified
+          example: false
 
     CurrentUserResponse:
       type: object

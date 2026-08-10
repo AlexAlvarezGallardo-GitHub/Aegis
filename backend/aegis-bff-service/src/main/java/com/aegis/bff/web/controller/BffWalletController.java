@@ -85,7 +85,7 @@ public class BffWalletController {
         String effectiveCorrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
 
         JsonNode response = walletClient.adjustBalance(accessToken, userId, walletId,
-                request.type(), request.amount(), request.reason(), effectiveCorrId);
+                request.amount(), request.description(), effectiveCorrId);
 
         return ResponseEntity.ok(response);
     }

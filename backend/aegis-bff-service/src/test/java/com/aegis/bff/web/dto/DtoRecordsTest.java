@@ -11,25 +11,24 @@ import static org.junit.jupiter.api.Assertions.*;
 class DtoRecordsTest {
 
     @Test
-    @DisplayName("AdjustBalanceRequest should hold type, amount and reason")
+    @DisplayName("AdjustBalanceRequest should hold amount and description")
     void adjustBalanceRequest() {
         // Arrange & Act
-        AdjustBalanceRequest request = new AdjustBalanceRequest("CREDIT", new BigDecimal("50.00"), "bonus");
+        AdjustBalanceRequest request = new AdjustBalanceRequest(new BigDecimal("50.00"), "bonus");
 
         // Assert
-        assertEquals("CREDIT", request.type());
         assertEquals(new BigDecimal("50.00"), request.amount());
-        assertEquals("bonus", request.reason());
+        assertEquals("bonus", request.description());
     }
 
     @Test
-    @DisplayName("AdjustBalanceRequest should allow null reason")
-    void adjustBalanceRequestNullReason() {
+    @DisplayName("AdjustBalanceRequest should allow null description")
+    void adjustBalanceRequestNullDescription() {
         // Arrange & Act
-        AdjustBalanceRequest request = new AdjustBalanceRequest("DEBIT", new BigDecimal("10.00"), null);
+        AdjustBalanceRequest request = new AdjustBalanceRequest(new BigDecimal("10.00"), null);
 
         // Assert
-        assertNull(request.reason());
+        assertNull(request.description());
     }
 
     @Test

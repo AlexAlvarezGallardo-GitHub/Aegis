@@ -173,14 +173,14 @@ class BffWalletControllerTest {
                     {"walletId":"w1","balance":150}
                     """);
             when(walletClient.adjustBalance(eq(validAccessToken), eq(USER_ID), eq("w1"),
-                    eq("CREDIT"), eq(new BigDecimal("50.00")), eq("bonus"), anyString()))
+                    eq(new BigDecimal("50.00")), eq("bonus"), anyString()))
                     .thenReturn(response);
 
             // Act & Assert
             mockMvc.perform(patch("/api/bff/wallets/w1/balance")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(
-                                    new AdjustBalanceRequest("CREDIT", new BigDecimal("50.00"), "bonus")))
+                                    new AdjustBalanceRequest(new BigDecimal("50.00"), "bonus")))
                             .header("X-Correlation-Id", "corr-2"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.balance").value(150));

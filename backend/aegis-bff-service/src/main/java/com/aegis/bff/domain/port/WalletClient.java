@@ -43,14 +43,13 @@ public interface WalletClient {
      * @param accessToken   the bearer token
      * @param userId        the user id
      * @param walletId      the wallet id
-     * @param type          the adjustment type (CREDIT/DEBIT)
-     * @param amount        the amount
-     * @param reason        the reason for the adjustment
+     * @param amount        the amount (positive for credit, negative for debit)
+     * @param description   an optional description for the adjustment
      * @param correlationId the correlation id for tracing
      * @return the adjusted wallet
      */
     JsonNode adjustBalance(String accessToken, String userId, String walletId,
-                           String type, java.math.BigDecimal amount, String reason,
+                           java.math.BigDecimal amount, String description,
                            String correlationId);
 
     /**
