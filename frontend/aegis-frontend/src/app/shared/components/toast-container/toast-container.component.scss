@@ -13,14 +13,6 @@
   max-width: calc(100vw - 32px);
   width: 360px;
   pointer-events: none;
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
-    right: 50%;
-    bottom: var(--aegis-space-4);
-    transform: translateX(50%);
-    width: calc(100vw - 24px);
-    max-width: calc(100vw - 24px);
-  }
 }
 
 .toast {
@@ -144,12 +136,6 @@
       color: var(--aegis-color-on-primary);
     }
   }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-  }
 }
 
 .toast-close {
@@ -182,10 +168,5 @@
     font-size: var(--aegis-icon-size-sm);
     width: var(--aegis-icon-size-sm);
     height: var(--aegis-icon-size-sm);
-  }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
-    width: 44px;
-    height: 44px;
   }
 }
