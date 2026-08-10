@@ -53,8 +53,4 @@
   background-image:
     radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.015) 0%, transparent 50%);
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
-    padding: var(--aegis-space-6);
-  }
 }

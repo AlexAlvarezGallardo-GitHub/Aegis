@@ -15,7 +15,6 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--aegis-space-4);
-  flex-wrap: wrap;
 }
 
 .page-title {
@@ -68,14 +67,6 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--aegis-space-4);
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, md)}) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
-    grid-template-columns: 1fr;
-  }
 }
 
 // ── Actions Bar ──────────────────────────────────────────────────────────────
@@ -84,10 +75,6 @@
   display: flex;
   align-items: center;
   gap: var(--aegis-space-3);
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
-    width: 100%;
-  }
 }
 
 .search-box {
@@ -95,7 +82,7 @@
   align-items: center;
   gap: var(--aegis-space-2);
   padding: 0 var(--aegis-space-3);
-  height: 40px;
+  height: 36px;
   border: 1px solid var(--aegis-border-default);
   border-radius: var(--aegis-radius-md);
   background-color: var(--aegis-surface-elevated);
@@ -104,11 +91,6 @@
 
   &:focus-within {
     border-color: var(--aegis-border-focus);
-  }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
-    width: 100%;
-    min-width: 0;
   }
 }
 
@@ -150,7 +132,6 @@
   flex-direction: column;
   gap: var(--aegis-space-3);
   box-shadow: var(--aegis-shadow-card);
-  min-width: 0;
   transition: transform var(--aegis-duration-fast) var(--aegis-ease-out),
               box-shadow var(--aegis-duration-fast) var(--aegis-ease-out),
               border-color var(--aegis-duration-fast) var(--aegis-ease-out);
@@ -258,8 +239,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: var(--aegis-radius-md);
   background: transparent;
@@ -284,14 +265,9 @@
   }
 
   mat-icon {
-    font-size: var(--aegis-icon-size-lg);
-    width: var(--aegis-icon-size-lg);
-    height: var(--aegis-icon-size-lg);
-  }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
-    width: 44px;
-    height: 44px;
+    font-size: var(--aegis-icon-size-md);
+    width: var(--aegis-icon-size-md);
+    height: var(--aegis-icon-size-md);
   }
 }
 

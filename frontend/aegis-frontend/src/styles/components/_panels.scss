@@ -33,10 +33,6 @@
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-
-  @media (max-width: #{map.get(tokens.$aegis-breakpoints, sm)}) {
-    width: 100%;
-  }
 }
 
 @keyframes aegis-panel-slide-in {

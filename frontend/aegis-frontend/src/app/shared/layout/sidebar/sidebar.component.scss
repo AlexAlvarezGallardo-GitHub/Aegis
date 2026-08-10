@@ -5,8 +5,7 @@
   width: var(--aegis-sidebar-width);
   background-color: var(--aegis-surface-sidebar);
   border-right: 1px solid var(--aegis-border-default);
-  transition: width var(--aegis-duration-normal) var(--aegis-ease-out),
-              transform var(--aegis-duration-normal) var(--aegis-ease-out);
+  transition: width var(--aegis-duration-normal) var(--aegis-ease-out);
   overflow: hidden;
   flex-shrink: 0;
   z-index: var(--aegis-z-sticky);
@@ -14,28 +13,6 @@
   &.collapsed {
     width: var(--aegis-sidebar-width-collapsed);
   }
-
-  &.mobile {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: var(--aegis-z-drawer);
-    transform: translateX(-100%);
-    box-shadow: none;
-
-    &.mobile-open {
-      transform: translateX(0);
-      box-shadow: var(--aegis-shadow-xl);
-    }
-  }
-}
-
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: var(--aegis-surface-overlay);
-  z-index: var(--aegis-z-overlay);
 }
 
 // ── Brand ────────────────────────────────────────────────────────────────────
