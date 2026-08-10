@@ -15,11 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.HexFormat;
 import java.util.UUID;
 
 /**
@@ -49,7 +45,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     @Override
     @Transactional
     public Result refresh(Command command) {
-        String tokenHash = hashToken(command.refreshToken());
+        String tokenHash = RefreshTokenCodec.hashToken(command.refreshToken());
 
         StoredRefreshToken storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(InvalidCredentialsException::new);
@@ -76,8 +72,8 @@ public class RefreshTokenService implements RefreshTokenUseCase {
         refreshTokenRepository.revoke(tokenHash);
 
         String newAccessToken = tokenProvider.generateAccessToken(userId, user.getEmail().value());
-        String newRefreshTokenValue = generateOpaqueToken();
-        String newRefreshTokenHash = hashToken(newRefreshTokenValue);
+        String newRefreshTokenValue = RefreshTokenCodec.generateOpaqueToken();
+        String newRefreshTokenHash = RefreshTokenCodec.hashToken(newRefreshTokenValue);
 
         Instant expiresAt = Instant.now().plusMillis(refreshTokenExpirationMs);
         StoredRefreshToken newStoredToken = new StoredRefreshToken(
@@ -92,20 +88,5 @@ public class RefreshTokenService implements RefreshTokenUseCase {
 
         TokenPair tokenPair = new TokenPair(newAccessToken, newRefreshTokenValue);
         return new Result(tokenPair);
-    }
-
-    private static String hashToken(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 algorithm not available", e);
-        }
-    }
-
-    private static String generateOpaqueToken() {
-        return UUID.randomUUID().toString().replace("-", "")
-                + UUID.randomUUID().toString().replace("-", "");
     }
 }

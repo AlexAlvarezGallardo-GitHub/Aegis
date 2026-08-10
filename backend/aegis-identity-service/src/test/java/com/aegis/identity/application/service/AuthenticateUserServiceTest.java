@@ -12,6 +12,7 @@ import com.aegis.identity.domain.model.UserStatus;
 import com.aegis.identity.domain.port.inbound.AuthenticateUserUseCase;
 import com.aegis.identity.domain.port.outbound.EventPublisher;
 import com.aegis.identity.domain.port.outbound.PasswordHasher;
+import com.aegis.identity.domain.port.outbound.RefreshTokenRepository;
 import com.aegis.identity.domain.port.outbound.TokenProvider;
 import com.aegis.identity.domain.port.outbound.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,12 +45,16 @@ class AuthenticateUserServiceTest {
     @Mock
     private EventPublisher eventPublisher;
 
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+
     private AuthenticateUserService service;
     private User activeUser;
 
     @BeforeEach
     void setUp() {
-        service = new AuthenticateUserService(userRepository, passwordHasher, tokenProvider, eventPublisher);
+        service = new AuthenticateUserService(userRepository, passwordHasher, tokenProvider,
+                eventPublisher, refreshTokenRepository, 604800000L);
 
         PasswordHasher testHasher = new PasswordHasher() {
             @Override
@@ -79,12 +84,14 @@ class AuthenticateUserServiceTest {
 
         AuthenticateUserUseCase.Result result = service.authenticate(command);
 
-        assertNotNull(result.accessToken());
-        assertEquals("access-token", result.accessToken());
+        assertNotNull(result.tokenPair());
+        assertEquals("access-token", result.tokenPair().accessToken());
+        assertNotNull(result.tokenPair().refreshToken());
 
         verify(userRepository).saveAndFlush(any(User.class));
         verify(eventPublisher).publish(any(UserAuthenticated.class));
         verify(tokenProvider).generateAccessToken(any(UserId.class), anyString());
+        verify(refreshTokenRepository).save(any(RefreshTokenRepository.StoredRefreshToken.class));
     }
 
     @Test
