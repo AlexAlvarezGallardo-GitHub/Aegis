@@ -1,5 +1,7 @@
 package com.aegis.identity.domain.port.inbound;
 
+import com.aegis.identity.domain.model.TokenPair;
+
 /**
  * Inbound port for authenticating a registered user with email and password.
  */
@@ -9,7 +11,7 @@ public interface AuthenticateUserUseCase {
      * Authenticates the user described by the given command.
      *
      * @param command the authentication request containing email, password and correlation id
-     * @return the authentication result with the generated access token
+     * @return the authentication result with the generated token pair
      */
     Result authenticate(Command command);
 
@@ -26,9 +28,9 @@ public interface AuthenticateUserUseCase {
     /**
      * Result data returned after a successful authentication.
      *
-     * @param accessToken   the JWT access token
+     * @param tokenPair     the JWT access token and the opaque refresh token
      * @param emailVerified whether the user's email has been verified
      */
-    record Result(String accessToken, boolean emailVerified) {
+    record Result(TokenPair tokenPair, boolean emailVerified) {
     }
 }

@@ -6,7 +6,7 @@ status: implemented
 
 # Frontend Components
 
-Standalone Angular 22 components. Total: 21 `.component.ts` (3 feature + 18 shared).
+Standalone Angular 22 components (21 `.component.ts`: 1 root + 6 feature + 14 shared).
 
 ## Root Component
 
@@ -21,6 +21,9 @@ Standalone Angular 22 components. Total: 21 `.component.ts` (3 feature + 18 shar
 | `AuthComponent` | `/login` | Login form (real + mock login in dev) |
 | `RegistrationComponent` | `/register` | Registration form |
 | `WalletComponent` | `/wallets` | Wallet CRUD + deposits |
+| `WalletDetailComponent` | `/wallets/:walletId` | Wallet detail (tabs, deposit/withdraw modals) |
+| `MoneyDialogComponent` | — | Deposit / withdraw modal |
+| `TechnicalDetailsDialogComponent` | — | Technical details (wallet id, copy) |
 
 ## Shared Components (UX Foundation)
 
@@ -33,7 +36,6 @@ Standalone Angular 22 components. Total: 21 `.component.ts` (3 feature + 18 shar
 | `CommandPaletteComponent` | `shared/components` | Cmd/Ctrl+K palette with fuzzy search |
 | `ConfirmationDialogComponent` | `shared/components` | Confirm dialog (CDK Dialog) |
 | `KeyboardShortcutCheatSheetComponent` | `shared/components` | Shortcut cheat sheet (`?` key) |
-| `ThemeToggleComponent` | `shared/components` | Light/dark theme toggle |
 | `ToastContainerComponent` | `shared/components` | Toast container (signals) |
 
 ## Shared Data Display
@@ -52,12 +54,6 @@ Standalone Angular 22 components. Total: 21 `.component.ts` (3 feature + 18 shar
 | `FormFieldErrorComponent` | `shared/forms` | Validation error display |
 | `LoadingButtonComponent` | `shared/forms` | Button with loading state |
 | `PasswordInputComponent` | `shared/forms` | Password input (`ControlValueAccessor`) |
-
-## Icons
-
-| Component | Location | Description |
-|-----------|----------|-------------|
-| `AegisIconComponent` | `shared/icons` | Custom SVG icons |
 
 ## Directives
 

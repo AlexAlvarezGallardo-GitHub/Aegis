@@ -76,10 +76,10 @@ sequenceDiagram
 - **Layout**: `AppShellComponent`, `HeaderComponent`, `SidebarComponent`, `PagePlaceholderComponent`
 - **Data Display**: `StatCardComponent`, `StatusChipComponent`, `LoadingSkeletonComponent`, `EmptyStateComponent`
 - **Forms**: `FormFieldErrorComponent`, `LoadingButtonComponent`, `PasswordInputComponent`
-- **Components**: `ThemeToggleComponent`, `ToastContainerComponent`, `ConfirmationDialogComponent`, `CommandPaletteComponent`, `KeyboardShortcutCheatSheetComponent`
+- **Components**: `ToastContainerComponent`, `ConfirmationDialogComponent`, `CommandPaletteComponent`, `KeyboardShortcutCheatSheetComponent`
 - **Guards**: `AuthGuard` — protects `/wallets` and redirects to `/login` when the session is invalid
 - **Interceptors**: `http-timeout` (15s timeout), `http-auth` (auth header stub), `http-error` (toast + redirect to `/login` on 401)
-- **Services**: `ThemeService`, `ToastService`, `ConfirmationService`, `CommandPaletteService`, `KeyboardShortcutsService`
+- **Services**: `ToastService`, `ConfirmationService`, `CommandPaletteService`, `KeyboardShortcutsService`
 
 ### Mock Login
 `MockLoginService` is enabled via `environment.enableMockLogin` (dev only) and posts to `/api/bff/auth/mock-login`.

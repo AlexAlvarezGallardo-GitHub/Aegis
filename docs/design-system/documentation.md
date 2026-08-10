@@ -16,19 +16,15 @@ The Aegis Design System provides a consistent visual language and component libr
 src/
 ├── styles/
 │   ├── tokens/          # Design tokens (colors, typography, spacing, etc.)
-│   ├── themes/          # Light/dark Material theme overrides
+│   ├── themes/          # Dark-only Material theme overrides
 │   └── mixins/          # SCSS mixins for common patterns
 ├── app/
 │   ├── shared/
 │   │   ├── forms/       # Shared form components
 │   │   ├── data-display/# Shared data display components
 │   │   ├── layout/      # App shell, sidebar, header
-│   │   ├── icons/       # Custom SVG icons and registry
-│   │   ├── services/    # ThemeService
 │   │   └── utils/       # Validation utilities
 │   └── features/        # Feature components
-└── assets/
-    └── icons/           # Custom SVG icon files
 ```
 
 ---
@@ -136,23 +132,8 @@ gap: var(--aegis-space-2);      // 8px
 
 - **`theme.scss`** — Applies Material theme overrides via `html[data-theme]` selector
 - **`styles/themes/_dark.scss`** — Dark theme `--mat-sys-*` values derived from `$aegis-colors` map
-- **`styles/themes/_light.scss`** — Light theme `--mat-sys-*` values derived from `$aegis-colors` map
 
-### 3.2 ThemeService
-
-```typescript
-const theme = inject(ThemeService);
-theme.isDark();        // computed signal: true/false
-theme.getPreference(); // 'light' | 'dark' | 'system'
-theme.setPreference('dark');
-theme.toggle();
-```
-
-### 3.3 Theme Toggle Component
-
-```html
-<app-theme-toggle></app-theme-toggle>
-```
+The Aegis frontend is **dark-only** (since UC-013). `ThemeService`, `ThemeToggleComponent` and the light theme (`styles/themes/_light.scss`) were removed; `<html data-theme="dark">` is set statically in `index.html`.
 
 ---
 
@@ -259,19 +240,11 @@ Collapsible navigation with section grouping, active route indicator, localStora
 
 #### `HeaderComponent`
 
-Top bar with branding, page title, theme toggle, notifications, user menu.
+Top bar with branding, page title, search, environment badge, user menu.
 
-### 4.4 Icon System
+### 4.4 Icons
 
-#### `AegisIconComponent` (`<app-aegis-icon>`)
-
-```html
-<app-aegis-icon name="aegis-wallet" size="lg" />
-<app-aegis-icon name="home" size="md" />
-```
-
-**Sizes:** `sm`, `md`, `lg`, `xl`
-Custom icons: `aegis-shield`, `aegis-wallet`, `aegis-payment`, `aegis-fraud-alert`, `aegis-transaction`, `aegis-empty-data`, `aegis-error-state`, `aegis-success-state`, `aegis-maintenance`.
+The app uses **Material Icons** (`mat-icon`) via the icon font/ligatures. There is no custom SVG icon system (`AegisIconComponent` and `IconRegistryService` were removed as dead code).
 
 ---
 
@@ -308,12 +281,11 @@ Available mixins: `aegis-form-card`, `aegis-submit-button`, `aegis-full-width`, 
 ## 7. Validation Utilities
 
 ```typescript
-import { emailValidator, passwordStrengthValidator, currencyCodeValidator, markFormGroupTouched } from './shared/utils/validation.utils';
+import { emailValidator, passwordStrengthValidator, markFormGroupTouched } from './shared/utils/validation.utils';
 
 // Custom validators
 email: ['', [Validators.required, emailValidator()]],
 password: ['', [Validators.required, passwordStrengthValidator()]],
-currency: ['', [Validators.required, currencyCodeValidator()]],
 
 // Mark all fields as touched on submit
 markFormGroupTouched(this.form);

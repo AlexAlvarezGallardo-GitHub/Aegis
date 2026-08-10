@@ -78,13 +78,12 @@ sequenceDiagram
 ### Application (`com.aegis.identity.application`)
 - **Services**: `RegisterUserService`, `AuthenticateUserService`, `RefreshTokenService`
 - **DTOs**: `RegisterUserCommand`, `UserRegistrationResponse`, `AuthenticateUserCommand`, `AuthenticationResponse`
-- **Mappers**: `UserMapper`, `AuthMapper`
 
 ### Infrastructure (`com.aegis.identity.infrastructure`)
 - **Persistence**: `UserJpaEntity`, `UserJpaRepository`, `UserRepositoryAdapter`, `OutboxEventJpaEntity`, `OutboxEventJpaRepository`, `OutboxRelayScheduler`
 - **Security**: `BCryptPasswordHasher`, `JwtTokenProvider`, `JwtAuthenticationFilter`
 - **Messaging**: `KafkaEventPublisher`
-- **Config**: `SecurityConfig`, `KafkaConfig`, `SwaggerConfig`
+- **Config**: `SecurityConfig`, `KafkaConfig`
 
 ### Web (`com.aegis.identity.web`)
 - **Controllers**: `RegistrationController`, `AuthController`

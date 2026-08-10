@@ -49,8 +49,8 @@ public class AuthController {
 
         AuthenticateUserUseCase.Result result = authenticateUserUseCase.authenticate(command);
 
-        AuthenticationResponse response = AuthenticationResponse.ofAccessTokenOnly(
-                result.accessToken(),
+        AuthenticationResponse response = AuthenticationResponse.of(
+                result.tokenPair(),
                 result.emailVerified(),
                 tokenProvider.getAccessTokenExpirySeconds()
         );

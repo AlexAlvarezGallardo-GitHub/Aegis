@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lastVerified": "2026-08-08",
+  "lastVerified": "2026-08-10",
   "sourceOfTruth": "https://github.com/AlexAlvarezGallardo-GitHub/Aegis/blob/main/docs/architecture/platform-registry.json",
   "platform": {
     "name": "Aegis",
@@ -63,10 +63,10 @@
     "applicationsDev": ["audit", "bff", "database", "fraud", "frontend", "identity", "kafka", "logging", "monitoring", "redis", "reporting", "wallet"]
   },
   "metrics": {
-    "commitsOnMain": 141,
+    "commitsOnMain": 172,
     "backendServices": 6,
     "adrs": 12,
-    "specs": 8,
-    "measuredAt": "2026-08-08"
+    "specs": 10,
+    "measuredAt": "2026-08-10"
   }
 }

@@ -75,7 +75,7 @@ sequenceDiagram
 
 Each service and infrastructure component is a separate Application, auto-discovered by `app-of-apps-dev`. Service applications point at their Helm chart with the overlay values; infrastructure applications point at a kustomize overlay.
 
-Only the four charted services (`identity`, `wallet`, `bff`, `frontend`) plus infrastructure (`database`, `kafka`, `redis`) and observability (`monitoring`, `logging`) are managed by Argo CD. **`audit`, `fraud` and `reporting` have no Application and are not deployed via GitOps** — they run via docker-compose and push images to GHCR through CI.
+All seven backend services and the frontend are managed by Argo CD in DEV (`identity`, `wallet`, `bff`, `frontend`, `audit`, `fraud`, `reporting`), plus infrastructure (`database`, `kafka`, `redis`) and observability (`monitoring`, `logging`). Promotion to PRE/STAGE/PROD exists today for `identity`, `wallet`, `bff` and `frontend`. Coverage is verified against the canonical [`platform-registry.json`](../../architecture/platform-registry.json) by `docs-drift.yml`.
 
 Service application (`identity`):
 ```yaml

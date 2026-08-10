@@ -26,7 +26,7 @@ test.describe('Authentication', () => {
     await signIn.click();
 
     // AuthGuard redirects to the app shell
-    await expect(page).toHaveURL(/\/dashboard|\/wallets/);
+    await expect(page).toHaveURL(/\/wallets/);
     await expect(page.getByRole('navigation')).toBeVisible();
   });
 

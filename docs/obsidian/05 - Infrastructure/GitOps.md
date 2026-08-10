@@ -166,18 +166,19 @@ The `aegis-pre`, `aegis-stage` and `aegis-prod` applications already exist in `a
 
 ## Deployable via GitOps
 
-Argo CD deploys **only** the services that ship a Helm chart:
+Argo CD deploys the services that ship a Helm chart. All seven backend services and the frontend ship charts with DEV applications:
 
-- `identity`, `wallet`, `bff`, `frontend` (service charts)
+- `identity`, `wallet`, `bff`, `frontend` (DEV + PRE + STAGE + PROD applications)
+- `audit`, `fraud`, `reporting` (DEV application today; charts exist)
 - `database`, `kafka`, `redis` (infrastructure)
 - `monitoring`, `logging` (observability)
 
-> **Note:** `audit`, `fraud` and `reporting` have **no Helm chart and no Argo CD Application**. They run only via docker-compose locally and ship images to GHCR through CI — they are **not** deployable via GitOps today.
+> Chart and application coverage is verified against the canonical [`platform-registry.json`](../../architecture/platform-registry.json) by `docs-drift.yml`.
 
 ## Images & Pull Secret
 
 - Images are pushed to GHCR under `ghcr.io/alexalvarezgallardo-github/`:
-  `identity-service`, `wallet-service`, `bff-service`, `frontend`
+  `identity-service`, `wallet-service`, `bff-service`, `audit-service`, `fraud-service`, `reporting-service`, `frontend`
 - Tags are immutable SHA tags (`tag: <git-sha>`), overridden per environment in `overlays/<env>/*-values.yaml`
 - Pods pull images via the `ghcr-pull` imagePullSecret (created by `scripts/setup-minikube.ps1`)
 

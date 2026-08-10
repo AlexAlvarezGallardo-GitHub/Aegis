@@ -57,13 +57,12 @@ public class RestWalletClient implements WalletClient {
 
     @Override
     public JsonNode adjustBalance(String accessToken, String userId, String walletId,
-                                  String type, BigDecimal amount, String reason,
+                                  BigDecimal amount, String description,
                                   String correlationId) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("type", type);
         body.put("amount", amount);
-        if (reason != null) {
-            body.put("reason", reason);
+        if (description != null) {
+            body.put("description", description);
         }
 
         return restClient.patch()

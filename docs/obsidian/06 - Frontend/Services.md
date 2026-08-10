@@ -14,11 +14,9 @@ status: implemented
 | `RegistrationService` | `features/registration` | Registration via `POST /api/v1/users/register` (direct to Identity, pre-auth endpoint) |
 | `WalletService` | `features/wallet` | Wallet CRUD, deposits, balance adjustment, status change against `/api/bff/wallets` |
 | `ToastService` | `shared/services` | Signals-based toast notifications |
-| `ThemeService` | `shared/services` | Light/dark/system theme, persisted in `localStorage` |
 | `KeyboardShortcutsService` | `shared/services` | Global keyboard shortcuts |
 | `ConfirmationService` | `shared/services` | Confirmation dialogs |
 | `CommandPaletteService` | `shared/services` | Command palette state |
-| `IconRegistryService` | `shared/icons` | SVG icon registration |
 
 ## Interceptors
 
@@ -39,7 +37,7 @@ Applied in order:
 ## Models & Utils
 
 - **Models**: `auth`, `registration`, `wallet`, `error`
-- **Utils**: `validation` (email, `passwordStrength`, `currencyCode`)
+- **Utils**: `validation` (email, `passwordStrength`)
 
 ## Proxy Configuration
 

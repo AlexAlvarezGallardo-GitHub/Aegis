@@ -19,14 +19,6 @@ export function passwordStrengthValidator(): ValidatorFn {
   };
 }
 
-export function currencyCodeValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) return null;
-    const currencyRegex = /^[A-Z]{3}$/;
-    return currencyRegex.test(control.value) ? null : { pattern: true };
-  };
-}
-
 export function getErrorMessage(
   control: AbstractControl | null,
   labels: Record<string, string> = {}

@@ -81,7 +81,7 @@ export class HeaderComponent {
     if (title) return title;
 
     const segments = this.router.url.split('/').filter(Boolean);
-    if (segments.length === 0) return 'Dashboard';
+    if (segments.length === 0) return 'Wallets';
     return segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
   }
 

@@ -42,20 +42,19 @@ Multi-stage Docker build (`Dockerfile`) serves static files via nginx. Output in
 src/app/
 ├── features/
 │   ├── auth/           # Login / mock-login (standalone component)
-│   ├── dashboard/      # KPIs, system status, activity feed
 │   ├── registration/   # User registration form
-│   └── wallet/         # Wallet management (create, list, search)
+│   └── wallet/         # Wallet management (create, list, search, detail)
 ├── shared/
 │   ├── data-display/   # StatCard, StatusChip, EmptyState, LoadingSkeleton
-│   ├── guards/         # AuthGuard — checks in-memory state, then GET /me
+│   ├── guards/         # AuthGuard — auto-auth in dev, else GET /me
 │   ├── interceptors/   # httpAuth (pass-through), httpError (401 → login)
 │   ├── layout/
 │   │   ├── app-shell/  # Shell with sidebar + header + router-outlet
-│   │   ├── header/     # User menu, notifications, theme toggle
-│   │   ├── sidebar/    # Left nav: Dashboard, Payments, Wallets, etc.
+│   │   ├── header/     # User menu, search, env badge
+│   │   ├── sidebar/    # Left nav: Payments, Wallets, Monitoring, Settings
 │   │   └── page-placeholder/ # Stub component for unimplemented routes
 │   ├── models/         # LoginRequest, LoginResponse, WalletResponse
-│   ├── services/       # ToastService
+│   ├── services/       # ToastService, CommandPaletteService, ConfirmationService
 │   ├── forms/          # LoadingButton, PasswordInput, FormFieldError
 │   └── utils/          # markFormGroupTouched, validation helpers
 ```

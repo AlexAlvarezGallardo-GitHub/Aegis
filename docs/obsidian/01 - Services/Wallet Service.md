@@ -80,14 +80,13 @@ sequenceDiagram
 
 ### Application (`com.aegis.wallet.application`)
 - **Services**: `CreateWalletService`, `UpdateWalletService`, `DepositFundsService`, `ReverseDepositService`, `WalletQueryService`
-- **DTOs**: `CreateWalletCommand`, `WalletResponse`, `AdjustBalanceCommand`, `UpdateStatusCommand`, `WalletDetailResponse`, `DepositFundsCommand`, `DepositReceipt`, `ReversalReceipt`
-- **Mappers**: `WalletMapper`
+- **DTOs**: `CreateWalletCommand`, `WalletResponse`, `WalletDetailResponse`, `DepositFundsCommand`, `DepositReceipt`, `ReversalReceipt`
 
 ### Infrastructure (`com.aegis.wallet.infrastructure`)
 - **Persistence**: `WalletJpaEntity`, `WalletJpaRepository`, `WalletRepositoryAdapter`, `LedgerEntryJpaEntity`, `LedgerEntryJpaRepository`, `OutboxEventJpaEntity`, `OutboxEventJpaRepository`, `OutboxRelayScheduler`
 - **Reconciliation**: `LedgerReconciliationService` (job every 60s, gauge `aegis.wallet.reconciliation_discrepancies`)
 - **Messaging**: `KafkaEventPublisher`
-- **Config**: `SecurityConfig`, `KafkaConfig`, `SwaggerConfig`
+- **Config**: `SecurityConfig`, `KafkaConfig`
 
 ### Web (`com.aegis.wallet.web`)
 - **Controllers**: `WalletController`

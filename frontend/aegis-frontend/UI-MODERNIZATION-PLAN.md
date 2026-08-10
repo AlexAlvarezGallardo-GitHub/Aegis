@@ -1,5 +1,7 @@
 # Aegis Frontend — UI/UX Modernization Plan
 
+> **Status note (2026-08-10):** UC-013 shipped; the **responsive mobile layer was reverted** in `refactor/014-remove-mobile` (app is desktop-only). Sections referencing the mobile drawer/header/toast are superseded. Execution record and evidence: `evidence/unit/ui-modernization-unit.md`.
+
 **Scope:** `frontend/aegis-frontend` (Angular 22, Angular Material 22 M3, SCSS, Karma/Jasmine, ESLint)
 **Reference:** `Aegis-Portfolio` (Astro + Tailwind, dark-only)
 **Constraint set:** no backend/API changes, no new features, no rewrites, no new dependencies, preserve all functionality.

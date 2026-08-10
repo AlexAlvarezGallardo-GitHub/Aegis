@@ -48,11 +48,9 @@ src/
 │       │   ├── app-shell/
 │       │   ├── sidebar/
 │       │   └── header/
-│       ├── icons/        # Custom SVG icons (NEW)
-│       ├── services/     # ThemeService (NEW)
+│       ├── icons/        # (removed in UC-013 — Material icons only)
+│       ├── services/     # ToastService, CommandPaletteService (NEW)
 │       └── utils/        # Validation utilities (NEW)
-└── assets/
-    └── icons/            # SVG icon files (NEW)
 ```
 
 ### 1.2 Changed Files
@@ -234,17 +232,7 @@ onSubmit(): void {
 
 ## 4. Theme Integration
 
-### 4.1 Using ThemeService
-
-```typescript
-const theme = inject(ThemeService);
-if (theme.isDark()) { /* dark mode logic */ }
-theme.toggle();
-```
-
-### 4.2 Theme Toggle in Header
-
-The `ThemeToggleComponent` is already included in the sidebar footer and header. No additional setup needed.
+> **Superseded (UC-013):** the Aegis frontend is **dark-only**. `ThemeService`, `ThemeToggleComponent` and the light theme (`styles/themes/_light.scss`) were removed; `<html data-theme="dark">` is set statically. Do not re-introduce a light theme or theme toggle without an explicit product decision.
 
 ---
 
