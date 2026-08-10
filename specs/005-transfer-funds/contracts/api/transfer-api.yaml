@@ -1,0 +1,292 @@
+openapi: 3.0.3
+info:
+  title: Aegis Transfer Funds API (Payment Service)
+  description: |
+    Peer-to-peer fund transfers between wallets, orchestrated by the Payment
+    Service as a saga: fraud assessment → fund reservation (hold) → atomic
+    settlement → completion. See ADR-014 and specs/005-transfer-funds/spec.md.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8084
+    description: Local development server
+  - url: https://api.aegis.dev
+    description: Development environment
+
+paths:
+  /api/v1/transfers:
+    post:
+      operationId: transferFunds
+      summary: Transfer funds between two wallets
+      description: |
+        Executes a peer-to-peer transfer synchronously through the saga:
+        fraud check (fail-closed) → hold on source wallet → atomic debit/credit.
+        On success the transfer is COMPLETED. On any failure the transfer is
+        FAILED, compensations are applied, and an error is returned.
+        The `reference` field is the idempotency key (unique per source wallet).
+      tags: [Transfers]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+            example:
+              sourceWalletId: "01912345-6789-7abc-def0-123456789abc"
+              destWalletId: "01998765-4321-7abc-def0-cba987654321"
+              amount: 50.00
+              currency: EUR
+              description: "Rent split"
+              reference: "TRX-2026-0001"
+      responses:
+        '201':
+          description: Transfer completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+              example:
+                transferId: "019abcde-f012-7abc-def0-111122223333"
+                status: COMPLETED
+                sourceWalletId: "01912345-6789-7abc-def0-123456789abc"
+                destWalletId: "01998765-4321-7abc-def0-cba987654321"
+                amount: 50.00
+                currency: EUR
+                description: "Rent split"
+                reference: "TRX-2026-0001"
+                fraudAssessmentId: "019f0a1b-2c3d-7abc-def0-444455556666"
+                failureReason: null
+                createdAt: "2026-08-10T12:00:00.000Z"
+                completedAt: "2026-08-10T12:00:00.310Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: WALLET_NOT_FOUND
+                message: "Wallet not found: 01998765-4321-7abc-def0-cba987654321"
+                details: null
+                timestamp: "2026-08-10T12:00:00.000Z"
+        '409':
+          description: Duplicate transfer reference (idempotency conflict)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: TRANSFER_DUPLICATE
+                message: "Transfer with reference 'TRX-2026-0001' already exists for this source wallet"
+                details: null
+                timestamp: "2026-08-10T12:00:00.000Z"
+        '422':
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficientFunds:
+                  value:
+                    code: INSUFFICIENT_FUNDS
+                    message: "Available balance 30.00 EUR is lower than requested 50.00 EUR"
+                    details: null
+                    timestamp: "2026-08-10T12:00:00.000Z"
+                fraudRejected:
+                  value:
+                    code: TRANSFER_REJECTED_BY_FRAUD
+                    message: "Transfer rejected by fraud assessment (risk score 85)"
+                    details:
+                      fraudAssessmentId: "019f0a1b-2c3d-7abc-def0-444455556666"
+                    timestamp: "2026-08-10T12:00:00.000Z"
+                selfTransfer:
+                  value:
+                    code: SELF_TRANSFER
+                    message: "Source and destination wallets must differ"
+                    details: null
+                    timestamp: "2026-08-10T12:00:00.000Z"
+                walletNotActive:
+                  value:
+                    code: WALLET_NOT_ACTIVE
+                    message: "Wallet 01912345-6789-7abc-def0-123456789abc is SUSPENDED"
+                    details: null
+                    timestamp: "2026-08-10T12:00:00.000Z"
+                currencyMismatch:
+                  value:
+                    code: CURRENCY_MISMATCH
+                    message: "Transfer currency EUR does not match wallet currency USD"
+                    details: null
+                    timestamp: "2026-08-10T12:00:00.000Z"
+        '503':
+          description: Fraud Service unavailable (fail-closed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: FRAUD_UNAVAILABLE
+                message: "Fraud assessment could not be completed; transfer aborted safely"
+                details: null
+                timestamp: "2026-08-10T12:00:00.000Z"
+
+  /api/v1/transfers/{transferId}:
+    get:
+      operationId: getTransfer
+      summary: Retrieve a transfer by ID
+      tags: [Transfers]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transferId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transfer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '404':
+          description: Transfer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: TRANSFER_NOT_FOUND
+                message: "Transfer not found: 019abcde-f012-7abc-def0-111122223333"
+                details: null
+                timestamp: "2026-08-10T12:00:00.000Z"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from the Auth API (propagated by the BFF)
+
+  schemas:
+    TransferRequest:
+      type: object
+      required: [sourceWalletId, destWalletId, amount, currency, reference]
+      properties:
+        sourceWalletId:
+          type: string
+          format: uuid
+          description: Wallet to debit (must belong to the authenticated user)
+        destWalletId:
+          type: string
+          format: uuid
+          description: Wallet to credit
+        amount:
+          type: number
+          format: double
+          description: Amount to transfer (positive, scale 2)
+          example: 50.00
+          exclusiveMinimum: 0
+        currency:
+          type: string
+          description: ISO 4217 currency code; must match both wallets
+          example: EUR
+          minLength: 3
+          maxLength: 3
+        description:
+          type: string
+          description: Optional free-text description
+          example: "Rent split"
+          maxLength: 255
+        reference:
+          type: string
+          description: Client-supplied idempotency key (unique per source wallet)
+          example: "TRX-2026-0001"
+          maxLength: 255
+
+    TransferResponse:
+      type: object
+      properties:
+        transferId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, FRAUD_CHECK, FUNDS_RESERVED, COMPLETED, FAILED, REVERSED]
+        sourceWalletId:
+          type: string
+          format: uuid
+        destWalletId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        description:
+          type: string
+          nullable: true
+        reference:
+          type: string
+        fraudAssessmentId:
+          type: string
+          format: uuid
+          nullable: true
+        failureReason:
+          type: string
+          nullable: true
+          description: Machine-readable reason when status is FAILED (e.g. INSUFFICIENT_FUNDS, FRAUD_REJECTED, FRAUD_UNAVAILABLE, SETTLEMENT_FAILED, HOLD_EXPIRED)
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          nullable: true
+          description: Additional error context
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred (UTC)
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_ERROR
+            message: "amount: Must be positive"
+            details:
+              amount: "Must be positive"
+            timestamp: "2026-08-10T12:00:00.000Z"
