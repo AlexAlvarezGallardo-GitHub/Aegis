@@ -83,3 +83,9 @@ management:
     tracing:
       endpoint: ${OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
       transport: http
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

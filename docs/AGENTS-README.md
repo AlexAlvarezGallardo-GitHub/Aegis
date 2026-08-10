@@ -328,8 +328,8 @@ Aegis follows a **spec-first, YAML-only** OpenAPI 3 workflow. The canonical API 
 - OpenAPI 3 specs MUST be defined in separate YAML files under `specs/<feature>/contracts/`.
 - Controllers MUST NOT contain swagger/OpenAPI annotations (`@Tag`, `@Operation`, `@ApiResponse`, `@Parameter`, `@Schema`, etc.). These duplicate the YAML contract and add complexity without gain.
 - The `api-design` skill generates the OpenAPI contract. The `service-builder` agent produces controllers with **zero swagger imports**.
-- Swagger UI is **only enabled in the `dev` profile** (`@Profile("dev")`). It MUST NOT be available in staging or production.
-- The `SwaggerConfig` class lives in `infrastructure/config/` and is annotated with `@Profile("dev")`.
+- Swagger UI is **only enabled in the `dev` profile**. It MUST NOT be available in staging or production.
+- springdoc is **disabled by default** in every service's base `application.yml` (`springdoc.api-docs.enabled: false` + `springdoc.swagger-ui.enabled: false`) and **enabled in `application-dev.yml`**. There is no `SwaggerConfig` Java class — the two legacy ones were removed.
 - Spring Security MUST permit Swagger paths (`/swagger-ui/**`, `/v3/api-docs/**`, `/webjars/**`) only when the `dev` profile is active.
 - The OpenAPI spec is served at `/v3/api-docs` and Swagger UI at `/swagger-ui.html` (dev profile only).
 
