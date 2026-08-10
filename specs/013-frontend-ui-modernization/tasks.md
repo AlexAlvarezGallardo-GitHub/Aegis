@@ -1,5 +1,7 @@
 # Tasks: UC-013 Frontend UI/UX Modernization
 
+> **Status note (2026-08-10):** the UI modernization (UC-013) shipped; the **responsive mobile layer was reverted** in `refactor/014-remove-mobile` — the app is desktop-only until mobile becomes a real feature. Tasks below referencing the mobile drawer/header/toast (T017, T042, T048, T056, responsive checkpoints) are **superseded** and should not be re-applied without a team decision. See `evidence/unit/ui-modernization-unit.md` (Refactor 014).
+
 **Input**: Design documents from `specs/013-frontend-ui-modernization/` (spec.md, research.md, plan.md, quickstart.md)
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md

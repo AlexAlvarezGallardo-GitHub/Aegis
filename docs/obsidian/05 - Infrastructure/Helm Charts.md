@@ -93,16 +93,19 @@ The probe delays must be present in the chart template — without them, kubelet
 
 ## Services
 
-Only four services ship a Helm chart and are deployable via GitOps. Images are pulled from GHCR (`ghcr.io/alexalvarezgallardo-github/`) using the `ghcr-pull` imagePullSecret with immutable SHA tags:
+Every backend service plus the frontend ships a Helm chart and is deployable via GitOps. Images are pulled from GHCR (`ghcr.io/alexalvarezgallardo-github/`) using the `ghcr-pull` imagePullSecret with immutable SHA tags:
 
 | Service | Chart | Image | Port | Probe |
 |---------|-------|-------|------|-------|
 | [[01 - Services/Identity Service\|Identity Service]] | `charts/identity` | `identity-service` | 8081 | `/actuator/health` |
 | [[01 - Services/Wallet Service\|Wallet Service]] | `charts/wallet` | `wallet-service` | 8083 | `/actuator/health` |
 | [[01 - Services/BFF Service\|BFF Service]] | `charts/bff` | `bff-service` | 8082 | `/actuator/health` |
+| [[01 - Services/Audit Service\|Audit Service]] | `charts/audit` | `audit-service` | 8088 | `/actuator/health` |
+| [[01 - Services/Fraud Service\|Fraud Service]] | `charts/fraud` | `fraud-service` | 8089 | `/actuator/health` |
+| [[01 - Services/Reporting Service\|Reporting Service]] | `charts/reporting` | `reporting-service` | 8087 | `/actuator/health` |
 | [[01 - Services/Frontend\|Frontend]] | `charts/frontend` | `frontend` | 80 | `/` |
 
-> **Note:** `audit`, `fraud` and `reporting` have **no Helm chart** (no `charts/audit`, `charts/fraud`, `charts/reporting`). They run via docker-compose and ship images to GHCR through CI, but are not deployable via GitOps today.
+> Chart and DEV application coverage is verified against the canonical [`platform-registry.json`](../../architecture/platform-registry.json) by `docs-drift.yml`. See [[05 - Infrastructure/Argo CD\|Argo CD]] for which environments each service is promoted to.
 
 ## Validation
 

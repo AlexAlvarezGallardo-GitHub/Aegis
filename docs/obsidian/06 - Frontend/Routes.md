@@ -14,6 +14,7 @@ Lazy-loaded `loadComponent` routes (Angular 22, standalone-only). No `/dashboard
 | `/register` | `RegistrationComponent` | ❌ | Registration form (POST `/api/v1/users/register` direct to Identity) |
 | `/` (root layout) | `AppShellComponent` | ✅ | Protected layout (sidebar + header) |
 | `/wallets` | `WalletComponent` | ✅ | Wallet CRUD + deposits (default redirect after login) |
+| `/wallets/:walletId` | `WalletDetailComponent` | ✅ | Wallet detail (tabs, deposit/withdraw, status) |
 | `/payments` | `PagePlaceholderComponent` | ✅ | Placeholder ("under construction") |
 | `/transactions` | `PagePlaceholderComponent` | ✅ | Placeholder ("under construction") |
 | `/payouts` | `PagePlaceholderComponent` | ✅ | Placeholder ("under construction") |
@@ -31,4 +32,4 @@ Lazy-loaded `loadComponent` routes (Angular 22, standalone-only). No `/dashboard
 
 - **Root layout** — `''` guards `AppShellComponent` with `AuthGuard`; inside it `''` redirects to `/wallets`.
 - **AuthGuard** — Redirects to `/login` with `returnUrl` query param. In dev (`environment.enableMockLogin`) it auto-authenticates.
-- **`/wallets/:id`** — No dedicated detail route; detail view is handled within `WalletComponent`.
+- **`/wallets/:walletId`** — Lazy-loaded `WalletDetailComponent` with a `title` route data entry.
