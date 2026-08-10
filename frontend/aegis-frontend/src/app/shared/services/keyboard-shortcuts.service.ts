@@ -18,7 +18,6 @@ const DEFAULT_SHORTCUTS: ShortcutGroup[] = [
   {
     group: 'Navigation',
     shortcuts: [
-      { keys: 'G then D', description: 'Navigate to Dashboard', action: NOOP },
       { keys: 'G then W', description: 'Navigate to Wallets', action: NOOP },
       { keys: 'G then P', description: 'Navigate to Payments', action: NOOP },
     ],

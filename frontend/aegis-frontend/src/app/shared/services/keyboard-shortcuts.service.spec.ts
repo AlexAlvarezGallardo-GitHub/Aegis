@@ -118,7 +118,7 @@ describe('KeyboardShortcutsService', () => {
   it('should provide default shortcut groups', () => {
     expect(service.defaultShortcuts.length).toBeGreaterThan(0);
     const allKeys = service.defaultShortcuts.flatMap((g) => g.shortcuts).map((s) => s.keys);
-    expect(allKeys).toContain('G then D');
+    expect(allKeys).toContain('G then W');
     expect(allKeys).toContain('Cmd/Ctrl+K');
     expect(allKeys).toContain('?');
     expect(allKeys).toContain('Escape');

@@ -84,13 +84,6 @@ export class AppShellComponent {
 
   private initCommandPaletteItems(nav: (path: string) => void): void {
     this.commandPaletteService.register({
-      id: 'nav-dashboard',
-      label: 'Dashboard',
-      icon: 'dashboard',
-      section: 'Navigation',
-      action: () => nav('/dashboard'),
-    });
-    this.commandPaletteService.register({
       id: 'nav-wallets',
       label: 'Wallets',
       icon: 'account_balance_wallet',
@@ -103,12 +96,6 @@ export class AppShellComponent {
       icon: 'payments',
       section: 'Navigation',
       action: () => nav('/payments'),
-    });
-
-    this.keyboardShortcutsService.register({
-      keys: 'G then D',
-      description: 'Navigate to Dashboard',
-      action: () => nav('/dashboard'),
     });
 
     this.keyboardShortcutsService.register({
