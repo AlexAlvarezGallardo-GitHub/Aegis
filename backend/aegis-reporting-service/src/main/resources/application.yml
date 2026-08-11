@@ -47,6 +47,8 @@ aegis:
   kafka:
     topics:
       funds-deposited: wallet.funds.deposited
+      transfer-completed: payment.transfer.completed
+      transfer-failed: payment.transfer.failed
     retry:
       max-attempts: 3
       backoff-ms: 1000

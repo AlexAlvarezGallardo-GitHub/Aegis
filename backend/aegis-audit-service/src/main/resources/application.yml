@@ -40,6 +40,9 @@ aegis:
     topics:
       funds-deposited: wallet.funds.deposited
       fraud-assessment-completed: fraud.assessment.completed
+      transfer-requested: payment.transfer.requested
+      transfer-completed: payment.transfer.completed
+      transfer-failed: payment.transfer.failed
     retry:
       max-attempts: 3
       backoff-ms: 1000
