@@ -11,6 +11,7 @@ COPY aegis-wallet-service/pom.xml aegis-wallet-service/pom.xml
 COPY aegis-reporting-service/pom.xml aegis-reporting-service/pom.xml
 COPY aegis-audit-service/pom.xml aegis-audit-service/pom.xml
 COPY aegis-fraud-service/pom.xml aegis-fraud-service/pom.xml
+COPY aegis-payment-service/pom.xml aegis-payment-service/pom.xml
 
 # 2. Download external dependencies 
 RUN mvn dependency:go-offline -B -q
