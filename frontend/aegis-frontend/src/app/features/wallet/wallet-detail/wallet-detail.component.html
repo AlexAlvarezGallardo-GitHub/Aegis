@@ -36,6 +36,10 @@
           <mat-icon>arrow_upward</mat-icon>
           <span>Withdraw</span>
         </button>
+        <button mat-stroked-button (click)="openTransfer()" [disabled]="isOperating()">
+          <mat-icon>swap_horiz</mat-icon>
+          <span>Transfer</span>
+        </button>
         <button mat-icon-button [matMenuTriggerFor]="moreMenu" aria-label="More actions" [disabled]="isOperating()">
           <mat-icon>more_vert</mat-icon>
         </button>

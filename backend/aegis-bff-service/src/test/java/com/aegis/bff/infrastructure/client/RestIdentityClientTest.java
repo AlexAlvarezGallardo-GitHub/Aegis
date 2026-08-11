@@ -26,6 +26,7 @@ class RestIdentityClientTest {
         BffProperties properties = new BffProperties(
                 new BffProperties.ServiceUrl(server.url("/").toString()),
                 new BffProperties.ServiceUrl("http://localhost"),
+                new BffProperties.ServiceUrl("http://localhost"),
                 new BffProperties.Jwt("dummy-secret-that-is-at-least-256-bits-long-for-hs256-algorithm")
         );
 

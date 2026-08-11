@@ -9,10 +9,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @param identityService identity-service connection settings
  * @param walletService   wallet-service connection settings
+ * @param paymentService  payment-service connection settings
  * @param jwt             JWT validation settings
  */
 @ConfigurationProperties(prefix = "aegis")
-public record BffProperties(ServiceUrl identityService, ServiceUrl walletService, Jwt jwt) {
+public record BffProperties(ServiceUrl identityService,
+                            ServiceUrl walletService,
+                            ServiceUrl paymentService,
+                            Jwt jwt) {
 
     public record ServiceUrl(String url) {
     }

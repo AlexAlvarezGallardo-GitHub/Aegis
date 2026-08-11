@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -85,5 +86,40 @@ class DtoRecordsTest {
         // Assert
         assertEquals("user@test.com", request.email());
         assertEquals("password123", request.password());
+    }
+
+    @Test
+    @DisplayName("CreateTransferRequest should hold source/dest wallets, amount, currency, description and reference")
+    void createTransferRequest() {
+        // Arrange
+        UUID src = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID dst = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+        // Act
+        CreateTransferRequest request = new CreateTransferRequest(
+                src, dst, new BigDecimal("25.50"), "USD", "bonus", "ref-123");
+
+        // Assert
+        assertEquals(src, request.sourceWalletId());
+        assertEquals(dst, request.destWalletId());
+        assertEquals(new BigDecimal("25.50"), request.amount());
+        assertEquals("USD", request.currency());
+        assertEquals("bonus", request.description());
+        assertEquals("ref-123", request.reference());
+    }
+
+    @Test
+    @DisplayName("CreateTransferRequest should allow null description")
+    void createTransferRequestNullDescription() {
+        // Arrange
+        UUID src = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID dst = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+        // Act
+        CreateTransferRequest request = new CreateTransferRequest(
+                src, dst, new BigDecimal("10.00"), "EUR", null, "ref-456");
+
+        // Assert
+        assertNull(request.description());
     }
 }
