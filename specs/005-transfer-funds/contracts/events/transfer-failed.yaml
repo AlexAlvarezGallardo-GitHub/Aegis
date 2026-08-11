@@ -1,0 +1,81 @@
+event: TransferFailed
+topic: payment.transfer.failed
+schemaVersion: "1.0"
+producer: aegis-payment-service
+consumers:
+  - aegis-audit-service       # audit trail (failures are auditable too)
+  - aegis-reporting-service   # failure metrics / projections
+  # future: aegis-notification-service (failure notification to sender)
+
+headers:
+  contentType: application/json
+  eventType: TRANSFER_FAILED
+
+payload:
+  eventId:
+    type: string
+    format: uuid
+    description: Unique event identifier (consumer deduplication, ADR-008)
+  eventType:
+    type: string
+    enum: [TRANSFER_FAILED]
+  schemaVersion:
+    type: string
+    example: "1.0"
+  occurredAt:
+    type: string
+    format: date-time
+  causationId:
+    type: string
+    format: uuid
+    nullable: true
+    description: Identifier of the command/event that caused this event
+  correlationId:
+    type: string
+    description: Trace correlation across the saga
+  aggregateId:
+    type: string
+    format: uuid
+    description: Identifier of the aggregate (the transfer)
+  aggregateType:
+    type: string
+    enum: [TRANSFER]
+  transferId:
+    type: string
+    format: uuid
+  sourceWalletId:
+    type: string
+    format: uuid
+  destWalletId:
+    type: string
+    format: uuid
+  userId:
+    type: string
+    format: uuid
+  amount:
+    type: number
+    format: decimal
+  currency:
+    type: string
+    pattern: "^[A-Z]{3}$"
+  reference:
+    type: string
+  failureReason:
+    type: string
+    enum: [FRAUD_REJECTED, FRAUD_UNAVAILABLE, INSUFFICIENT_FUNDS, WALLET_NOT_ACTIVE, WALLET_NOT_FOUND, CURRENCY_MISMATCH, SETTLEMENT_FAILED, HOLD_EXPIRED]
+    description: Machine-readable terminal failure cause
+  failureDetails:
+    type: string
+    nullable: true
+    description: Human-readable detail (no sensitive data)
+  fraudAssessmentId:
+    type: string
+    format: uuid
+    nullable: true
+    description: Present when the failure is fraud-related
+  compensated:
+    type: boolean
+    description: True when a created hold was released (or never created); guarantees no funds remain locked
+  timestamp:
+    type: string
+    format: date-time

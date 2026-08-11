@@ -1,0 +1,70 @@
+event: TransferRequested
+topic: payment.transfer.requested
+schemaVersion: "1.0"
+producer: aegis-payment-service
+consumers:
+  - aegis-fraud-service    # async risk signal / model input (sync decision via REST assess)
+  - aegis-audit-service    # audit trail
+
+headers:
+  contentType: application/json
+  eventType: TRANSFER_REQUESTED
+
+payload:
+  eventId:
+    type: string
+    format: uuid
+    description: Unique event identifier (consumer deduplication, ADR-008)
+  eventType:
+    type: string
+    enum: [TRANSFER_REQUESTED]
+  schemaVersion:
+    type: string
+    example: "1.0"
+  occurredAt:
+    type: string
+    format: date-time
+    description: When the event occurred (alias of timestamp)
+  causationId:
+    type: string
+    format: uuid
+    nullable: true
+    description: Identifier of the command/event that caused this event
+  correlationId:
+    type: string
+    description: Trace correlation across the saga (BFF → payment → fraud → wallet)
+  aggregateId:
+    type: string
+    format: uuid
+    description: Identifier of the aggregate (the transfer)
+  aggregateType:
+    type: string
+    enum: [TRANSFER]
+  transferId:
+    type: string
+    format: uuid
+  sourceWalletId:
+    type: string
+    format: uuid
+  destWalletId:
+    type: string
+    format: uuid
+  userId:
+    type: string
+    format: uuid
+    description: Owner of the source wallet (transfer initiator)
+  amount:
+    type: number
+    format: decimal
+  currency:
+    type: string
+    pattern: "^[A-Z]{3}$"
+  description:
+    type: string
+    nullable: true
+  reference:
+    type: string
+    description: Client-supplied idempotency key
+  timestamp:
+    type: string
+    format: date-time
