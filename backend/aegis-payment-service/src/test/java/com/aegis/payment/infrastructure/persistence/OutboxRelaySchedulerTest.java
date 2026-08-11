@@ -30,7 +30,7 @@ class OutboxRelaySchedulerTest {
     private OutboxEventJpaRepository outboxRepository;
 
     @Mock
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Mock
     private KafkaTopicsProperties topicsProperties;

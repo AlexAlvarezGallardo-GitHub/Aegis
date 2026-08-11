@@ -25,6 +25,7 @@ export const trends = {
   createWallet: new Trend('aegis_create_wallet_latency'),
   listWallets: new Trend('aegis_list_wallets_latency'),
   deposit: new Trend('aegis_deposit_latency'),
+  transfer: new Trend('aegis_transfer_latency'),
 };
 
 // Fresh user pool per load run; set USER_PREFIX to rotate seeds between runs.

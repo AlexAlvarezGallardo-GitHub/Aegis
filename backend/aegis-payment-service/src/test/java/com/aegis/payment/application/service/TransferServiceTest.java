@@ -1,11 +1,13 @@
 package com.aegis.payment.application.service;
 
+import com.aegis.payment.domain.event.TransferCompleted;
 import com.aegis.payment.domain.event.TransferFailed;
 import com.aegis.payment.domain.event.TransferRequested;
 import com.aegis.payment.domain.exception.DuplicateTransferException;
 import com.aegis.payment.domain.exception.FraudAssessmentUnavailableException;
 import com.aegis.payment.domain.exception.FraudRejectedException;
 import com.aegis.payment.domain.exception.SelfTransferException;
+import com.aegis.payment.domain.exception.SettlementFailedException;
 import com.aegis.payment.domain.exception.TransferNotFoundException;
 import com.aegis.payment.domain.model.Transfer;
 import com.aegis.payment.domain.model.TransferStatus;
@@ -14,6 +16,7 @@ import com.aegis.payment.domain.port.outbound.EventPublisher;
 import com.aegis.payment.domain.port.outbound.FraudAssessmentGateway;
 import com.aegis.payment.domain.port.outbound.FraudAssessmentGateway.FraudDecision;
 import com.aegis.payment.domain.port.outbound.TransferRepository;
+import com.aegis.payment.domain.port.outbound.WalletGateway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +34,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +51,9 @@ class TransferServiceTest {
     private FraudAssessmentGateway fraudAssessmentGateway;
 
     @Mock
+    private WalletGateway walletGateway;
+
+    @Mock
     private TransactionTemplate transactionTemplate;
 
     private TransferService transferService;
@@ -61,7 +68,8 @@ class TransferServiceTest {
         });
 
         transferService = new TransferService(
-                transferRepository, eventPublisher, fraudAssessmentGateway, transactionTemplate);
+                transferRepository, eventPublisher, fraudAssessmentGateway,
+                walletGateway, transactionTemplate);
     }
 
     @Nested
@@ -69,7 +77,7 @@ class TransferServiceTest {
     class WhenExecutingTransferFunds {
 
         @Test
-        @DisplayName("Should persist transfer in FRAUD_CHECK and publish TransferRequested when fraud APPROVE")
+        @DisplayName("Should settle transfer to COMPLETED and publish TransferRequested + TransferCompleted when fraud APPROVE")
         void shouldPersistAndPublishOnFraudApprove() {
             UUID source = UUID.randomUUID();
             UUID dest = UUID.randomUUID();
@@ -80,23 +88,29 @@ class TransferServiceTest {
             when(transferRepository.existsBySourceWalletIdAndReference(source, "ref-001")).thenReturn(false);
             when(transferRepository.save(any(Transfer.class))).thenAnswer(inv -> inv.getArgument(0));
             when(fraudAssessmentGateway.assess(any())).thenReturn(FraudDecision.APPROVE);
+            when(walletGateway.createHold(eq(source), eq(new BigDecimal("50.00")), eq("EUR"), any()))
+                    .thenReturn(UUID.randomUUID());
+            when(walletGateway.settle(any(), any(), eq(source), eq(dest), eq(new BigDecimal("50.00")), eq("EUR")))
+                    .thenReturn(new WalletGateway.SettlementResult(
+                            new BigDecimal("150.00"), new BigDecimal("230.00")));
 
             Transfer result = transferService.execute(command);
 
-            assertEquals(TransferStatus.FRAUD_CHECK, result.getStatus());
+            assertEquals(TransferStatus.COMPLETED, result.getStatus());
             assertEquals(source, result.getSourceWalletId());
             assertEquals(dest, result.getDestWalletId());
+            assertNotNull(result.getHoldId());
 
-            // save called twice: once for PENDING, once for FRAUD_CHECK
-            verify(transferRepository, times(2)).save(any(Transfer.class));
+            verify(walletGateway).createHold(eq(source), eq(new BigDecimal("50.00")), eq("EUR"), any());
+            verify(walletGateway).settle(any(), any(), eq(source), eq(dest), eq(new BigDecimal("50.00")), eq("EUR"));
             verify(eventPublisher).publish(any(TransferRequested.class));
-            verify(fraudAssessmentGateway).assess(any());
+            verify(eventPublisher).publish(any(TransferCompleted.class));
             verify(eventPublisher, never()).publish(any(TransferFailed.class));
         }
 
         @Test
-        @DisplayName("Should leave transfer in FRAUD_CHECK when fraud REVIEW")
-        void shouldLeaveInFraudCheckOnFraudReview() {
+        @DisplayName("Should settle transfer to COMPLETED when fraud REVIEW")
+        void shouldSettleOnFraudReview() {
             UUID source = UUID.randomUUID();
             UUID dest = UUID.randomUUID();
             TransferFundsUseCase.TransferCommand command = new TransferFundsUseCase.TransferCommand(
@@ -105,11 +119,17 @@ class TransferServiceTest {
             when(transferRepository.existsBySourceWalletIdAndReference(source, "ref-001")).thenReturn(false);
             when(transferRepository.save(any(Transfer.class))).thenAnswer(inv -> inv.getArgument(0));
             when(fraudAssessmentGateway.assess(any())).thenReturn(FraudDecision.REVIEW);
+            when(walletGateway.createHold(any(), any(), any(), any())).thenReturn(UUID.randomUUID());
+            when(walletGateway.settle(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(new WalletGateway.SettlementResult(
+                            new BigDecimal("150.00"), new BigDecimal("230.00")));
 
             Transfer result = transferService.execute(command);
 
-            assertEquals(TransferStatus.FRAUD_CHECK, result.getStatus());
+            assertEquals(TransferStatus.COMPLETED, result.getStatus());
             verify(fraudAssessmentGateway).assess(any());
+            verify(walletGateway).settle(any(), any(), any(), any(), any(), any());
+            verify(eventPublisher).publish(any(TransferCompleted.class));
             verify(eventPublisher, never()).publish(any(TransferFailed.class));
         }
 
@@ -154,6 +174,32 @@ class TransferServiceTest {
             verify(transferRepository, times(3)).save(any(Transfer.class));
             verify(eventPublisher).publish(any(TransferRequested.class));
             verify(eventPublisher).publish(any(TransferFailed.class));
+        }
+
+        @Test
+        @DisplayName("Should release hold and mark FAILED when settlement fails (saga compensation)")
+        void shouldCompensateWhenSettlementFails() {
+            UUID source = UUID.randomUUID();
+            UUID dest = UUID.randomUUID();
+            UUID holdId = UUID.randomUUID();
+            TransferFundsUseCase.TransferCommand command = new TransferFundsUseCase.TransferCommand(
+                    source, dest, UUID.randomUUID(), new BigDecimal("50.00"), "EUR", null, "ref-001");
+
+            when(transferRepository.existsBySourceWalletIdAndReference(source, "ref-001")).thenReturn(false);
+            when(transferRepository.save(any(Transfer.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(fraudAssessmentGateway.assess(any())).thenReturn(FraudDecision.APPROVE);
+            when(walletGateway.createHold(any(), any(), any(), any())).thenReturn(holdId);
+            when(walletGateway.settle(any(), any(), any(), any(), any(), any()))
+                    .thenThrow(new SettlementFailedException("wallet down"));
+
+            SettlementFailedException ex = assertThrows(SettlementFailedException.class,
+                    () -> transferService.execute(command));
+
+            assertEquals("SETTLEMENT_FAILED", ex.getCode());
+            verify(walletGateway).release(source, holdId);
+            verify(eventPublisher).publish(any(TransferRequested.class));
+            verify(eventPublisher).publish(any(TransferFailed.class));
+            verify(eventPublisher, never()).publish(any(TransferCompleted.class));
         }
 
         @Test

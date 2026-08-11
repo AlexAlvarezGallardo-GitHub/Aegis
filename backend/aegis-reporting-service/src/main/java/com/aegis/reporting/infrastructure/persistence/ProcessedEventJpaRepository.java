@@ -26,7 +26,7 @@ public interface ProcessedEventJpaRepository extends JpaRepository<ProcessedEven
      */
     @Modifying
     @Query(value = """
-            INSERT INTO processed_events (event_id, topic, partition, offset, processed_at)
+            INSERT INTO processed_events (event_id, topic, partition, "offset", processed_at)
             VALUES (:eventId, :topic, :partition, :offset, :processedAt)
             ON CONFLICT (event_id) DO NOTHING
             """, nativeQuery = true)

@@ -7,11 +7,12 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 /**
- * Provides a pre-configured {@link RestClient.Builder} with connection and read timeouts
- * sized for the fraud service's 200 ms budget plus headroom.
+ * Provides pre-configured {@link RestClient.Builder} instances with connection and
+ * read timeouts sized for the fraud service's 200 ms budget plus headroom, and for
+ * the wallet service's hold/settle round trips.
  */
 @Configuration
-@EnableConfigurationProperties(FraudProperties.class)
+@EnableConfigurationProperties({FraudProperties.class, WalletProperties.class})
 public class RestClientConfig {
 
     private static final int CONNECT_TIMEOUT_MS = 2000;
