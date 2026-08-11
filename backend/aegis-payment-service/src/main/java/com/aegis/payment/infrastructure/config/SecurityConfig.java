@@ -9,7 +9,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Security configuration — JWT resource server in production, permit-all in dev.
+ * Security configuration - JWT resource server in production, permit-all in dev.
+ *
+ * <p>CSRF protection is intentionally disabled: this is a stateless REST API
+ * authenticated via bearer JWTs (no cookie-based sessions), so the CSRF attack
+ * surface does not apply. This matches the established Aegis pattern across
+ * identity/wallet/fraud/audit/reporting/bff services (ADR-002 security).</p>
  */
 @Configuration
 @EnableWebSecurity
