@@ -2,6 +2,8 @@ package com.aegis.payment.web.advice;
 
 import com.aegis.common.web.advice.AbstractExceptionHandler;
 import com.aegis.payment.domain.exception.DuplicateTransferException;
+import com.aegis.payment.domain.exception.FraudAssessmentUnavailableException;
+import com.aegis.payment.domain.exception.FraudRejectedException;
 import com.aegis.payment.domain.exception.InvalidTransferStateException;
 import com.aegis.payment.domain.exception.SelfTransferException;
 import com.aegis.payment.domain.exception.TransferNotFoundException;
@@ -64,6 +66,28 @@ public class PaymentExceptionHandler extends AbstractExceptionHandler {
     @ExceptionHandler(InvalidTransferStateException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidState(InvalidTransferStateException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link FraudRejectedException} with HTTP 422.
+     *
+     * @param ex the exception
+     * @return the error response envelope
+     */
+    @ExceptionHandler(FraudRejectedException.class)
+    public ResponseEntity<Map<String, Object>> handleFraudRejected(FraudRejectedException ex) {
+        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link FraudAssessmentUnavailableException} with HTTP 503.
+     *
+     * @param ex the exception
+     * @return the error response envelope
+     */
+    @ExceptionHandler(FraudAssessmentUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleFraudUnavailable(FraudAssessmentUnavailableException ex) {
+        return buildErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getCode(), ex.getMessage(), null);
     }
 
     /**

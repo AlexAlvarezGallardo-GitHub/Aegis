@@ -47,6 +47,9 @@ aegis:
     outbox:
       polling-interval-ms: 1000
       batch-size: 50
+    fraud:
+      base-url: ${AEGIS_PAYMENT_FRAUD_BASE_URL:http://localhost:8089}
+      timeout-ms: ${AEGIS_PAYMENT_FRAUD_TIMEOUT_MS:3000}
   kafka:
     topics:
       TRANSFER_REQUESTED: payment.transfer.requested

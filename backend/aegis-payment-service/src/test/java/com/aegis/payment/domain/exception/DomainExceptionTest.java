@@ -51,4 +51,24 @@ class DomainExceptionTest {
         assertEquals(ErrorStatus.BAD_REQUEST, ex.getErrorStatus());
         assertTrue(ex.getMessage().contains(walletId.toString()));
     }
+
+    @Test
+    @DisplayName("FraudRejectedException should carry UNPROCESSABLE_ENTITY status")
+    void fraudRejected() {
+        UUID transferId = UUID.randomUUID();
+        FraudRejectedException ex = new FraudRejectedException(transferId);
+        assertEquals("TRANSFER_REJECTED_BY_FRAUD", ex.getCode());
+        assertEquals(ErrorStatus.UNPROCESSABLE_ENTITY, ex.getErrorStatus());
+        assertTrue(ex.getMessage().contains(transferId.toString()));
+    }
+
+    @Test
+    @DisplayName("FraudAssessmentUnavailableException should carry SERVICE_UNAVAILABLE status")
+    void fraudUnavailable() {
+        RuntimeException cause = new RuntimeException("timeout");
+        FraudAssessmentUnavailableException ex = new FraudAssessmentUnavailableException(cause);
+        assertEquals("FRAUD_UNAVAILABLE", ex.getCode());
+        assertEquals(ErrorStatus.SERVICE_UNAVAILABLE, ex.getErrorStatus());
+        assertSame(cause, ex.getCause());
+    }
 }
