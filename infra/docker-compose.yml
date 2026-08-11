@@ -95,6 +95,25 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-payment:
+    image: postgres:16.4-alpine
+    container_name: aegis-postgres-payment
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in infra/.env (copy .env.example)}
+      POSTGRES_DB: aegis_payment
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_payment_data:/var/lib/postgresql/data
+    networks:
+      - aegis-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
     container_name: aegis-redis
@@ -290,6 +309,27 @@ services:
     networks:
       - aegis-network
 
+  aegis-payment:
+    build:
+      context: ../backend
+      dockerfile: aegis-payment-service/Dockerfile
+    container_name: aegis-payment
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/aegis_payment
+      SPRING_DATASOURCE_USERNAME: aegis
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD must be set in infra/.env (copy .env.example)}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres-payment:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - aegis-network
+
   # ── Frontend ────────────────────────────────────────────
   aegis-frontend:
     build:
@@ -310,7 +350,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      CONNECTIONS: identity,wallet,reporting,audit,fraud,redis
+      CONNECTIONS: identity,wallet,reporting,audit,fraud,payment,redis
       LABEL_identity: Aegis Identity DB
       SERVER_identity: postgres-identity
       PORT_identity: 5432
@@ -346,6 +386,13 @@ services:
       PASSWORD_fraud: ${DBGATE_PASSWORD_FRAUD:?DBGATE_PASSWORD_FRAUD must be set in infra/.env (copy .env.example)}
       DATABASE_fraud: aegis_fraud
       ENGINE_fraud: "postgres@dbgate-plugin-postgres"
+      LABEL_payment: Aegis Payment DB
+      SERVER_payment: postgres-payment
+      PORT_payment: 5432
+      USER_payment: aegis
+      PASSWORD_payment: ${DBGATE_PASSWORD_PAYMENT:?DBGATE_PASSWORD_PAYMENT must be set in infra/.env (copy .env.example)}
+      DATABASE_payment: aegis_payment
+      ENGINE_payment: "postgres@dbgate-plugin-postgres"
       LABEL_redis: Aegis Redis
       SERVER_redis: redis
       PORT_redis: 6379
@@ -360,6 +407,8 @@ services:
       postgres-audit:
         condition: service_healthy
       postgres-fraud:
+        condition: service_healthy
+      postgres-payment:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -376,3 +425,4 @@ volumes:
   postgres_reporting_data:
   postgres_audit_data:
   postgres_fraud_data:
+  postgres_payment_data:

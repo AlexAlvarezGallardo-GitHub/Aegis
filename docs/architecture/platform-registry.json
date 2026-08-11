@@ -43,14 +43,14 @@
       { "id": "wallet", "module": "aegis-wallet-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
       { "id": "fraud", "module": "aegis-fraud-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } },
       { "id": "audit", "module": "aegis-audit-service", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } },
-      { "id": "reporting", "module": "aegis-reporting-service", "status": "partial", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } }
+      { "id": "reporting", "module": "aegis-reporting-service", "status": "partial", "gitops": { "chart": true, "application": { "dev": true, "pre": false, "stage": false, "prod": false } } },
+      { "id": "payment", "module": "aegis-payment-service", "status": "implemented", "gitops": { "chart": false, "application": { "dev": false, "pre": false, "stage": false, "prod": false } } }
     ],
     "frontend": { "id": "frontend", "module": "aegis-frontend", "status": "validated", "gitops": { "chart": true, "application": { "dev": true, "pre": true, "stage": true, "prod": true } } },
     "sharedLibraries": [
       { "id": "common", "module": "aegis-common", "status": "implemented" }
     ],
     "planned": [
-      { "id": "payment", "name": "Payment Service" },
       { "id": "notification", "name": "Notification Service" },
       { "id": "api-gateway", "name": "API Gateway" }
     ]
@@ -64,7 +64,7 @@
   },
   "metrics": {
     "commitsOnMain": 172,
-    "backendServices": 6,
+    "backendServices": 7,
     "adrs": 12,
     "specs": 10,
     "measuredAt": "2026-08-10"

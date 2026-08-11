@@ -266,7 +266,7 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 
 ## Services
 
-> **Canonical catalog:** [`docs/architecture/service-catalog.md`](docs/architecture/service-catalog.md). Aegis currently contains **6 deployable backend services, 1 frontend application and 1 shared Java library** — this number is the single source of truth.
+> **Canonical catalog:** [`docs/architecture/service-catalog.md`](docs/architecture/service-catalog.md). Aegis currently contains **7 deployable backend services, 1 frontend application and 1 shared Java library** — this number is the single source of truth.
 
 | Service | Status | Description |
 |---------|--------|-------------|
@@ -276,8 +276,8 @@ Guaranteed **at-least-once event delivery** without distributed transactions:
 | **Fraud Service** `aegis-fraud-service` | ✅ **Implemented · Validated** | Real-time fraud assessment, rule engine |
 | **Audit Service** `aegis-audit-service` | ✅ **Implemented · Validated** | Immutable audit trail from domain events |
 | **Reporting Service** `aegis-reporting-service` | 🟡 **Implemented · Partial** | Event consumers and projections — reporting capabilities incomplete |
+| **Payment Service** `aegis-payment-service` | 🟡 **Implemented · Partial** | Transfer funds scaffold — domain model, persistence, REST endpoints (saga orchestration pending) |
 | **Common** `aegis-common` | ✅ **Implemented** | UUID v7 generator, shared base exceptions, utilities |
-| **Payment Service** | 📋 Planned | Payment processing, reconciliation, 3DS |
 | **Notification Service** | 📋 Planned | Email, SMS, push with templating and delivery tracking |
 | **API Gateway** | 📋 Planned | API Gateway, rate limiting, circuit breakers (BFF currently fills the edge role) |
 

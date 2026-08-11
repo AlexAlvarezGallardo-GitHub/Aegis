@@ -4,7 +4,7 @@
 
 ## Canonical definition
 
-Aegis currently contains **6 deployable backend services**, **1 frontend application** and **1 shared Java library**.
+Aegis currently contains **7 deployable backend services**, **1 frontend application** and **1 shared Java library**.
 
 This count must remain identical across:
 
@@ -26,6 +26,7 @@ This count must remain identical across:
 | Fraud Service | `backend/aegis-fraud-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_fraud`) | Kafka (consumers + REST) | 8089 |
 | Audit Service | `backend/aegis-audit-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_audit`) | Kafka (consumers) | 8088 |
 | Reporting Service | `backend/aegis-reporting-service` | Microservice | Implemented · Partial | PostgreSQL (`aegis_reporting`) | Kafka (consumers) | 8087 |
+| Payment Service | `backend/aegis-payment-service` | Microservice | Implemented · Partial | PostgreSQL (`aegis_payment`) | REST + Kafka (outbox) | 8084 |
 | Frontend | `frontend/aegis-frontend` | Web application (Angular 22) | Implemented · Validated · Deployed in DEV | — | REST (via BFF) | 4200 |
 | Common Library | `backend/aegis-common` | Shared Java library | Implemented | — | Java dependency | — |
 
@@ -33,7 +34,6 @@ This count must remain identical across:
 
 | Component | Type | Notes |
 |-----------|------|-------|
-| Payment Service | Microservice | Not implemented — no module, no container |
 | Notification Service | Microservice | Not implemented — no module, no container |
 | API Gateway | Edge service | Not implemented — BFF currently fills the edge role |
 
@@ -41,7 +41,7 @@ This count must remain identical across:
 
 | Component | Version | Purpose |
 |-----------|---------|---------|
-| PostgreSQL | 16.4-alpine | One database per service (identity, wallet, reporting, audit, fraud) |
+| PostgreSQL | 16.4-alpine | One database per service (identity, wallet, reporting, audit, fraud, payment) |
 | Apache Kafka | 7.5.0 (Confluent) | Event backbone (`aegis.<service>.<event>` topics) + ZooKeeper |
 | Redis | 7-alpine | Distributed session store for the BFF |
 | Kafka UI | latest | Topic inspection in dev |
