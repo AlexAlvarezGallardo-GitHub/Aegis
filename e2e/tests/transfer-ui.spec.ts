@@ -22,8 +22,17 @@ async function login(page: import('@playwright/test').Page) {
 }
 
 async function ensureFundedWallet(page: import('@playwright/test').Page) {
-  // Open the first wallet detail and deposit enough funds for a transfer.
-  await page.getByRole('button', { name: 'View wallet' }).first().click();
+  // If the user has no wallets yet (fresh seed), create one first.
+  const viewWalletBtn = page.getByRole('button', { name: 'View wallet' }).first();
+  if (await viewWalletBtn.isVisible().catch(() => false)) {
+    await viewWalletBtn.click();
+  } else {
+    await page.getByRole('button', { name: 'Create Wallet' }).first().click();
+    await page.getByRole('textbox', { name: 'Currency Code' }).fill('EUR');
+    await page.getByRole('button', { name: 'Create Wallet' }).last().click();
+    await expect(page.getByText(/Wallet created/i)).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'View wallet' }).first().click();
+  }
   await expect(page.locator('.balance-value').first()).toBeVisible({ timeout: 10_000 });
 
   const balance = parseBalance(await page.locator('.balance-value').first().textContent());
