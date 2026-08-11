@@ -1,6 +1,8 @@
 package com.aegis.payment.web.advice;
 
 import com.aegis.payment.domain.exception.DuplicateTransferException;
+import com.aegis.payment.domain.exception.FraudAssessmentUnavailableException;
+import com.aegis.payment.domain.exception.FraudRejectedException;
 import com.aegis.payment.domain.exception.InvalidTransferStateException;
 import com.aegis.payment.domain.exception.SelfTransferException;
 import com.aegis.payment.domain.exception.TransferNotFoundException;
@@ -90,6 +92,39 @@ class PaymentExceptionHandlerTest {
 
             assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
             assertEquals("INVALID_TRANSFER_STATE", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling FraudRejectedException")
+    class WhenHandlingFraudRejected {
+
+        @Test
+        @DisplayName("Should return 422 with TRANSFER_REJECTED_BY_FRAUD code")
+        void shouldReturn422() {
+            FraudRejectedException ex = new FraudRejectedException(UUID.randomUUID());
+
+            ResponseEntity<Map<String, Object>> response = handler.handleFraudRejected(ex);
+
+            assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+            assertEquals("TRANSFER_REJECTED_BY_FRAUD", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling FraudAssessmentUnavailableException")
+    class WhenHandlingFraudUnavailable {
+
+        @Test
+        @DisplayName("Should return 503 with FRAUD_UNAVAILABLE code")
+        void shouldReturn503() {
+            FraudAssessmentUnavailableException ex =
+                    new FraudAssessmentUnavailableException(new RuntimeException("timeout"));
+
+            ResponseEntity<Map<String, Object>> response = handler.handleFraudUnavailable(ex);
+
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+            assertEquals("FRAUD_UNAVAILABLE", response.getBody().get("code"));
         }
     }
 

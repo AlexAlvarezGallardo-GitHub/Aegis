@@ -1,6 +1,8 @@
 package com.aegis.payment.web.controller;
 
 import com.aegis.payment.application.dto.TransferResult;
+import com.aegis.payment.domain.exception.FraudAssessmentUnavailableException;
+import com.aegis.payment.domain.exception.FraudRejectedException;
 import com.aegis.payment.domain.exception.TransferNotFoundException;
 import com.aegis.payment.domain.model.Transfer;
 import com.aegis.payment.domain.model.TransferStatus;
@@ -26,6 +28,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -62,6 +65,11 @@ class TransferControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @org.junit.jupiter.api.BeforeEach
+    void resetMocks() {
+        reset(transferFundsUseCase, getTransferUseCase);
+    }
 
     @Nested
     @DisplayName("GET /api/v1/transfers/{transferId}")
@@ -105,16 +113,17 @@ class TransferControllerTest {
     class CreateTransfer {
 
         @Test
-        @DisplayName("Should return 501 (scaffold — saga not implemented)")
-        void shouldReturn501() throws Exception {
+        @DisplayName("Should return 201 with FRAUD_CHECK status when fraud APPROVE")
+        void shouldReturn201OnFraudApprove() throws Exception {
             UUID source = UUID.randomUUID();
             UUID dest = UUID.randomUUID();
             UUID user = UUID.randomUUID();
-            Transfer transfer = Transfer.request(source, dest, user,
-                    new BigDecimal("50.00"), "EUR", null, "ref-001");
+            Transfer transfer = Transfer.rehydrate(UUID.randomUUID(), source, dest, user,
+                    new BigDecimal("50.00"), "EUR", null, "ref-001",
+                    TransferStatus.FRAUD_CHECK, null, null, null,
+                    Instant.now(), Instant.now(), null);
 
-            when(transferFundsUseCase.execute(any())).thenThrow(
-                    new UnsupportedOperationException("Saga orchestration lands in #249-#251"));
+            when(transferFundsUseCase.execute(any())).thenReturn(transfer);
 
             String body = """
                     {
@@ -130,8 +139,64 @@ class TransferControllerTest {
             mockMvc.perform(post("/api/v1/transfers")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
-                    .andExpect(status().isNotImplemented())
-                    .andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.status").value("FRAUD_CHECK"));
+        }
+
+        @Test
+        @DisplayName("Should return 422 when fraud rejects transfer")
+        void shouldReturn422OnFraudReject() throws Exception {
+            UUID source = UUID.randomUUID();
+            UUID dest = UUID.randomUUID();
+            UUID user = UUID.randomUUID();
+
+            when(transferFundsUseCase.execute(any())).thenThrow(
+                    new FraudRejectedException(UUID.randomUUID()));
+
+            String body = """
+                    {
+                      "sourceWalletId": "%s",
+                      "destWalletId": "%s",
+                      "userId": "%s",
+                      "amount": 50.00,
+                      "currency": "EUR",
+                      "reference": "ref-001"
+                    }
+                    """.formatted(source, dest, user);
+
+            mockMvc.perform(post("/api/v1/transfers")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.code").value("TRANSFER_REJECTED_BY_FRAUD"));
+        }
+
+        @Test
+        @DisplayName("Should return 503 when fraud service is unavailable")
+        void shouldReturn503OnFraudUnavailable() throws Exception {
+            UUID source = UUID.randomUUID();
+            UUID dest = UUID.randomUUID();
+            UUID user = UUID.randomUUID();
+
+            when(transferFundsUseCase.execute(any())).thenThrow(
+                    new FraudAssessmentUnavailableException(new RuntimeException("timeout")));
+
+            String body = """
+                    {
+                      "sourceWalletId": "%s",
+                      "destWalletId": "%s",
+                      "userId": "%s",
+                      "amount": 50.00,
+                      "currency": "EUR",
+                      "reference": "ref-001"
+                    }
+                    """.formatted(source, dest, user);
+
+            mockMvc.perform(post("/api/v1/transfers")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.code").value("FRAUD_UNAVAILABLE"));
         }
 
         @Test

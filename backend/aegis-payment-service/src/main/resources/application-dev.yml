@@ -3,6 +3,12 @@ spring:
     activate:
       on-profile: dev
 
+aegis:
+  payment:
+    fraud:
+      base-url: http://localhost:8089
+      timeout-ms: 3000
+
 springdoc:
   api-docs:
     enabled: true
