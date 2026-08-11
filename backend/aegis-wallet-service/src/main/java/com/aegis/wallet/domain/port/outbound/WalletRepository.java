@@ -19,4 +19,14 @@ public interface WalletRepository {
     List<Wallet> findByUserId(UUID userId);
 
     long countByUserId(UUID userId);
+
+    /**
+     * Finds a wallet by its identifier, acquiring a pessimistic write lock on the
+     * underlying row (SELECT FOR UPDATE). The wallet is loaded together with its
+     * ledger entries.
+     *
+     * @param walletId the wallet id
+     * @return the locked wallet if found
+     */
+    Optional<Wallet> findByIdForUpdate(WalletId walletId);
 }
