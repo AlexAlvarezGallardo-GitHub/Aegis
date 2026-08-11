@@ -1,9 +1,13 @@
 package com.aegis.wallet.web.advice;
 
 import com.aegis.common.web.advice.AbstractExceptionHandler;
+import com.aegis.wallet.domain.exception.CurrencyMismatchException;
 import com.aegis.wallet.domain.exception.DuplicateDepositException;
+import com.aegis.wallet.domain.exception.HoldNotActiveException;
+import com.aegis.wallet.domain.exception.HoldNotFoundException;
 import com.aegis.wallet.domain.exception.InsufficientFundsException;
 import com.aegis.wallet.domain.exception.WalletLimitExceededException;
+import com.aegis.wallet.domain.exception.WalletNotActiveException;
 import com.aegis.wallet.domain.exception.WalletNotFoundException;
 import com.aegis.wallet.domain.exception.WalletOperationNotAllowedException;
 import org.springframework.core.Ordered;
@@ -29,6 +33,11 @@ public class WalletExceptionHandler extends AbstractExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), null);
     }
 
+    @ExceptionHandler(HoldNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleHoldNotFound(HoldNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), null);
+    }
+
     @ExceptionHandler(DuplicateDepositException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateDeposit(DuplicateDepositException ex) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
@@ -39,8 +48,23 @@ public class WalletExceptionHandler extends AbstractExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
     }
 
+    @ExceptionHandler(HoldNotActiveException.class)
+    public ResponseEntity<Map<String, Object>> handleHoldNotActive(HoldNotActiveException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
+    }
+
     @ExceptionHandler(InsufficientFundsException.class)
     public ResponseEntity<Map<String, Object>> handleInsufficientFunds(InsufficientFundsException ex) {
+        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(WalletNotActiveException.class)
+    public ResponseEntity<Map<String, Object>> handleWalletNotActive(WalletNotActiveException ex) {
+        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(CurrencyMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleCurrencyMismatch(CurrencyMismatchException ex) {
         return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
     }
 }

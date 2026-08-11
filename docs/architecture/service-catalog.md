@@ -21,7 +21,7 @@ This count must remain identical across:
 | Component | Module | Type | State | Persistence | Integration | Port |
 |-----------|--------|------|-------|-------------|-------------|------|
 | Identity Service | `backend/aegis-identity-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_identity`) | REST + Kafka (outbox) | 8081 |
-| Wallet Service | `backend/aegis-wallet-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_wallet`) | REST + Kafka (outbox) | 8083 |
+| Wallet Service | `backend/aegis-wallet-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_wallet`) | REST + Kafka (outbox); transfer holds + atomic settlement (UC-005) | 8083 |
 | BFF Service | `backend/aegis-bff-service` | Edge service (Backend for Frontend) | Implemented · Validated · Deployed in DEV | Redis (session store) | REST | 8082 |
 | Fraud Service | `backend/aegis-fraud-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_fraud`) | Kafka (consumers + REST) | 8089 |
 | Audit Service | `backend/aegis-audit-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_audit`) | Kafka (consumers) | 8088 |
