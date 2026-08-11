@@ -342,8 +342,11 @@ jobs:
       - name: Download main baseline
         run: |
           mkdir -p baseline
-          RUN=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?branch=main&workflow_id=ci.yml&status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null)
-          ARTIFACT=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" --jq '.artifacts[] | select(.name=="perf-baseline") | .id' 2>/dev/null)
+          RUN=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?branch=main&workflow_id=ci.yml&status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null || true)
+          ARTIFACT=""
+          if [ -n "$RUN" ]; then
+            ARTIFACT=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" --jq '.artifacts[] | select(.name=="perf-baseline") | .id' 2>/dev/null || true)
+          fi
           if [ -n "$ARTIFACT" ]; then
             gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT/zip" > baseline.zip
             unzip -o baseline.zip -d baseline
