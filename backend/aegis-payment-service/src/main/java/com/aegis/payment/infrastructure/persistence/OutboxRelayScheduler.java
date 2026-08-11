@@ -24,12 +24,12 @@ public class OutboxRelayScheduler {
     private static final long KAFKA_SEND_TIMEOUT_SECONDS = 5;
 
     private final OutboxEventJpaRepository outboxRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KafkaTopicsProperties topicsProperties;
     private final int batchSize;
 
     public OutboxRelayScheduler(OutboxEventJpaRepository outboxRepository,
-                                KafkaTemplate<String, String> kafkaTemplate,
+                                KafkaTemplate<String, Object> kafkaTemplate,
                                 KafkaTopicsProperties topicsProperties,
                                 @Value("${aegis.payment.outbox.batch-size:50}") int batchSize) {
         this.outboxRepository = outboxRepository;

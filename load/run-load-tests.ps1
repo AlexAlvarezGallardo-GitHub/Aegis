@@ -3,9 +3,9 @@
     Runs the k6 load-test scenarios against a sandbox and stores evidence.
 
 .DESCRIPTION
-    Executes login, wallets, deposits and idempotency against the Aegis BFF
-    using the grafana/k6 Docker image, and writes both the text summary and a
-    k6 summary-export JSON per scenario into evidence/load/.
+    Executes login, wallets, deposits, idempotency and transfers against the Aegis
+    BFF/service APIs using the grafana/k6 Docker image, and writes both the text
+    summary and a k6 summary-export JSON per scenario into evidence/load/.
 
     Each scenario uses its own fresh user pool (see seed-users.ps1) so the
     domain rule "max 5 wallets per user" does not skew the results.
@@ -34,6 +34,7 @@ $scenarios = @(
     @{ Name = "wallets";    Pool = "wltuser";  }
     @{ Name = "deposits";   Pool = "depuser";  }
     @{ Name = "idempotency"; Pool = "idemuser" }
+    @{ Name = "transfers";  Pool = "trfuser";  }
 )
 
 foreach ($s in $scenarios) {
