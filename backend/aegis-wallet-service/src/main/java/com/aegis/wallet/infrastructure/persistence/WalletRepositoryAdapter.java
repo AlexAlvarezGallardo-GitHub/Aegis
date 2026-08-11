@@ -51,6 +51,12 @@ public class WalletRepositoryAdapter implements WalletRepository {
         return walletJpaRepository.countByUserId(userId);
     }
 
+    @Override
+    public Optional<Wallet> findByIdForUpdate(WalletId walletId) {
+        return walletJpaRepository.findByIdForUpdate(walletId.value())
+                .map(this::toDomainWithEntries);
+    }
+
     private void saveLedgerEntries(Wallet wallet) {
         var existingIds = ledgerEntryJpaRepository
                 .findByWalletIdOrderByCreatedAtAsc(wallet.getWalletId().value()).stream()

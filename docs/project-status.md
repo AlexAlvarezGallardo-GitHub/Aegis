@@ -12,6 +12,7 @@
 | Wallet creation (Wallet) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Wallet management (update, deactivate, reactivate) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Deposit funds (Wallet, transactional outbox) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
+| Transfer funds — hold + atomic settlement (Wallet, UC-005) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Fraud evaluation (Fraud) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Audit events (Audit) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Reporting (Reporting) | 🟡 | 🟡 | ✅ | 🟡 | ⚪ | ⚪ | ⚪ |

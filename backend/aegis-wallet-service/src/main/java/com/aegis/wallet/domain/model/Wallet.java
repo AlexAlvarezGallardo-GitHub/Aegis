@@ -226,6 +226,80 @@ public class Wallet {
         return reversal;
     }
 
+    /**
+     * Debits the wallet for an outgoing transfer, appending a TRANSFER_OUT ledger entry.
+     *
+     * @param amount      the transfer amount (strictly positive; stored as absolute value)
+     * @param reference   the transfer id
+     * @param description optional description for the ledger entry
+     * @throws WalletOperationNotAllowedException if the wallet is not ACTIVE
+     * @throws InsufficientFundsException         if the debit would make the balance negative
+     * @throws IllegalArgumentException           if the amount is not positive
+     */
+    public void debitForTransfer(BigDecimal amount, String reference, String description) {
+        if (status != WalletStatus.ACTIVE) {
+            throw new WalletOperationNotAllowedException(
+                    "Cannot debit for transfer. Wallet is " + status.name().toLowerCase());
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Transfer amount must be positive");
+        }
+
+        BigDecimal newBalance = this.balance.subtract(amount);
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds for transfer. Current balance: " + this.balance
+                            + ", requested: " + amount);
+        }
+
+        this.balance = newBalance;
+
+        LedgerEntry entry = new LedgerEntry(
+                UuidV7Generator.generate(),
+                walletId.value(),
+                LedgerEntryType.TRANSFER_OUT,
+                amount,
+                currency,
+                reference != null ? reference : description != null ? description : "Transfer out",
+                Instant.now()
+        );
+        ledgerEntries.add(entry);
+        this.updatedAt = Instant.now();
+    }
+
+    /**
+     * Credits the wallet for an incoming transfer, appending a TRANSFER_IN ledger entry.
+     *
+     * @param amount      the transfer amount (strictly positive)
+     * @param reference   the transfer id
+     * @param description optional description for the ledger entry
+     * @throws WalletOperationNotAllowedException if the wallet is not ACTIVE
+     * @throws IllegalArgumentException           if the amount is not positive
+     */
+    public void creditForTransfer(BigDecimal amount, String reference, String description) {
+        if (status != WalletStatus.ACTIVE) {
+            throw new WalletOperationNotAllowedException(
+                    "Cannot credit for transfer. Wallet is " + status.name().toLowerCase());
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Transfer amount must be positive");
+        }
+
+        this.balance = this.balance.add(amount);
+
+        LedgerEntry entry = new LedgerEntry(
+                UuidV7Generator.generate(),
+                walletId.value(),
+                LedgerEntryType.TRANSFER_IN,
+                amount,
+                currency,
+                reference != null ? reference : description != null ? description : "Transfer in",
+                Instant.now()
+        );
+        ledgerEntries.add(entry);
+        this.updatedAt = Instant.now();
+    }
+
     public boolean isPremium() {
         return "EUR".equals(this.currency) && this.balance.compareTo(new BigDecimal("1000")) > 0;
     }

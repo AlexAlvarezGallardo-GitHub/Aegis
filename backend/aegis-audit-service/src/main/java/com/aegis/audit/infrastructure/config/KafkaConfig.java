@@ -2,6 +2,9 @@ package com.aegis.audit.infrastructure.config;
 
 import com.aegis.audit.domain.event.FraudAssessmentCompletedEvent;
 import com.aegis.audit.domain.event.FundsDepositedEvent;
+import com.aegis.audit.domain.event.TransferCompletedEvent;
+import com.aegis.audit.domain.event.TransferFailedEvent;
+import com.aegis.audit.domain.event.TransferRequestedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -30,12 +33,12 @@ import java.util.Map;
 /**
  * Kafka consumer configuration for the audit service.
  * <p>
- * Two listener container factories are defined, one per event type, so each
+ * One listener container factory is defined per event type so each
  * topic's messages are deserialized to the correct domain event type.
  * </p>
  * <p>
  * A {@link DefaultErrorHandler} with a {@link DeadLetterPublishingRecoverer} is
- * attached to both factories. Consumers retry transient failures up to
+ * attached to all factories. Consumers retry transient failures up to
  * {@code aegis.kafka.retry.max-attempts} times with a fixed back-off; when the
  * attempts are exhausted the failed record is published to the dead letter
  * topic (<code>&lt;topic&gt;.dlt</code>).</p>
@@ -80,6 +83,45 @@ public class KafkaConfig {
     }
 
     /**
+     * Creates a consumer factory that deserializes messages to
+     * {@link TransferRequestedEvent}.
+     *
+     * @return the consumer factory
+     */
+    @Bean
+    public ConsumerFactory<String, TransferRequestedEvent> transferRequestedConsumerFactory(KafkaProperties properties) {
+        Map<String, Object> props = baseProps(properties);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TransferRequestedEvent.class.getName());
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    /**
+     * Creates a consumer factory that deserializes messages to
+     * {@link TransferCompletedEvent}.
+     *
+     * @return the consumer factory
+     */
+    @Bean
+    public ConsumerFactory<String, TransferCompletedEvent> transferCompletedConsumerFactory(KafkaProperties properties) {
+        Map<String, Object> props = baseProps(properties);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TransferCompletedEvent.class.getName());
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    /**
+     * Creates a consumer factory that deserializes messages to
+     * {@link TransferFailedEvent}.
+     *
+     * @return the consumer factory
+     */
+    @Bean
+    public ConsumerFactory<String, TransferFailedEvent> transferFailedConsumerFactory(KafkaProperties properties) {
+        Map<String, Object> props = baseProps(properties);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TransferFailedEvent.class.getName());
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    /**
      * Listener container factory for the funds deposited topic.
      *
      * @return the container factory
@@ -107,6 +149,54 @@ public class KafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, FraudAssessmentCompletedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(fraudAssessmentConsumerFactory(properties));
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
+        return factory;
+    }
+
+    /**
+     * Listener container factory for the transfer requested topic.
+     *
+     * @return the container factory
+     */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, TransferRequestedEvent>
+            transferRequestedListenerContainerFactory(KafkaProperties properties,
+                                                      KafkaTemplate<String, Object> kafkaTemplate) {
+        ConcurrentKafkaListenerContainerFactory<String, TransferRequestedEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(transferRequestedConsumerFactory(properties));
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
+        return factory;
+    }
+
+    /**
+     * Listener container factory for the transfer completed topic.
+     *
+     * @return the container factory
+     */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, TransferCompletedEvent>
+            transferCompletedListenerContainerFactory(KafkaProperties properties,
+                                                      KafkaTemplate<String, Object> kafkaTemplate) {
+        ConcurrentKafkaListenerContainerFactory<String, TransferCompletedEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(transferCompletedConsumerFactory(properties));
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
+        return factory;
+    }
+
+    /**
+     * Listener container factory for the transfer failed topic.
+     *
+     * @return the container factory
+     */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, TransferFailedEvent>
+            transferFailedListenerContainerFactory(KafkaProperties properties,
+                                                   KafkaTemplate<String, Object> kafkaTemplate) {
+        ConcurrentKafkaListenerContainerFactory<String, TransferFailedEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(transferFailedConsumerFactory(properties));
         factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
         return factory;
     }
