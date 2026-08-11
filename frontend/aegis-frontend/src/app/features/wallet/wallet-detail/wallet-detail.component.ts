@@ -20,6 +20,7 @@ import { ConfirmationDialogComponent, ConfirmationData } from '../../../shared/c
 import { ToastService } from '../../../shared/services/toast.service';
 import { AegisCurrencyPipe, formatMoney } from '../../../shared/utils/currency.pipe';
 import { MoneyDialogComponent, MoneyDialogResult } from './money-dialog.component';
+import { TransferDialogComponent, TransferDialogResult } from './transfer-dialog.component';
 import { TechnicalDetailsDialogComponent } from './technical-details-dialog.component';
 
 const TABS = ['overview', 'transactions', 'deposits', 'activity', 'audit'] as const;
@@ -150,6 +151,17 @@ export class WalletDetailComponent {
     });
   }
 
+  openTransfer(): void {
+    const wallet = this.wallet();
+    if (!wallet) return;
+    const ref = this.dialog.open<TransferDialogResult>(TransferDialogComponent, {
+      data: { wallet },
+    });
+    ref.closed.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
+      if (result) this.performTransfer(result, wallet);
+    });
+  }
+
   private performDeposit(result: MoneyDialogResult, wallet: WalletResponse): void {
     this.isOperating.set(true);
     this.walletService.depositFunds(wallet.walletId, {
@@ -225,6 +237,63 @@ export class WalletDetailComponent {
           });
         },
         error: () => this.toastService.error('Unable to complete withdrawal', { description: 'Please try again.' }),
+      });
+  }
+
+  private performTransfer(result: TransferDialogResult, wallet: WalletResponse): void {
+    this.isOperating.set(true);
+    this.walletService.transferFunds({
+      sourceWalletId: wallet.walletId,
+      destWalletId: result.destWalletId,
+      amount: result.amount,
+      currency: wallet.currency,
+      description: result.description,
+      reference: result.reference,
+    })
+      .pipe(
+        finalize(() => this.isOperating.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.status === 'COMPLETED') {
+            this.loadWallet();
+            this.walletService.recordActivity({
+              walletId: wallet.walletId,
+              type: 'TRANSFER',
+              amount: -Math.abs(result.amount),
+              currency: wallet.currency,
+              reference: result.reference,
+              status: 'COMPLETED',
+              timestamp: new Date().toISOString(),
+            });
+            this.toastService.success('Transfer completed', {
+              description: `-${formatMoney(result.amount, wallet.currency)} · sent`,
+              action: { label: 'View transaction', callback: () => this.goToTab('transactions') },
+            });
+          } else {
+            this.toastService.error('Transfer pending', { description: 'Transfer is being processed.' });
+          }
+        },
+        error: (err) => {
+          if (err?.status === 409) {
+            this.walletService.recordActivity({
+              walletId: wallet.walletId,
+              type: 'TRANSFER',
+              amount: -Math.abs(result.amount),
+              currency: wallet.currency,
+              reference: result.reference,
+              status: 'REJECTED',
+              timestamp: new Date().toISOString(),
+            });
+            this.toastService.warning('Duplicate transfer reference.');
+          } else if (err?.status === 422) {
+            const message = err?.error?.message || 'Unable to complete transfer';
+            this.toastService.error('Unable to complete transfer', { description: message });
+          } else {
+            this.toastService.error('Unable to complete transfer', { description: 'Please try again.' });
+          }
+        },
       });
   }
 
@@ -325,11 +394,11 @@ export class WalletDetailComponent {
   }
 
   activityTypeLabel(type: WalletActivityType): string {
-    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : 'Adjustment';
+    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : type === 'TRANSFER' ? 'Transfer' : 'Adjustment';
   }
 
   activityIcon(type: WalletActivityType): string {
-    return type === 'DEPOSIT' ? 'arrow_downward' : type === 'WITHDRAWAL' ? 'arrow_upward' : 'tune';
+    return type === 'DEPOSIT' ? 'arrow_downward' : type === 'WITHDRAWAL' ? 'arrow_upward' : type === 'TRANSFER' ? 'swap_horiz' : 'tune';
   }
 
   shortId(id: string): string {

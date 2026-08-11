@@ -35,7 +35,34 @@ export interface DepositReceipt {
   timestamp: string;
 }
 
-export type WalletActivityType = 'DEPOSIT' | 'WITHDRAWAL' | 'ADJUSTMENT';
+export type WalletActivityType = 'DEPOSIT' | 'WITHDRAWAL' | 'ADJUSTMENT' | 'TRANSFER';
+
+export interface TransferRequest {
+  sourceWalletId: string;
+  destWalletId: string;
+  amount: number;
+  currency: string;
+  description?: string;
+  reference: string;
+}
+
+export interface TransferResponse {
+  transferId: string;
+  status: string;
+  sourceWalletId: string;
+  destWalletId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  description?: string | null;
+  reference: string;
+  fraudAssessmentId?: string | null;
+  holdId?: string | null;
+  failureReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string | null;
+}
 
 export interface WalletActivity {
   id: string;

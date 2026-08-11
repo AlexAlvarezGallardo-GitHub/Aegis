@@ -21,6 +21,8 @@ aegis:
     url: http://localhost:8081
   wallet-service:
     url: http://localhost:8083
+  payment-service:
+    url: ${AEGIS_PAYMENT_SERVICE_URL:http://localhost:8084}
   jwt:
     secret: "${JWT_SECRET}"
 

@@ -234,6 +234,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       AEGIS_IDENTITY_SERVICE_URL: http://aegis-identity:8081
       AEGIS_WALLET_SERVICE_URL: http://aegis-wallet:8083
+      AEGIS_PAYMENT_SERVICE_URL: http://aegis-payment:8084
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in infra/.env (copy .env.example)}
       SPRING_DATA_REDIS_HOST: redis
     depends_on:
@@ -242,6 +243,8 @@ services:
       aegis-identity:
         condition: service_started
       aegis-wallet:
+        condition: service_started
+      aegis-payment:
         condition: service_started
     networks:
       - aegis-network
