@@ -130,6 +130,11 @@ class DepositFundsServiceTest {
         }
 
         @Override
+        public Optional<Wallet> findByIdForUpdate(WalletId walletId) {
+            return findById(walletId);
+        }
+
+        @Override
         public List<Wallet> findByUserId(UUID userId) {
             return wallets.stream()
                     .filter(w -> w.getUserId().equals(userId))
