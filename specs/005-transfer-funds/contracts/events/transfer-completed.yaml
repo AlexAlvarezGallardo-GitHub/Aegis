@@ -1,0 +1,84 @@
+event: TransferCompleted
+topic: payment.transfer.completed
+schemaVersion: "1.0"
+producer: aegis-payment-service
+consumers:
+  - aegis-audit-service       # audit trail
+  - aegis-reporting-service   # transaction projections
+  # future: aegis-notification-service (sender + receiver confirmations)
+
+headers:
+  contentType: application/json
+  eventType: TRANSFER_COMPLETED
+
+payload:
+  eventId:
+    type: string
+    format: uuid
+    description: Unique event identifier (consumer deduplication, ADR-008)
+  eventType:
+    type: string
+    enum: [TRANSFER_COMPLETED]
+  schemaVersion:
+    type: string
+    example: "1.0"
+  occurredAt:
+    type: string
+    format: date-time
+  causationId:
+    type: string
+    format: uuid
+    nullable: true
+    description: Identifier of the command/event that caused this event
+  correlationId:
+    type: string
+    description: Trace correlation across the saga
+  aggregateId:
+    type: string
+    format: uuid
+    description: Identifier of the aggregate (the transfer)
+  aggregateType:
+    type: string
+    enum: [TRANSFER]
+  transferId:
+    type: string
+    format: uuid
+  sourceWalletId:
+    type: string
+    format: uuid
+  destWalletId:
+    type: string
+    format: uuid
+  userId:
+    type: string
+    format: uuid
+    description: Owner of the source wallet (transfer initiator)
+  amount:
+    type: number
+    format: decimal
+  currency:
+    type: string
+    pattern: "^[A-Z]{3}$"
+  description:
+    type: string
+    nullable: true
+  reference:
+    type: string
+    description: Client-supplied idempotency key
+  fraudAssessmentId:
+    type: string
+    format: uuid
+    description: Fraud assessment that authorized the transfer
+  holdId:
+    type: string
+    format: uuid
+    description: Settled hold that reserved the funds
+  sourceNewBalance:
+    type: number
+    format: decimal
+  destNewBalance:
+    type: number
+    format: decimal
+  timestamp:
+    type: string
+    format: date-time

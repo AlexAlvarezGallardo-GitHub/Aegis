@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  title: Aegis Wallet Transfer Internal API (Wallet Service)
+  description: |
+    Internal service-to-service endpoints used by the Payment Service saga
+    (UC-005) to reserve funds (holds), settle transfers atomically across two
+    wallets, and release holds as compensation. NOT exposed through the BFF.
+
+    Invariants:
+    - availableBalance = balance − SUM(active holds)
+    - Settlement commits debit (TRANSFER_OUT) + credit (TRANSFER_IN) + hold
+      transition in ONE database transaction (ADR-004)
+    - Ledger entries are immutable and keyed by the transfer reference (ADR-008)
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8083
+    description: Local development server
+
+paths:
+  /api/v1/wallets/{walletId}/holds:
+    post:
+      operationId: createHold
+      summary: Reserve funds on a wallet
+      description: |
+        Creates an ACTIVE hold iff `amount <= availableBalance`. The
+        check-and-insert is atomic under a pessimistic lock on the wallet row,
+        so concurrent holds can never overdraw the available balance.
+        `reference` is the transfer id (idempotency: an ACTIVE hold with the
+        same reference returns the existing hold — safe retry).
+      tags: [Holds]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHoldRequest'
+            example:
+              amount: 50.00
+              currency: EUR
+              reference: "019abcde-f012-7abc-def0-111122223333"
+      responses:
+        '201':
+          description: Hold created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/WalletNotFound'
+        '422':
+          description: Hold rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficientFunds:
+                  value:
+                    code: INSUFFICIENT_FUNDS
+                    message: "Available balance 30.00 EUR is lower than requested 50.00 EUR"
+                    details: null
+                    timestamp: "2026-08-10T12:00:00.000Z"
+                walletNotActive:
+                  value:
+                    code: WALLET_NOT_ACTIVE
+                    message: "Wallet 01912345-6789-7abc-def0-123456789abc is SUSPENDED"
+                    details: null
+                    timestamp: "2026-08-10T12:00:00.000Z"
+
+  /api/v1/wallets/transfers/settle:
+    post:
+      operationId: settleTransfer
+      summary: Settle a transfer atomically across two wallets
+      description: |
+        In ONE database transaction: validates the hold (ACTIVE, matches
+        wallets/amount/currency/reference), transitions it to SETTLED, debits
+        the source wallet (TRANSFER_OUT ledger entry) and credits the
+        destination wallet (TRANSFER_IN ledger entry), updating both balances.
+        Wallet rows are locked in deterministic (id-ordered) sequence to avoid
+        deadlocks. Idempotent: re-settling an already SETTLED hold for the same
+        transfer returns the original result without duplicating ledger entries.
+      tags: [Transfers]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettleTransferRequest'
+            example:
+              transferId: "019abcde-f012-7abc-def0-111122223333"
+              holdId: "019h01d5-0000-7abc-def0-777788889999"
+              sourceWalletId: "01912345-6789-7abc-def0-123456789abc"
+              destWalletId: "01998765-4321-7abc-def0-cba987654321"
+              amount: 50.00
+              currency: EUR
+      responses:
+        '200':
+          description: Transfer settled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettleTransferResponse'
+              example:
+                transferId: "019abcde-f012-7abc-def0-111122223333"
+                holdId: "019h01d5-0000-7abc-def0-777788889999"
+                sourceWalletId: "01912345-6789-7abc-def0-123456789abc"
+                sourceNewBalance: 150.00
+                destWalletId: "01998765-4321-7abc-def0-cba987654321"
+                destNewBalance: 230.00
+                timestamp: "2026-08-10T12:00:00.300Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/WalletNotFound'
+        '409':
+          description: Hold is not ACTIVE (already settled/released/expired)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: HOLD_NOT_ACTIVE
+                message: "Hold 019h01d5-0000-7abc-def0-777788889999 is RELEASED"
+                details: null
+                timestamp: "2026-08-10T12:00:00.000Z"
+        '422':
+          description: Settlement rejected (wallet state, currency mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/wallets/{walletId}/holds/{holdId}/release:
+    post:
+      operationId: releaseHold
+      summary: Release a hold (saga compensation)
+      description: |
+        Transitions an ACTIVE hold to RELEASED, restoring available balance.
+        Idempotent: releasing an already RELEASED hold returns the current
+        state. Releasing a SETTLED hold is rejected (409) — settled funds must
+        be reversed via a compensating ledger entry (UC-007), never un-settled.
+      tags: [Holds]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: holdId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Hold released
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldResponse'
+        '404':
+          description: Hold or wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: HOLD_NOT_FOUND
+                message: "Hold not found: 019h01d5-0000-7abc-def0-777788889999"
+                details: null
+                timestamp: "2026-08-10T12:00:00.000Z"
+        '409':
+          description: Hold already settled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: HOLD_NOT_ACTIVE
+                message: "Hold 019h01d5-0000-7abc-def0-777788889999 is SETTLED"
+                details: null
+                timestamp: "2026-08-10T12:00:00.000Z"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Service-to-service JWT (Payment Service)
+
+  schemas:
+    CreateHoldRequest:
+      type: object
+      required: [amount, currency, reference]
+      properties:
+        amount:
+          type: number
+          format: double
+          example: 50.00
+          exclusiveMinimum: 0
+        currency:
+          type: string
+          example: EUR
+          minLength: 3
+          maxLength: 3
+        reference:
+          type: string
+          format: uuid
+          description: Transfer id (idempotency key for the hold)
+
+    HoldResponse:
+      type: object
+      properties:
+        holdId:
+          type: string
+          format: uuid
+        walletId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        reference:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, SETTLED, RELEASED, EXPIRED]
+        availableBalance:
+          type: number
+          format: double
+          description: Wallet available balance after this hold state
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          description: Hold TTL expiry (default 5 minutes after creation)
+
+    SettleTransferRequest:
+      type: object
+      required: [transferId, holdId, sourceWalletId, destWalletId, amount, currency]
+      properties:
+        transferId:
+          type: string
+          format: uuid
+        holdId:
+          type: string
+          format: uuid
+        sourceWalletId:
+          type: string
+          format: uuid
+        destWalletId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+
+    SettleTransferResponse:
+      type: object
+      properties:
+        transferId:
+          type: string
+          format: uuid
+        holdId:
+          type: string
+          format: uuid
+        sourceWalletId:
+          type: string
+          format: uuid
+        sourceNewBalance:
+          type: number
+          format: double
+        destWalletId:
+          type: string
+          format: uuid
+        destNewBalance:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_ERROR
+            message: "amount: Must be positive"
+            details:
+              amount: "Must be positive"
+            timestamp: "2026-08-10T12:00:00.000Z"
+    WalletNotFound:
+      description: Wallet not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: WALLET_NOT_FOUND
+            message: "Wallet not found: 01912345-6789-7abc-def0-123456789abc"
+            details: null
+            timestamp: "2026-08-10T12:00:00.000Z"
