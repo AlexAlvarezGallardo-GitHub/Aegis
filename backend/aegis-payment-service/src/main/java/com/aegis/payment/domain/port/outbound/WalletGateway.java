@@ -20,16 +20,34 @@ public interface WalletGateway {
     UUID createHold(UUID sourceWalletId, BigDecimal amount, String currency, String reference);
 
     /**
-     * Settles (consumes) a previously created hold.
+     * Settles (consumes) a previously created hold, moving the funds from the
+     * source wallet to the destination wallet in one transaction.
      *
-     * @param holdId the hold identifier
+     * @param transferId     the transfer identifier
+     * @param holdId         the hold identifier
+     * @param sourceWalletId the source wallet identifier
+     * @param destWalletId   the destination wallet identifier
+     * @param amount         the settled amount
+     * @param currency       the currency
+     * @return a record with the resulting balances
      */
-    void settle(UUID holdId);
+    SettlementResult settle(UUID transferId, UUID holdId, UUID sourceWalletId, UUID destWalletId,
+                            BigDecimal amount, String currency);
 
     /**
-     * Releases a previously created hold without settling.
+     * Releases a previously created hold without settling (saga compensation).
      *
-     * @param holdId the hold identifier
+     * @param walletId the wallet that holds the reservation
+     * @param holdId   the hold identifier
      */
-    void release(UUID holdId);
+    void release(UUID walletId, UUID holdId);
+
+    /**
+     * Result of a settled transfer.
+     *
+     * @param sourceNewBalance the source wallet balance after settlement
+     * @param destNewBalance   the destination wallet balance after settlement
+     */
+    record SettlementResult(BigDecimal sourceNewBalance, BigDecimal destNewBalance) {
+    }
 }

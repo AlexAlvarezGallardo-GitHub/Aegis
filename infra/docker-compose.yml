@@ -325,11 +325,15 @@ services:
       SPRING_DATASOURCE_USERNAME: aegis
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD must be set in infra/.env (copy .env.example)}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      AEGIS_PAYMENT_FRAUD_BASE_URL: http://aegis-fraud:8089
+      AEGIS_PAYMENT_WALLET_BASE_URL: http://aegis-wallet:8083
     depends_on:
       postgres-payment:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      aegis-fraud:
+        condition: service_started
     networks:
       - aegis-network
 
