@@ -2,6 +2,9 @@ package com.aegis.audit.infrastructure.config;
 
 import com.aegis.audit.domain.event.FraudAssessmentCompletedEvent;
 import com.aegis.audit.domain.event.FundsDepositedEvent;
+import com.aegis.audit.domain.event.PaymentExecutedEvent;
+import com.aegis.audit.domain.event.PaymentFailedEvent;
+import com.aegis.audit.domain.event.PaymentRequestedEvent;
 import com.aegis.audit.domain.event.TransferCompletedEvent;
 import com.aegis.audit.domain.event.TransferFailedEvent;
 import com.aegis.audit.domain.event.TransferRequestedEvent;
@@ -122,6 +125,45 @@ public class KafkaConfig {
     }
 
     /**
+     * Creates a consumer factory that deserializes messages to
+     * {@link PaymentRequestedEvent}.
+     *
+     * @return the consumer factory
+     */
+    @Bean
+    public ConsumerFactory<String, PaymentRequestedEvent> paymentRequestedConsumerFactory(KafkaProperties properties) {
+        Map<String, Object> props = baseProps(properties);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, PaymentRequestedEvent.class.getName());
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    /**
+     * Creates a consumer factory that deserializes messages to
+     * {@link PaymentExecutedEvent}.
+     *
+     * @return the consumer factory
+     */
+    @Bean
+    public ConsumerFactory<String, PaymentExecutedEvent> paymentExecutedConsumerFactory(KafkaProperties properties) {
+        Map<String, Object> props = baseProps(properties);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, PaymentExecutedEvent.class.getName());
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    /**
+     * Creates a consumer factory that deserializes messages to
+     * {@link PaymentFailedEvent}.
+     *
+     * @return the consumer factory
+     */
+    @Bean
+    public ConsumerFactory<String, PaymentFailedEvent> paymentFailedConsumerFactory(KafkaProperties properties) {
+        Map<String, Object> props = baseProps(properties);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, PaymentFailedEvent.class.getName());
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    /**
      * Listener container factory for the funds deposited topic.
      *
      * @return the container factory
@@ -197,6 +239,54 @@ public class KafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, TransferFailedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(transferFailedConsumerFactory(properties));
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
+        return factory;
+    }
+
+    /**
+     * Listener container factory for the payment requested topic.
+     *
+     * @return the container factory
+     */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, PaymentRequestedEvent>
+            paymentRequestedListenerContainerFactory(KafkaProperties properties,
+                                                     KafkaTemplate<String, Object> kafkaTemplate) {
+        ConcurrentKafkaListenerContainerFactory<String, PaymentRequestedEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(paymentRequestedConsumerFactory(properties));
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
+        return factory;
+    }
+
+    /**
+     * Listener container factory for the payment executed topic.
+     *
+     * @return the container factory
+     */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, PaymentExecutedEvent>
+            paymentExecutedListenerContainerFactory(KafkaProperties properties,
+                                                    KafkaTemplate<String, Object> kafkaTemplate) {
+        ConcurrentKafkaListenerContainerFactory<String, PaymentExecutedEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(paymentExecutedConsumerFactory(properties));
+        factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
+        return factory;
+    }
+
+    /**
+     * Listener container factory for the payment failed topic.
+     *
+     * @return the container factory
+     */
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent>
+            paymentFailedListenerContainerFactory(KafkaProperties properties,
+                                                  KafkaTemplate<String, Object> kafkaTemplate) {
+        ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(paymentFailedConsumerFactory(properties));
         factory.setCommonErrorHandler(commonErrorHandler(kafkaTemplate));
         return factory;
     }

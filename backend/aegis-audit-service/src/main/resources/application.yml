@@ -43,6 +43,9 @@ aegis:
       transfer-requested: payment.transfer.requested
       transfer-completed: payment.transfer.completed
       transfer-failed: payment.transfer.failed
+      payment-requested: payment.requested
+      payment-executed: payment.executed
+      payment-failed: payment.failed
     retry:
       max-attempts: 3
       backoff-ms: 1000
