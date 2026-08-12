@@ -18,12 +18,14 @@ Raw outputs: `login.txt`, `wallets.txt`, `deposits.txt`, `idempotency.txt`,
 | `deposits` | 1768 | 14.6 req/s | `aegis_deposit_latency` | 10.9ms | 15ms | ✅ | 0% |
 | `idempotency` | 934 | 15.4 req/s | checks: 201-first / 409-repeat | — | — | ✅ | 0 unexpected (452 expected 409s) |
 | `transfers` | 3144 | 26.2 req/s | `aegis_transfer_latency` (saga: fraud→hold→settle) | 32ms | **71ms** | ✅ | 0.31% (login warm-up) |
+| `payments` | 3212 | 26.8 req/s | `aegis_payment_latency` (saga: fraud→hold→debit) | 36ms | **60ms** | ✅ | 0.45% (login warm-up) |
 
 All thresholds configured in the scenarios passed; 100% of checks passed on every
 run. The only metric above the documented SLO (`docs/observability/slo.md`,
 p95 = 300 ms) is the authentication path. The UC-005 transfer saga completes in
-~71 ms p95 (fraud assessment + hold + atomic settlement + events), comfortably
-inside the 1500 ms budget set in `load/k6/transfers.js`.
+~71 ms p95 and the UC-006 payment saga in ~60 ms p95 (fraud assessment + hold +
+atomic settlement/debit + events), comfortably inside the 1500 ms budget set in
+`load/k6/transfers.js` and `load/k6/payments.js`.
 
 ## Findings
 
@@ -62,8 +64,7 @@ p95 **71 ms** for the full saga (fraud assess → hold → atomic settle → eve
 at up to 15 VUs, 100% check success. Duplicate-reference transfers are rejected
 with 409 and never double-debit.
 
-### 6. E2E/sandbox run surfaced and fixed four blocking bugs (2026-08-11)
-Booting a clean sandbox to run the UC-005 E2E (`e2e/tests/transfer.spec.ts`) found
+### 6. E2E/sandbox run surfaced and fixed four blocking bugs (2026-08-11)Booting a clean sandbox to run the UC-005 E2E (`e2e/tests/transfer.spec.ts`) found
 real defects that unit tests could not catch:
 
 1. **Reserved SQL keyword `offset`** in `processed_events` migrations of the
@@ -93,7 +94,18 @@ docker compose -f infra/docker-compose.yml up -d
 .\load\seed-users.ps1 -Prefix depuser -Count 20
 .\load\seed-users.ps1 -Prefix idemuser -Count 10
 .\load\seed-users.ps1 -Prefix trfuser -Count 15
+.\load\seed-users.ps1 -Prefix payuser -Count 15
 
 # 3. Run all scenarios + write evidence
 .\load\run-load-tests.ps1
 ```
+
+### 7. UC-006 payment saga is fast and secure (2026-08-12)
+First load evidence for merchant payments (`load/k6/payments.js`): p95 **60 ms**
+for the full saga at up to 15 VUs, 100% check success. The E2E run surfaced a
+**contract/security bug** that unit tests missed: the payment controller accepted
+`userId` from the request body (spoofable) and required it — a client could pay
+from another user's wallet. Fixed to derive the user from the `X-User-Id` header
+(BFF-populated from the session JWT), aligning the API with the OpenAPI contract
+(`specs/006-execute-payment/contracts/api/payments-api.yaml`), which never had
+`userId` in the body.
