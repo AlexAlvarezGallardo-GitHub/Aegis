@@ -37,7 +37,7 @@ public class RestFraudAssessmentGateway implements FraudAssessmentGateway {
     public FraudDecision assess(TransactionContext context) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("transactionId", context.transactionId());
-        body.put("transactionType", "TRANSFER");
+        body.put("transactionType", context.transactionType());
         body.put("amount", context.amount());
         body.put("currency", context.currency());
         body.put("sourceWalletId", context.sourceWalletId());

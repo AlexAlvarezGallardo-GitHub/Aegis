@@ -43,6 +43,20 @@ public interface WalletGateway {
     void release(UUID walletId, UUID holdId);
 
     /**
+     * Settles (debits) a previously created hold for a payment, creating a PAYMENT
+     * ledger entry without crediting a destination wallet. This is the payment-specific
+     * settlement path — distinct from the transfer settle which moves funds between wallets.
+     *
+     * @param paymentId  the payment identifier (used as reference)
+     * @param holdId     the hold identifier
+     * @param walletId   the wallet to debit
+     * @param amount     the debited amount
+     * @param currency   the currency
+     * @return the resulting wallet balance after debit
+     */
+    BigDecimal debitHold(UUID paymentId, UUID holdId, UUID walletId, BigDecimal amount, String currency);
+
+    /**
      * Result of a settled transfer.
      *
      * @param sourceNewBalance the source wallet balance after settlement

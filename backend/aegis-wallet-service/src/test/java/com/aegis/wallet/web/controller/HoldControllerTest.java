@@ -7,6 +7,7 @@ import com.aegis.wallet.domain.exception.InsufficientFundsException;
 import com.aegis.wallet.domain.exception.WalletNotActiveException;
 import com.aegis.wallet.domain.exception.WalletNotFoundException;
 import com.aegis.wallet.domain.port.inbound.CreateHoldUseCase;
+import com.aegis.wallet.domain.port.inbound.DebitHoldUseCase;
 import com.aegis.wallet.domain.port.inbound.ReleaseHoldUseCase;
 import com.aegis.wallet.domain.port.inbound.SettleTransferUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +41,7 @@ class HoldControllerTest {
     @MockBean private CreateHoldUseCase createHoldUseCase;
     @MockBean private SettleTransferUseCase settleTransferUseCase;
     @MockBean private ReleaseHoldUseCase releaseHoldUseCase;
+    @MockBean private DebitHoldUseCase debitHoldUseCase;
 
     @Nested
     @DisplayName("POST /api/v1/wallets/{walletId}/holds")
@@ -261,6 +263,50 @@ class HoldControllerTest {
                             + "/holds/" + UUID.randomUUID() + "/release"))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.code").value("HOLD_NOT_ACTIVE"));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/v1/wallets/{walletId}/holds/{holdId}/debit")
+    class DebitHoldEndpoint {
+
+        @Test
+        void shouldReturn200OnSuccess() throws Exception {
+            UUID walletId = UUID.randomUUID();
+            UUID holdId = UUID.randomUUID();
+            UUID paymentId = UUID.randomUUID();
+            Instant now = Instant.now();
+
+            when(debitHoldUseCase.debit(any())).thenReturn(new DebitHoldUseCase.DebitResult(
+                    paymentId, holdId, walletId, new BigDecimal("75.00"), now));
+
+            String body = """
+                    {"paymentId": "%s", "holdId": "%s", "amount": 25.00, "currency": "EUR"}
+                    """.formatted(paymentId, holdId);
+
+            mockMvc.perform(post("/api/v1/wallets/" + walletId + "/holds/" + holdId + "/debit")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.paymentId").value(paymentId.toString()))
+                    .andExpect(jsonPath("$.newBalance").value(75.00));
+        }
+
+        @Test
+        void shouldReturn404WhenHoldNotFound() throws Exception {
+            when(debitHoldUseCase.debit(any()))
+                    .thenThrow(new HoldNotFoundException(UUID.randomUUID()));
+
+            String body = """
+                    {"paymentId": "%s", "holdId": "%s", "amount": 25.00, "currency": "EUR"}
+                    """.formatted(UUID.randomUUID(), UUID.randomUUID());
+
+            mockMvc.perform(post("/api/v1/wallets/" + UUID.randomUUID()
+                            + "/holds/" + UUID.randomUUID() + "/debit")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.code").value("HOLD_NOT_FOUND"));
         }
     }
 }
