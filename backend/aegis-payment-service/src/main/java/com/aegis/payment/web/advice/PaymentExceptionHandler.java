@@ -1,10 +1,16 @@
 package com.aegis.payment.web.advice;
 
 import com.aegis.common.web.advice.AbstractExceptionHandler;
+import com.aegis.payment.domain.exception.DuplicatePaymentException;
 import com.aegis.payment.domain.exception.DuplicateTransferException;
 import com.aegis.payment.domain.exception.FraudAssessmentUnavailableException;
 import com.aegis.payment.domain.exception.FraudRejectedException;
+import com.aegis.payment.domain.exception.InvalidPaymentStateException;
 import com.aegis.payment.domain.exception.InvalidTransferStateException;
+import com.aegis.payment.domain.exception.PaymentAssessmentUnavailableException;
+import com.aegis.payment.domain.exception.PaymentNotFoundException;
+import com.aegis.payment.domain.exception.PaymentRejectedException;
+import com.aegis.payment.domain.exception.PaymentSettlementFailedException;
 import com.aegis.payment.domain.exception.SelfTransferException;
 import com.aegis.payment.domain.exception.TransferNotFoundException;
 import org.springframework.core.Ordered;
@@ -18,84 +24,96 @@ import java.util.Map;
 
 /**
  * Payment-service specific exception handler. Extends the shared {@link AbstractExceptionHandler}
- * and adds domain-specific handlers for payment exceptions.
+ * and adds domain-specific handlers for payment and transfer exceptions.
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class PaymentExceptionHandler extends AbstractExceptionHandler {
 
-    /**
-     * Handles {@link TransferNotFoundException} with HTTP 404.
-     *
-     * @param ex the exception
-     * @return the error response envelope
-     */
+    // --- Transfer exceptions ---
+
     @ExceptionHandler(TransferNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleTransferNotFound(TransferNotFoundException ex) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), null);
     }
 
-    /**
-     * Handles {@link DuplicateTransferException} with HTTP 409.
-     *
-     * @param ex the exception
-     * @return the error response envelope
-     */
     @ExceptionHandler(DuplicateTransferException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateTransfer(DuplicateTransferException ex) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
     }
 
-    /**
-     * Handles {@link SelfTransferException} with HTTP 400.
-     *
-     * @param ex the exception
-     * @return the error response envelope
-     */
     @ExceptionHandler(SelfTransferException.class)
     public ResponseEntity<Map<String, Object>> handleSelfTransfer(SelfTransferException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getCode(), ex.getMessage(), null);
     }
 
-    /**
-     * Handles {@link InvalidTransferStateException} with HTTP 400.
-     *
-     * @param ex the exception
-     * @return the error response envelope
-     */
     @ExceptionHandler(InvalidTransferStateException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidState(InvalidTransferStateException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getCode(), ex.getMessage(), null);
     }
 
-    /**
-     * Handles {@link FraudRejectedException} with HTTP 422.
-     *
-     * @param ex the exception
-     * @return the error response envelope
-     */
     @ExceptionHandler(FraudRejectedException.class)
     public ResponseEntity<Map<String, Object>> handleFraudRejected(FraudRejectedException ex) {
         return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
     }
 
-    /**
-     * Handles {@link FraudAssessmentUnavailableException} with HTTP 503.
-     *
-     * @param ex the exception
-     * @return the error response envelope
-     */
     @ExceptionHandler(FraudAssessmentUnavailableException.class)
     public ResponseEntity<Map<String, Object>> handleFraudUnavailable(FraudAssessmentUnavailableException ex) {
         return buildErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getCode(), ex.getMessage(), null);
     }
 
+    // --- Payment exceptions ---
+
     /**
-     * Handles {@link UnsupportedOperationException} with HTTP 501.
-     *
-     * @param ex the exception
-     * @return the error response envelope
+     * Handles {@link PaymentNotFoundException} with HTTP 404.
      */
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentNotFound(PaymentNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link DuplicatePaymentException} with HTTP 409.
+     */
+    @ExceptionHandler(DuplicatePaymentException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicatePayment(DuplicatePaymentException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link InvalidPaymentStateException} with HTTP 400.
+     */
+    @ExceptionHandler(InvalidPaymentStateException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidPaymentState(InvalidPaymentStateException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link PaymentRejectedException} with HTTP 422.
+     */
+    @ExceptionHandler(PaymentRejectedException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentRejected(PaymentRejectedException ex) {
+        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link PaymentAssessmentUnavailableException} with HTTP 503.
+     */
+    @ExceptionHandler(PaymentAssessmentUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentAssessmentUnavailable(
+            PaymentAssessmentUnavailableException ex) {
+        return buildErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link PaymentSettlementFailedException} with HTTP 422.
+     */
+    @ExceptionHandler(PaymentSettlementFailedException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentSettlementFailed(
+            PaymentSettlementFailedException ex) {
+        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
     @ExceptionHandler(UnsupportedOperationException.class)
     public ResponseEntity<Map<String, Object>> handleNotImplemented(UnsupportedOperationException ex) {
         return buildErrorResponse(HttpStatus.NOT_IMPLEMENTED, "NOT_IMPLEMENTED", ex.getMessage(), null);

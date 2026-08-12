@@ -300,6 +300,47 @@ public class Wallet {
         this.updatedAt = Instant.now();
     }
 
+    /**
+     * Debits the wallet for a payment, appending a PAYMENT ledger entry.
+     *
+     * @param amount      the payment amount (strictly positive; stored as absolute value)
+     * @param reference   the payment id
+     * @param description optional description for the ledger entry
+     * @throws WalletOperationNotAllowedException if the wallet is not ACTIVE
+     * @throws InsufficientFundsException         if the debit would make the balance negative
+     * @throws IllegalArgumentException           if the amount is not positive
+     */
+    public void debitForPayment(BigDecimal amount, String reference, String description) {
+        if (status != WalletStatus.ACTIVE) {
+            throw new WalletOperationNotAllowedException(
+                    "Cannot debit for payment. Wallet is " + status.name().toLowerCase());
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Payment amount must be positive");
+        }
+
+        BigDecimal newBalance = this.balance.subtract(amount);
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds for payment. Current balance: " + this.balance
+                            + ", requested: " + amount);
+        }
+
+        this.balance = newBalance;
+
+        LedgerEntry entry = new LedgerEntry(
+                UuidV7Generator.generate(),
+                walletId.value(),
+                LedgerEntryType.PAYMENT,
+                amount,
+                currency,
+                reference != null ? reference : description != null ? description : "Payment",
+                Instant.now()
+        );
+        ledgerEntries.add(entry);
+        this.updatedAt = Instant.now();
+    }
+
     public boolean isPremium() {
         return "EUR".equals(this.currency) && this.balance.compareTo(new BigDecimal("1000")) > 0;
     }

@@ -1,6 +1,9 @@
 package com.aegis.payment.infrastructure.messaging;
 
 import com.aegis.common.util.UuidV7Generator;
+import com.aegis.payment.domain.event.PaymentExecuted;
+import com.aegis.payment.domain.event.PaymentFailed;
+import com.aegis.payment.domain.event.PaymentRequested;
 import com.aegis.payment.domain.event.TransferCompleted;
 import com.aegis.payment.domain.event.TransferFailed;
 import com.aegis.payment.domain.event.TransferRequested;
@@ -46,6 +49,24 @@ public class KafkaEventPublisher implements EventPublisher {
 
     @Override
     public void publish(TransferFailed event) {
+        persistOutboxEvent(event.aggregateType(), event.aggregateId(),
+                event.eventType(), event);
+    }
+
+    @Override
+    public void publish(PaymentRequested event) {
+        persistOutboxEvent(event.aggregateType(), event.aggregateId(),
+                event.eventType(), event);
+    }
+
+    @Override
+    public void publish(PaymentExecuted event) {
+        persistOutboxEvent(event.aggregateType(), event.aggregateId(),
+                event.eventType(), event);
+    }
+
+    @Override
+    public void publish(PaymentFailed event) {
         persistOutboxEvent(event.aggregateType(), event.aggregateId(),
                 event.eventType(), event);
     }

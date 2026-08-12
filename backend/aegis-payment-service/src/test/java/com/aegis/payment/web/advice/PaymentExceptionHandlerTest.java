@@ -1,11 +1,18 @@
 package com.aegis.payment.web.advice;
 
+import com.aegis.payment.domain.exception.DuplicatePaymentException;
 import com.aegis.payment.domain.exception.DuplicateTransferException;
 import com.aegis.payment.domain.exception.FraudAssessmentUnavailableException;
 import com.aegis.payment.domain.exception.FraudRejectedException;
+import com.aegis.payment.domain.exception.InvalidPaymentStateException;
 import com.aegis.payment.domain.exception.InvalidTransferStateException;
+import com.aegis.payment.domain.exception.PaymentAssessmentUnavailableException;
+import com.aegis.payment.domain.exception.PaymentNotFoundException;
+import com.aegis.payment.domain.exception.PaymentRejectedException;
+import com.aegis.payment.domain.exception.PaymentSettlementFailedException;
 import com.aegis.payment.domain.exception.SelfTransferException;
 import com.aegis.payment.domain.exception.TransferNotFoundException;
+import com.aegis.payment.domain.model.PaymentStatus;
 import com.aegis.payment.domain.model.TransferStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -142,6 +149,104 @@ class PaymentExceptionHandlerTest {
 
             assertEquals(HttpStatus.NOT_IMPLEMENTED, response.getStatusCode());
             assertEquals("NOT_IMPLEMENTED", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling PaymentNotFoundException")
+    class WhenHandlingPaymentNotFound {
+
+        @Test
+        @DisplayName("Should return 404 with PAYMENT_NOT_FOUND code")
+        void shouldReturn404() {
+            PaymentNotFoundException ex = new PaymentNotFoundException(UUID.randomUUID());
+
+            ResponseEntity<Map<String, Object>> response = handler.handlePaymentNotFound(ex);
+
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            assertEquals("PAYMENT_NOT_FOUND", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling DuplicatePaymentException")
+    class WhenHandlingDuplicatePayment {
+
+        @Test
+        @DisplayName("Should return 409 with PAYMENT_DUPLICATE code")
+        void shouldReturn409() {
+            DuplicatePaymentException ex = new DuplicatePaymentException("PAY-001");
+
+            ResponseEntity<Map<String, Object>> response = handler.handleDuplicatePayment(ex);
+
+            assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+            assertEquals("PAYMENT_DUPLICATE", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling InvalidPaymentStateException")
+    class WhenHandlingInvalidPaymentState {
+
+        @Test
+        @DisplayName("Should return 400 with INVALID_PAYMENT_STATE code")
+        void shouldReturn400() {
+            InvalidPaymentStateException ex =
+                    new InvalidPaymentStateException(PaymentStatus.PENDING, PaymentStatus.COMPLETED);
+
+            ResponseEntity<Map<String, Object>> response = handler.handleInvalidPaymentState(ex);
+
+            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            assertEquals("INVALID_PAYMENT_STATE", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling PaymentRejectedException")
+    class WhenHandlingPaymentRejected {
+
+        @Test
+        @DisplayName("Should return 422 with PAYMENT_REJECTED_BY_FRAUD code")
+        void shouldReturn422() {
+            PaymentRejectedException ex = new PaymentRejectedException(UUID.randomUUID());
+
+            ResponseEntity<Map<String, Object>> response = handler.handlePaymentRejected(ex);
+
+            assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+            assertEquals("PAYMENT_REJECTED_BY_FRAUD", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling PaymentAssessmentUnavailableException")
+    class WhenHandlingPaymentAssessmentUnavailable {
+
+        @Test
+        @DisplayName("Should return 503 with FRAUD_UNAVAILABLE code")
+        void shouldReturn503() {
+            PaymentAssessmentUnavailableException ex =
+                    new PaymentAssessmentUnavailableException("timeout", new RuntimeException());
+
+            ResponseEntity<Map<String, Object>> response = handler.handlePaymentAssessmentUnavailable(ex);
+
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+            assertEquals("FRAUD_UNAVAILABLE", response.getBody().get("code"));
+        }
+    }
+
+    @Nested
+    @DisplayName("When handling PaymentSettlementFailedException")
+    class WhenHandlingPaymentSettlementFailed {
+
+        @Test
+        @DisplayName("Should return 422 with SETTLEMENT_FAILED code")
+        void shouldReturn422() {
+            PaymentSettlementFailedException ex = new PaymentSettlementFailedException("wallet down");
+
+            ResponseEntity<Map<String, Object>> response = handler.handlePaymentSettlementFailed(ex);
+
+            assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+            assertEquals("SETTLEMENT_FAILED", response.getBody().get("code"));
         }
     }
 
