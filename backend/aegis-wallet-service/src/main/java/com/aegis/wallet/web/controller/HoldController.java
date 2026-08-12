@@ -1,8 +1,11 @@
 package com.aegis.wallet.web.controller;
 
 import com.aegis.wallet.domain.port.inbound.CreateHoldUseCase;
+import com.aegis.wallet.domain.port.inbound.DebitHoldUseCase;
 import com.aegis.wallet.domain.port.inbound.ReleaseHoldUseCase;
 import com.aegis.wallet.domain.port.inbound.SettleTransferUseCase;
+import com.aegis.wallet.web.dto.DebitHoldRequest;
+import com.aegis.wallet.web.dto.DebitHoldResponse;
 import com.aegis.wallet.web.dto.HoldRequest;
 import com.aegis.wallet.web.dto.HoldResponse;
 import com.aegis.wallet.web.dto.SettleTransferRequest;
@@ -25,13 +28,16 @@ public class HoldController {
     private final CreateHoldUseCase createHoldUseCase;
     private final SettleTransferUseCase settleTransferUseCase;
     private final ReleaseHoldUseCase releaseHoldUseCase;
+    private final DebitHoldUseCase debitHoldUseCase;
 
     public HoldController(CreateHoldUseCase createHoldUseCase,
                           SettleTransferUseCase settleTransferUseCase,
-                          ReleaseHoldUseCase releaseHoldUseCase) {
+                          ReleaseHoldUseCase releaseHoldUseCase,
+                          DebitHoldUseCase debitHoldUseCase) {
         this.createHoldUseCase = createHoldUseCase;
         this.settleTransferUseCase = settleTransferUseCase;
         this.releaseHoldUseCase = releaseHoldUseCase;
+        this.debitHoldUseCase = debitHoldUseCase;
     }
 
     @PostMapping("/{walletId}/holds")
@@ -72,6 +78,23 @@ public class HoldController {
                 new ReleaseHoldUseCase.ReleaseCommand(walletId, holdId));
 
         return ResponseEntity.ok(toHoldResponse(result));
+    }
+
+    @PostMapping("/{walletId}/holds/{holdId}/debit")
+    public ResponseEntity<DebitHoldResponse> debitHold(
+            @PathVariable UUID walletId,
+            @PathVariable UUID holdId,
+            @Valid @RequestBody DebitHoldRequest request) {
+
+        DebitHoldUseCase.DebitResult result = debitHoldUseCase.debit(
+                new DebitHoldUseCase.DebitCommand(
+                        request.paymentId(), request.holdId(),
+                        walletId, request.amount(), request.currency()));
+
+        return ResponseEntity.ok(new DebitHoldResponse(
+                result.paymentId(), result.holdId(),
+                result.walletId(), result.newBalance(),
+                result.timestamp()));
     }
 
     private HoldResponse toHoldResponse(CreateHoldUseCase.HoldResult result) {

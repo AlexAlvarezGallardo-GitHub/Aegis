@@ -17,12 +17,18 @@ class KafkaTopicsPropertiesTest {
         props.setTopics(Map.of(
                 "TRANSFER_REQUESTED", "payment.transfer.requested",
                 "TRANSFER_COMPLETED", "payment.transfer.completed",
-                "TRANSFER_FAILED", "payment.transfer.failed"
+                "TRANSFER_FAILED", "payment.transfer.failed",
+                "PAYMENT_REQUESTED", "payment.payment.requested",
+                "PAYMENT_EXECUTED", "payment.payment.executed",
+                "PAYMENT_FAILED", "payment.payment.failed"
         ));
 
         assertEquals("payment.transfer.requested", props.topicFor("TRANSFER_REQUESTED"));
         assertEquals("payment.transfer.completed", props.topicFor("TRANSFER_COMPLETED"));
         assertEquals("payment.transfer.failed", props.topicFor("TRANSFER_FAILED"));
+        assertEquals("payment.payment.requested", props.topicFor("PAYMENT_REQUESTED"));
+        assertEquals("payment.payment.executed", props.topicFor("PAYMENT_EXECUTED"));
+        assertEquals("payment.payment.failed", props.topicFor("PAYMENT_FAILED"));
     }
 
     @Test
