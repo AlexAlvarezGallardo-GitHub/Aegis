@@ -184,6 +184,11 @@ jobs:
             context: backend
             file: backend/aegis-reporting-service/Dockerfile
             filter: backend
+          - name: payment
+            image: payment-service
+            context: backend
+            file: backend/aegis-payment-service/Dockerfile
+            filter: backend
           - name: frontend
             image: frontend
             context: frontend/aegis-frontend

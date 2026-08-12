@@ -26,7 +26,7 @@ This count must remain identical across:
 | Fraud Service | `backend/aegis-fraud-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_fraud`) | Kafka (consumers + REST) | 8089 |
 | Audit Service | `backend/aegis-audit-service` | Microservice | Implemented · Validated · Deployed in DEV | PostgreSQL (`aegis_audit`) | Kafka (consumers) | 8088 |
 | Reporting Service | `backend/aegis-reporting-service` | Microservice | Implemented · Partial | PostgreSQL (`aegis_reporting`) | Kafka (consumers) | 8087 |
-| Payment Service | `backend/aegis-payment-service` | Microservice | Implemented · Partial | PostgreSQL (`aegis_payment`) | REST + Kafka (outbox) | 8084 |
+| Payment Service | `backend/aegis-payment-service` | Microservice | Implemented and Validated and Deployed in DEV | PostgreSQL (`aegis_payment`) | REST + Kafka (outbox) | 8084 |
 | Frontend | `frontend/aegis-frontend` | Web application (Angular 22) | Implemented · Validated · Deployed in DEV | — | REST (via BFF) | 4200 |
 | Common Library | `backend/aegis-common` | Shared Java library | Implemented | — | Java dependency | — |
 

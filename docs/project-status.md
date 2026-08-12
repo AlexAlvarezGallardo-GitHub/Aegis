@@ -16,7 +16,7 @@
 | Fraud evaluation (Fraud) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Audit events (Audit) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Reporting (Reporting) | 🟡 | 🟡 | ✅ | 🟡 | ⚪ | ⚪ | ⚪ |
-| Payments (Payment) | 🟡 | 🟡 | ✅ | 🟡 | ⚪ | ⚪ | ⚪ |
+| Payments (Payment) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Notifications (Notification) | — | — | — | — | — | — | — |
 
 ## Legend
