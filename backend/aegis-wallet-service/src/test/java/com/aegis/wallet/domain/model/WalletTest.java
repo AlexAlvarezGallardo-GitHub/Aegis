@@ -306,4 +306,45 @@ class WalletTest {
         assertThrows(IllegalArgumentException.class,
                 () -> wallet.creditForTransfer(BigDecimal.ZERO, "TRANSFER-1", null));
     }
+
+    // --- debitForPayment tests ---
+
+    @Test
+    void debitForPaymentShouldReduceBalanceAndAddPaymentEntry() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "bank", "DEP-1", "Deposit");
+
+        wallet.debitForPayment(new BigDecimal("25.00"), "PAY-1", "Coffee");
+
+        assertEquals(0, new BigDecimal("75.00").compareTo(wallet.getBalance()));
+        LedgerEntry last = wallet.getLedgerEntries().getLast();
+        assertEquals(LedgerEntryType.PAYMENT, last.type());
+        assertEquals(0, new BigDecimal("25.00").compareTo(last.amount()));
+        assertEquals("PAY-1", last.reference());
+    }
+
+    @Test
+    void debitForPaymentShouldThrowOnInsufficientFunds() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("10.00"), "bank", "DEP-1", "Deposit");
+
+        assertThrows(InsufficientFundsException.class,
+                () -> wallet.debitForPayment(new BigDecimal("25.00"), "PAY-1", null));
+    }
+
+    @Test
+    void debitForPaymentShouldThrowWhenWalletNotActive() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.deactivate(WalletStatus.CLOSED);
+
+        assertThrows(com.aegis.wallet.domain.exception.WalletOperationNotAllowedException.class,
+                () -> wallet.debitForPayment(new BigDecimal("10.00"), "PAY-1", null));
+    }
+
+    @Test
+    void debitForPaymentShouldRejectNonPositiveAmount() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        assertThrows(IllegalArgumentException.class,
+                () -> wallet.debitForPayment(BigDecimal.ZERO, "PAY-1", null));
+    }
 }

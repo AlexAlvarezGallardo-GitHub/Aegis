@@ -139,6 +139,45 @@ public class RestWalletGateway implements WalletGateway {
         }
     }
 
+    @Override
+    public BigDecimal debitHold(UUID paymentId, UUID holdId, UUID walletId,
+                                BigDecimal amount, String currency) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("paymentId", paymentId);
+        body.put("holdId", holdId);
+        body.put("amount", amount);
+        body.put("currency", currency);
+
+        try {
+            JsonNode response = restClient.post()
+                    .uri("/api/v1/wallets/{walletId}/holds/{holdId}/debit", walletId, holdId)
+                    .body(body)
+                    .retrieve()
+                    .body(JsonNode.class);
+            if (response == null || !response.has("newBalance")) {
+                throw new SettlementFailedException("Wallet service did not return new balance after debit");
+            }
+            return response.get("newBalance").decimalValue();
+        } catch (RestClientResponseException ex) {
+            log.warn("Wallet service rejected debit for payment {}: HTTP {}",
+                    paymentId, ex.getStatusCode());
+            String code = extractErrorCode(ex);
+            throw new SettlementFailedException(
+                    code, "Wallet service rejected debit (HTTP " + ex.getStatusCode() + ")", ex);
+        } catch (ResourceAccessException ex) {
+            log.warn("Wallet service unreachable during debit of payment {}: {}",
+                    paymentId, ex.getMessage());
+            throw new SettlementFailedException(
+                    "Wallet service unreachable: " + ex.getMessage(), ex);
+        } catch (SettlementFailedException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error debiting payment {}", paymentId, ex);
+            throw new SettlementFailedException(
+                    "Unexpected wallet service error: " + ex.getMessage(), ex);
+        }
+    }
+
     private String extractErrorCode(RestClientResponseException ex) {
         try {
             JsonNode body = new com.fasterxml.jackson.databind.ObjectMapper()
