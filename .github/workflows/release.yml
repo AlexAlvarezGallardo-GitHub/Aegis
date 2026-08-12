@@ -93,6 +93,10 @@ jobs:
             image: reporting-service
             context: backend
             file: backend/aegis-reporting-service/Dockerfile
+          - name: payment
+            image: payment-service
+            context: backend
+            file: backend/aegis-payment-service/Dockerfile
           - name: frontend
             image: frontend
             context: frontend/aegis-frontend
@@ -125,6 +129,7 @@ jobs:
           - audit-service
           - fraud-service
           - reporting-service
+          - payment-service
           - frontend
     steps:
       - uses: actions/checkout@v4
