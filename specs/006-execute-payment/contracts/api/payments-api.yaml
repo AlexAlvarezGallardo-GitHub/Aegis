@@ -1,0 +1,244 @@
+openapi: 3.0.3
+info:
+  title: Aegis Execute Payment API (Payment Service)
+  description: |
+    Merchant/payee payments from a wallet balance, orchestrated by the Payment
+    Service as a saga (fraud assessment → hold → atomic settlement), reusing the
+    UC-005 mechanics. See ADR-014 and specs/006-execute-payment/spec.md.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8084
+    description: Local development server
+
+paths:
+  /api/v1/payments:
+    post:
+      operationId: executePayment
+      summary: Execute a payment to a merchant or payee
+      description: |
+        Executes a payment synchronously through the saga: fraud check
+        (fail-closed) → hold on the wallet → atomic debit. On success the
+        payment is COMPLETED. On any failure the payment is FAILED, compensations
+        are applied, and an error is returned. `reference` is the idempotency key
+        (unique per wallet).
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+            example:
+              walletId: "01912345-6789-7abc-def0-123456789abc"
+              amount: 25.00
+              currency: EUR
+              payee:
+                name: "Cafe Central"
+                id: "merchant-123"
+                type: MERCHANT
+              description: "Coffee purchase"
+              reference: "PAY-2026-0001"
+      responses:
+        '201':
+          description: Payment completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate payment reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Fraud Service unavailable (fail-closed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/payments/{paymentId}:
+    get:
+      operationId: getPayment
+      summary: Retrieve a payment by ID
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from the Auth API (propagated by the BFF)
+
+  schemas:
+    Payee:
+      type: object
+      required: [name, id, type]
+      properties:
+        name:
+          type: string
+          description: Payee display name
+          example: "Cafe Central"
+          maxLength: 255
+        id:
+          type: string
+          description: Payee identifier (merchant id)
+          example: "merchant-123"
+          maxLength: 255
+        type:
+          type: string
+          enum: [MERCHANT, INDIVIDUAL, SERVICE]
+          example: MERCHANT
+
+    PaymentRequest:
+      type: object
+      required: [walletId, amount, currency, payee, reference]
+      properties:
+        walletId:
+          type: string
+          format: uuid
+          description: Wallet to debit (must belong to the authenticated user)
+        amount:
+          type: number
+          format: double
+          description: Payment amount (positive, scale 2)
+          example: 25.00
+          exclusiveMinimum: 0
+        currency:
+          type: string
+          description: ISO 4217 currency code; must match the wallet
+          example: EUR
+          minLength: 3
+          maxLength: 3
+        payee:
+          $ref: '#/components/schemas/Payee'
+        description:
+          type: string
+          description: Optional free-text description
+          example: "Coffee purchase"
+          maxLength: 255
+        reference:
+          type: string
+          description: Client-supplied idempotency key (unique per wallet)
+          example: "PAY-2026-0001"
+          maxLength: 255
+
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED, REFUNDED]
+        walletId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        payee:
+          $ref: '#/components/schemas/Payee'
+        description:
+          type: string
+          nullable: true
+        reference:
+          type: string
+        fraudAssessmentId:
+          type: string
+          format: uuid
+          nullable: true
+        holdId:
+          type: string
+          format: uuid
+          nullable: true
+        failureReason:
+          type: string
+          nullable: true
+          description: Machine-readable reason when status is FAILED (e.g. INSUFFICIENT_FUNDS, FRAUD_REJECTED, FRAUD_UNAVAILABLE, SETTLEMENT_FAILED, HOLD_EXPIRED)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

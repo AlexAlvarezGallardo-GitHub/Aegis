@@ -1,0 +1,73 @@
+event: PaymentRequested
+topic: payment.requested
+schemaVersion: "1.0"
+producer: aegis-payment-service
+consumers:
+  - aegis-fraud-service    # async risk signal / model input (sync decision via REST assess)
+  - aegis-audit-service    # audit trail
+  # future: aegis-notification-service
+
+headers:
+  contentType: application/json
+  eventType: PAYMENT_REQUESTED
+
+payload:
+  eventId:
+    type: string
+    format: uuid
+  eventType:
+    type: string
+    enum: [PAYMENT_REQUESTED]
+  schemaVersion:
+    type: string
+    example: "1.0"
+  occurredAt:
+    type: string
+    format: date-time
+  causationId:
+    type: string
+    format: uuid
+    nullable: true
+  correlationId:
+    type: string
+  aggregateId:
+    type: string
+    format: uuid
+    description: Identifier of the aggregate (the payment)
+  aggregateType:
+    type: string
+    enum: [PAYMENT]
+  paymentId:
+    type: string
+    format: uuid
+  walletId:
+    type: string
+    format: uuid
+  userId:
+    type: string
+    format: uuid
+    description: Owner of the wallet (payment initiator)
+  amount:
+    type: number
+    format: decimal
+  currency:
+    type: string
+    pattern: "^[A-Z]{3}$"
+  payee:
+    type: object
+    properties:
+      name:
+        type: string
+      id:
+        type: string
+      type:
+        type: string
+        enum: [MERCHANT, INDIVIDUAL, SERVICE]
+  description:
+    type: string
+    nullable: true
+  reference:
+    type: string
+  timestamp:
+    type: string
+    format: date-time

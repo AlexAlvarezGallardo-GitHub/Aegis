@@ -53,3 +53,4 @@ All ADRs live in `docs/adr/`. ADR-007 is intentionally absent (number skipped). 
 | ADR-012 | OpenTelemetry for Observability | Accepted |
 | ADR-013 | Secrets Management — Externalized via Environment | Accepted |
 | ADR-014 | Orchestrated Saga with Fund Reservation for Cross-Wallet Transfers | Accepted |
+| ADR-015 | Merchant Payments Reuse the Transfer Saga Mechanics | Accepted |
