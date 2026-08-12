@@ -34,6 +34,8 @@ jobs:
       audit: ${{ steps.changes.outputs.audit }}
       fraud: ${{ steps.changes.outputs.fraud }}
       reporting: ${{ steps.changes.outputs.reporting }}
+      payment: ${{ steps.changes.outputs.payment }}
+      payment: ${{ steps.changes.outputs.payment }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,6 +61,10 @@ jobs:
               - 'backend/aegis-fraud-service/**'
             reporting:
               - 'backend/aegis-reporting-service/**'
+            payment:
+              - 'backend/aegis-payment-service/**'
+            payment:
+              - 'backend/aegis-payment-service/**'
             frontend:
               - 'frontend/aegis-frontend/**'
             e2e:
@@ -221,6 +227,10 @@ jobs:
             filter: fraud
           - module: aegis-reporting-service
             filter: reporting
+          - module: aegis-payment-service
+            filter: payment
+          - module: aegis-payment-service
+            filter: payment
     steps:
       - uses: actions/checkout@v4
       - name: Setup Java

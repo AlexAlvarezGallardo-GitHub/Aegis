@@ -254,7 +254,7 @@ jobs:
             docker pull "$image:latest"
             docker tag "$image:latest" "$local_name:latest"
           }
-          for svc in identity wallet bff audit fraud reporting; do
+          for svc in identity wallet bff audit fraud reporting payment; do
             pull_with_fallback "ghcr.io/$GHCR_OWNER/$svc-service" "infra-aegis-$svc"
           done
           pull_with_fallback "ghcr.io/$GHCR_OWNER/frontend" "infra-aegis-frontend"
@@ -357,7 +357,7 @@ jobs:
             docker pull "$image:latest"
             docker tag "$image:latest" "$local_name:latest"
           }
-          for svc in identity wallet bff audit fraud reporting; do
+          for svc in identity wallet bff audit fraud reporting payment; do
             pull_with_fallback "ghcr.io/$GHCR_OWNER/$svc-service" "infra-aegis-$svc"
           done
           pull_with_fallback "ghcr.io/$GHCR_OWNER/frontend" "infra-aegis-frontend"
@@ -423,6 +423,8 @@ jobs:
             filter: backend
           - image: reporting-service
             filter: backend
+          - image: payment-service
+            filter: backend
           - image: frontend
             filter: frontend
     steps:
@@ -472,6 +474,8 @@ jobs:
           - image: fraud-service
             filter: backend
           - image: reporting-service
+            filter: backend
+          - image: payment-service
             filter: backend
           - image: frontend
             filter: frontend
@@ -525,6 +529,8 @@ jobs:
           - image: fraud-service
             filter: backend
           - image: reporting-service
+            filter: backend
+          - image: payment-service
             filter: backend
           - image: frontend
             filter: frontend
