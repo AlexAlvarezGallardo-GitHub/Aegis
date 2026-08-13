@@ -169,4 +169,29 @@ class DtoRecordsTest {
         // Assert
         assertNull(request.description());
     }
+
+    @Test
+    @DisplayName("CreateRefundRequest should hold amount, reason and reference")
+    void createRefundRequest() {
+        // Arrange & Act
+        CreateRefundRequest request = new CreateRefundRequest(
+                new BigDecimal("25.00"), "Product returned", "REF-123");
+
+        // Assert
+        assertEquals(new BigDecimal("25.00"), request.amount());
+        assertEquals("Product returned", request.reason());
+        assertEquals("REF-123", request.reference());
+    }
+
+    @Test
+    @DisplayName("CreateRefundRequest should allow null amount and reason")
+    void createRefundRequestNullOptionals() {
+        // Arrange & Act
+        CreateRefundRequest request = new CreateRefundRequest(null, null, "REF-456");
+
+        // Assert
+        assertNull(request.amount());
+        assertNull(request.reason());
+        assertEquals("REF-456", request.reference());
+    }
 }

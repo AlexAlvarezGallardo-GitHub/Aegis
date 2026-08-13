@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { WalletService } from './wallet.service';
-import { TransferRequest, TransferResponse, PaymentRequest, PaymentResponse } from '../../shared/models/wallet.model';
+import { TransferRequest, TransferResponse, PaymentRequest, PaymentResponse, RefundRequest, RefundResponse } from '../../shared/models/wallet.model';
 
 describe('WalletService', () => {
   let service: WalletService;
@@ -227,6 +227,68 @@ describe('WalletService', () => {
       expect(req.request.url).toBe(`/api/bff/payments/${paymentId}`);
       expect(req.request.url).not.toContain('localhost');
       req.flush(mockResponse);
+    });
+  });
+
+  describe('refundPayment', () => {
+    it('should POST to /api/bff/payments/{paymentId}/refund with correct body', () => {
+      const paymentId = 'payment-789';
+      const request: RefundRequest = {
+        amount: 25.50,
+        reason: 'Product returned',
+        reference: 'REF-123',
+      };
+
+      const mockResponse: RefundResponse = {
+        refundId: 'refund-789',
+        paymentId: 'payment-789',
+        walletId: 'wallet-123',
+        userId: 'user-001',
+        amount: 25.50,
+        currency: 'USD',
+        reason: 'Product returned',
+        reference: 'REF-123',
+        status: 'COMPLETED',
+        newBalance: 1025.50,
+        createdAt: '2026-01-01T00:00:00Z',
+        completedAt: '2026-01-01T00:01:00Z',
+      };
+
+      service.refundPayment(paymentId, request).subscribe((response) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`/api/bff/payments/${paymentId}/refund`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.url).toBe(`/api/bff/payments/${paymentId}/refund`);
+      expect(req.request.url).not.toContain('localhost');
+      expect(req.request.body).toEqual(request);
+      req.flush(mockResponse);
+    });
+
+    it('should handle refund without optional fields', () => {
+      const paymentId = 'payment-789';
+      const request: RefundRequest = {
+        reference: 'REF-456',
+      };
+
+      service.refundPayment(paymentId, request).subscribe();
+
+      const req = httpMock.expectOne(`/api/bff/payments/${paymentId}/refund`);
+      expect(req.request.body).toEqual(request);
+      req.flush({
+        refundId: 'refund-999',
+        paymentId: 'payment-789',
+        walletId: 'wallet-123',
+        userId: 'user-001',
+        amount: 50,
+        currency: 'USD',
+        reference: 'REF-456',
+        status: 'COMPLETED',
+        newBalance: 1050,
+        createdAt: '2026-01-01T00:00:00Z',
+        completedAt: '2026-01-01T00:01:00Z',
+      });
     });
   });
 });
