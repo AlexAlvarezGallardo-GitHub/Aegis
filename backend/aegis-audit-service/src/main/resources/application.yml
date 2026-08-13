@@ -46,6 +46,7 @@ aegis:
       payment-requested: payment.requested
       payment-executed: payment.executed
       payment-failed: payment.failed
+      payment-refunded: payment.refunded
     retry:
       max-attempts: 3
       backoff-ms: 1000
