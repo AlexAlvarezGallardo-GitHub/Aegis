@@ -1,7 +1,6 @@
 package com.aegis.payment.web.controller;
 
 import com.aegis.payment.application.dto.RefundResult;
-import com.aegis.payment.domain.model.Refund;
 import com.aegis.payment.domain.port.inbound.RefundPaymentUseCase;
 import com.aegis.payment.web.dto.RefundRequest;
 import com.aegis.payment.web.dto.RefundResponse;
@@ -51,8 +50,8 @@ public class RefundController {
             @RequestHeader(value = "X-Admin-Override", required = false, defaultValue = "false") boolean adminOverride) {
 
         RefundPaymentUseCase.RefundCommand command = RefundMapper.toCommand(paymentId, request, userId, adminOverride);
-        Refund refund = refundPaymentUseCase.refund(command);
-        RefundResponse response = RefundResponse.from(RefundResult.from(refund));
+        RefundResult result = refundPaymentUseCase.refund(command);
+        RefundResponse response = RefundResponse.from(result);
         return ResponseEntity.ok(response);
     }
 }

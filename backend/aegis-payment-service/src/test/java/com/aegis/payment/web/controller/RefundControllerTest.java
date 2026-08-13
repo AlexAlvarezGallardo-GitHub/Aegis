@@ -1,5 +1,6 @@
 package com.aegis.payment.web.controller;
 
+import com.aegis.payment.application.dto.RefundResult;
 import com.aegis.payment.domain.exception.PaymentAlreadyRefundedException;
 import com.aegis.payment.domain.exception.PaymentNotFoundException;
 import com.aegis.payment.domain.exception.PaymentNotOwnedException;
@@ -76,7 +77,7 @@ class RefundControllerTest {
             UUID userId = UUID.randomUUID();
             Refund refund = completedRefund(paymentId, walletId, userId);
 
-            when(refundPaymentUseCase.refund(any())).thenReturn(refund);
+            when(refundPaymentUseCase.refund(any())).thenReturn(RefundResult.from(refund));
 
             String body = """
                     {
