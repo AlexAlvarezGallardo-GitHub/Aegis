@@ -28,6 +28,7 @@ jobs:
           - aegis-audit-service
           - aegis-fraud-service
           - aegis-reporting-service
+          - aegis-payment-service
     steps:
       - uses: actions/checkout@v4
       - name: Setup Java
@@ -90,6 +91,10 @@ jobs:
             image: reporting-service
             context: backend
             file: backend/aegis-reporting-service/Dockerfile
+          - name: payment
+            image: payment-service
+            context: backend
+            file: backend/aegis-payment-service/Dockerfile
           - name: frontend
             image: frontend
             context: frontend/aegis-frontend
