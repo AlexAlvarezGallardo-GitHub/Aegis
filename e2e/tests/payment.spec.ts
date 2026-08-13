@@ -10,9 +10,9 @@ import { test, expect } from '@playwright/test';
  * Requires the full Aegis stack running (docker compose up -d).
  */
 
-const BASE_IDENTITY = process.env.AEGIS_E2E_IDENTITY_URL ?? 'http://localhost:8081';
-const BASE_WALLET = process.env.AEGIS_E2E_WALLET_URL ?? 'http://localhost:8083';
-const BASE_PAYMENT = process.env.AEGIS_E2E_PAYMENT_URL ?? 'http://localhost:8084';
+const BASE_IDENTITY = process.env.AEGIS_E2E_IDENTITY_URL ?? 'http://127.0.0.1:8081';
+const BASE_WALLET = process.env.AEGIS_E2E_WALLET_URL ?? 'http://127.0.0.1:8083';
+const BASE_PAYMENT = process.env.AEGIS_E2E_PAYMENT_URL ?? 'http://127.0.0.1:8084';
 
 const PASSWORD = 'StrongPass123!';
 
