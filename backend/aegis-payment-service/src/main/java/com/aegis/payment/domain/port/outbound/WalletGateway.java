@@ -57,6 +57,18 @@ public interface WalletGateway {
     BigDecimal debitHold(UUID paymentId, UUID holdId, UUID walletId, BigDecimal amount, String currency);
 
     /**
+     * Credits the wallet with a REFUND ledger entry for a completed refund.
+     * The wallet service endpoint is idempotent by reference (refundId).
+     *
+     * @param refundId  the refund identifier (used as idempotency reference)
+     * @param walletId  the wallet to credit
+     * @param amount    the refund amount
+     * @param currency  the currency
+     * @return the resulting wallet balance after credit
+     */
+    BigDecimal creditRefund(UUID refundId, UUID walletId, BigDecimal amount, String currency);
+
+    /**
      * Result of a settled transfer.
      *
      * @param sourceNewBalance the source wallet balance after settlement

@@ -34,4 +34,14 @@ public interface PaymentRepository {
      * @return {@code true} if a payment already exists
      */
     boolean existsByWalletIdAndReference(UUID walletId, String reference);
+
+    /**
+     * Finds a payment by its identifier, acquiring a pessimistic write lock on the
+     * underlying row (SELECT FOR UPDATE). Used during refund to prevent concurrent
+     * refunds on the same payment.
+     *
+     * @param paymentId the payment identifier
+     * @return the locked payment, or empty if not found
+     */
+    Optional<Payment> findByIdForUpdate(UUID paymentId);
 }

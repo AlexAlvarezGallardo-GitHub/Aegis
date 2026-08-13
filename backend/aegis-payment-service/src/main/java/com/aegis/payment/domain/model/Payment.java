@@ -159,6 +159,17 @@ public class Payment {
     }
 
     /**
+     * Transitions the payment to {@link PaymentStatus#REFUNDED}.
+     *
+     * @throws InvalidPaymentStateException if the current state is not {@link PaymentStatus#COMPLETED}
+     */
+    public void markRefunded() {
+        ensureTransition(PaymentStatus.COMPLETED, PaymentStatus.REFUNDED);
+        this.status = PaymentStatus.REFUNDED;
+        this.updatedAt = Instant.now();
+    }
+
+    /**
      * Transitions the payment to {@link PaymentStatus#FAILED} with a reason.
      *
      * @param reason machine-readable failure reason

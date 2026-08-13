@@ -341,6 +341,49 @@ public class Wallet {
         this.updatedAt = Instant.now();
     }
 
+    /**
+     * Credits the wallet for a refund, appending a REFUND ledger entry.
+     * Idempotent by reference: if a REFUND entry with the same reference already exists,
+     * returns without creating a duplicate entry (ADR-004).
+     *
+     * @param amount      the refund amount (strictly positive)
+     * @param reference   the refund id (idempotency key)
+     * @param description optional description for the ledger entry
+     * @throws WalletOperationNotAllowedException if the wallet is not ACTIVE
+     * @throws IllegalArgumentException           if the amount is not positive
+     */
+    public void creditForRefund(BigDecimal amount, String reference, String description) {
+        if (status != WalletStatus.ACTIVE) {
+            throw new WalletOperationNotAllowedException(
+                    "Cannot credit for refund. Wallet is " + status.name().toLowerCase());
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Refund amount must be positive");
+        }
+
+        // Idempotency check: if a REFUND entry with the same reference exists, do nothing
+        boolean alreadyCredited = ledgerEntries.stream()
+                .anyMatch(e -> e.type() == LedgerEntryType.REFUND
+                        && reference != null && reference.equals(e.reference()));
+        if (alreadyCredited) {
+            return;
+        }
+
+        this.balance = this.balance.add(amount);
+
+        LedgerEntry entry = new LedgerEntry(
+                UuidV7Generator.generate(),
+                walletId.value(),
+                LedgerEntryType.REFUND,
+                amount,
+                currency,
+                reference != null ? reference : description != null ? description : "Refund",
+                Instant.now()
+        );
+        ledgerEntries.add(entry);
+        this.updatedAt = Instant.now();
+    }
+
     public boolean isPremium() {
         return "EUR".equals(this.currency) && this.balance.compareTo(new BigDecimal("1000")) > 0;
     }
