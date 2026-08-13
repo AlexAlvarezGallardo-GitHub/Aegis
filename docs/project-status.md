@@ -17,6 +17,7 @@
 | Audit events (Audit) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Reporting (Reporting) | 🟡 | 🟡 | ✅ | 🟡 | ⚪ | ⚪ | ⚪ |
 | Payments (Payment) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
+| Execute payment to merchant — hold + atomic debit (Payment, UC-006) | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ⚪ |
 | Notifications (Notification) | — | — | — | — | — | — | — |
 
 ## Legend
