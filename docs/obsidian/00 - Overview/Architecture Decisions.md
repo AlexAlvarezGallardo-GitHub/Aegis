@@ -54,3 +54,4 @@ All ADRs live in `docs/adr/`. ADR-007 is intentionally absent (number skipped). 
 | ADR-013 | Secrets Management — Externalized via Environment | Accepted |
 | ADR-014 | Orchestrated Saga with Fund Reservation for Cross-Wallet Transfers | Accepted |
 | ADR-015 | Merchant Payments Reuse the Transfer Saga Mechanics | Accepted |
+| ADR-016 | Refunds are New Ledger Credits, Not Settlements | Accepted |

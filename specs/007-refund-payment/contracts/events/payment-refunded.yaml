@@ -1,0 +1,69 @@
+event: PaymentRefunded
+topic: payment.refunded
+schemaVersion: "1.0"
+producer: aegis-payment-service
+consumers:
+  - aegis-audit-service       # audit trail (refund record)
+  # future: aegis-notification-service (refund confirmation)
+
+headers:
+  contentType: application/json
+  eventType: PAYMENT_REFUNDED
+
+payload:
+  eventId:
+    type: string
+    format: uuid
+  eventType:
+    type: string
+    enum: [PAYMENT_REFUNDED]
+  schemaVersion:
+    type: string
+    example: "1.0"
+  occurredAt:
+    type: string
+    format: date-time
+  causationId:
+    type: string
+    format: uuid
+    nullable: true
+  correlationId:
+    type: string
+  aggregateId:
+    type: string
+    format: uuid
+    description: Identifier of the aggregate (the refund)
+  aggregateType:
+    type: string
+    enum: [REFUND]
+  refundId:
+    type: string
+    format: uuid
+  paymentId:
+    type: string
+    format: uuid
+  walletId:
+    type: string
+    format: uuid
+  userId:
+    type: string
+    format: uuid
+    description: Owner of the wallet (refund recipient)
+  amount:
+    type: number
+    format: decimal
+  currency:
+    type: string
+    pattern: "^[A-Z]{3}$"
+  reason:
+    type: string
+    nullable: true
+  reference:
+    type: string
+  newBalance:
+    type: number
+    format: decimal
+    description: Wallet balance after the refund credit
+  timestamp:
+    type: string
+    format: date-time
