@@ -6,16 +6,20 @@ import com.aegis.wallet.application.dto.ReversalReceipt;
 import com.aegis.wallet.application.dto.WalletDetailResponse;
 import com.aegis.wallet.application.dto.WalletResponse;
 import com.aegis.wallet.application.service.CreateWalletService;
+import com.aegis.wallet.application.service.CreditRefundService;
 import com.aegis.wallet.application.service.DepositFundsService;
 import com.aegis.wallet.application.service.ReverseDepositService;
 import com.aegis.wallet.application.service.UpdateWalletService;
 import com.aegis.wallet.domain.model.WalletStatus;
+import com.aegis.wallet.domain.port.inbound.CreditRefundUseCase;
 import com.aegis.wallet.domain.port.inbound.DepositFundsUseCase;
 import com.aegis.wallet.domain.port.inbound.GetWalletDetailUseCase;
 import com.aegis.wallet.domain.port.inbound.ListWalletsUseCase;
 import com.aegis.wallet.domain.port.inbound.ReverseDepositUseCase;
 import com.aegis.wallet.domain.port.inbound.UpdateWalletUseCase;
 import com.aegis.wallet.web.dto.AdjustBalanceRequest;
+import com.aegis.wallet.web.dto.CreditRefundRequest;
+import com.aegis.wallet.web.dto.CreditRefundResponse;
 import com.aegis.wallet.web.dto.CreateWalletRequest;
 import com.aegis.wallet.web.dto.DepositFundsRequest;
 import com.aegis.wallet.web.dto.ReversalRequest;
@@ -43,6 +47,7 @@ public class WalletController {
     private final UpdateWalletService updateWalletService;
     private final DepositFundsService depositFundsService;
     private final ReverseDepositService reverseDepositService;
+    private final CreditRefundService creditRefundService;
     private final ListWalletsUseCase listWalletsUseCase;
     private final GetWalletDetailUseCase getWalletDetailUseCase;
 
@@ -50,12 +55,14 @@ public class WalletController {
                              UpdateWalletService updateWalletService,
                              DepositFundsService depositFundsService,
                              ReverseDepositService reverseDepositService,
+                             CreditRefundService creditRefundService,
                              ListWalletsUseCase listWalletsUseCase,
                              GetWalletDetailUseCase getWalletDetailUseCase) {
         this.createWalletService = createWalletService;
         this.updateWalletService = updateWalletService;
         this.depositFundsService = depositFundsService;
         this.reverseDepositService = reverseDepositService;
+        this.creditRefundService = creditRefundService;
         this.listWalletsUseCase = listWalletsUseCase;
         this.getWalletDetailUseCase = getWalletDetailUseCase;
     }
@@ -184,6 +191,32 @@ public class WalletController {
                 walletId, userId, newStatus));
 
         return ResponseEntity.ok(toDetailResponse(result));
+    }
+
+    /**
+     * Credits the wallet with a refund, creating a REFUND ledger entry.
+     * Idempotent by refundId — if the same refundId is submitted again, the
+     * current balance is returned without creating a duplicate entry.
+     *
+     * @param walletId the wallet to credit
+     * @param request  the credit-refund request
+     * @return the credit result with the new balance
+     */
+    @PostMapping("/{walletId}/credits/refund")
+    public ResponseEntity<CreditRefundResponse> creditRefund(
+            @PathVariable UUID walletId,
+            @Valid @RequestBody CreditRefundRequest request) {
+
+        CreditRefundUseCase.CreditResult result = creditRefundService.credit(
+                new CreditRefundUseCase.CreditCommand(
+                        request.refundId(), walletId, request.amount(), request.currency()));
+
+        return ResponseEntity.ok(new CreditRefundResponse(
+                result.refundId(),
+                result.walletId(),
+                result.newBalance(),
+                result.timestamp()
+        ));
     }
 
     private WalletDetailResponse toDetailResponse(UpdateWalletUseCase.WalletDetailResult result) {

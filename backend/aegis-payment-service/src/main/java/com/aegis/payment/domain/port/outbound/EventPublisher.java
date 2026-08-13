@@ -2,6 +2,7 @@ package com.aegis.payment.domain.port.outbound;
 
 import com.aegis.payment.domain.event.PaymentExecuted;
 import com.aegis.payment.domain.event.PaymentFailed;
+import com.aegis.payment.domain.event.PaymentRefunded;
 import com.aegis.payment.domain.event.PaymentRequested;
 import com.aegis.payment.domain.event.TransferCompleted;
 import com.aegis.payment.domain.event.TransferFailed;
@@ -53,4 +54,11 @@ public interface EventPublisher {
      * @param event the event to publish
      */
     void publish(PaymentFailed event);
+
+    /**
+     * Publishes a {@link PaymentRefunded} event.
+     *
+     * @param event the event to publish
+     */
+    void publish(PaymentRefunded event);
 }

@@ -191,6 +191,32 @@ class PaymentTest {
             payment.startProcessing();
             assertThrows(InvalidPaymentStateException.class, payment::startProcessing);
         }
+
+        @Test
+        @DisplayName("COMPLETED -> REFUNDED via markRefunded()")
+        void completedToRefunded() {
+            Payment payment = Payment.request(WALLET, USER, AMOUNT, CURRENCY, PAYEE, null, REFERENCE);
+            payment.startProcessing();
+            payment.markFundsReserved(UUID.randomUUID());
+            payment.complete();
+            payment.markRefunded();
+            assertEquals(PaymentStatus.REFUNDED, payment.getStatus());
+        }
+
+        @Test
+        @DisplayName("Invalid: PENDING -> REFUNDED throws")
+        void invalidPendingToRefunded() {
+            Payment payment = Payment.request(WALLET, USER, AMOUNT, CURRENCY, PAYEE, null, REFERENCE);
+            assertThrows(InvalidPaymentStateException.class, payment::markRefunded);
+        }
+
+        @Test
+        @DisplayName("Invalid: FAILED -> REFUNDED throws")
+        void invalidFailedToRefunded() {
+            Payment payment = Payment.request(WALLET, USER, AMOUNT, CURRENCY, PAYEE, null, REFERENCE);
+            payment.fail("error");
+            assertThrows(InvalidPaymentStateException.class, payment::markRefunded);
+        }
     }
 
     @Nested

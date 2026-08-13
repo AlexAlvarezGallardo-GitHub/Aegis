@@ -6,11 +6,18 @@ import com.aegis.payment.domain.exception.DuplicateTransferException;
 import com.aegis.payment.domain.exception.FraudAssessmentUnavailableException;
 import com.aegis.payment.domain.exception.FraudRejectedException;
 import com.aegis.payment.domain.exception.InvalidPaymentStateException;
+import com.aegis.payment.domain.exception.InvalidRefundStateException;
 import com.aegis.payment.domain.exception.InvalidTransferStateException;
+import com.aegis.payment.domain.exception.PaymentAlreadyRefundedException;
 import com.aegis.payment.domain.exception.PaymentAssessmentUnavailableException;
 import com.aegis.payment.domain.exception.PaymentNotFoundException;
+import com.aegis.payment.domain.exception.PaymentNotOwnedException;
+import com.aegis.payment.domain.exception.PaymentNotRefundableException;
 import com.aegis.payment.domain.exception.PaymentRejectedException;
 import com.aegis.payment.domain.exception.PaymentSettlementFailedException;
+import com.aegis.payment.domain.exception.RefundAlreadyExistsException;
+import com.aegis.payment.domain.exception.RefundExceedsPaymentException;
+import com.aegis.payment.domain.exception.RefundNotFoundException;
 import com.aegis.payment.domain.exception.SelfTransferException;
 import com.aegis.payment.domain.exception.TransferNotFoundException;
 import org.springframework.core.Ordered;
@@ -24,7 +31,7 @@ import java.util.Map;
 
 /**
  * Payment-service specific exception handler. Extends the shared {@link AbstractExceptionHandler}
- * and adds domain-specific handlers for payment and transfer exceptions.
+ * and adds domain-specific handlers for payment, transfer, and refund exceptions.
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
@@ -112,6 +119,64 @@ public class PaymentExceptionHandler extends AbstractExceptionHandler {
     public ResponseEntity<Map<String, Object>> handlePaymentSettlementFailed(
             PaymentSettlementFailedException ex) {
         return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
+    // --- Refund exceptions ---
+
+    /**
+     * Handles {@link RefundNotFoundException} with HTTP 404.
+     */
+    @ExceptionHandler(RefundNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleRefundNotFound(RefundNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link RefundAlreadyExistsException} with HTTP 409.
+     */
+    @ExceptionHandler(RefundAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleRefundAlreadyExists(RefundAlreadyExistsException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link PaymentAlreadyRefundedException} with HTTP 409.
+     */
+    @ExceptionHandler(PaymentAlreadyRefundedException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentAlreadyRefunded(PaymentAlreadyRefundedException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link PaymentNotRefundableException} with HTTP 422.
+     */
+    @ExceptionHandler(PaymentNotRefundableException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentNotRefundable(PaymentNotRefundableException ex) {
+        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link PaymentNotOwnedException} with HTTP 403.
+     */
+    @ExceptionHandler(PaymentNotOwnedException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentNotOwned(PaymentNotOwnedException ex) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link RefundExceedsPaymentException} with HTTP 422.
+     */
+    @ExceptionHandler(RefundExceedsPaymentException.class)
+    public ResponseEntity<Map<String, Object>> handleRefundExceedsPayment(RefundExceedsPaymentException ex) {
+        return buildErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getCode(), ex.getMessage(), null);
+    }
+
+    /**
+     * Handles {@link InvalidRefundStateException} with HTTP 400.
+     */
+    @ExceptionHandler(InvalidRefundStateException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidRefundState(InvalidRefundStateException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getCode(), ex.getMessage(), null);
     }
 
     @ExceptionHandler(UnsupportedOperationException.class)

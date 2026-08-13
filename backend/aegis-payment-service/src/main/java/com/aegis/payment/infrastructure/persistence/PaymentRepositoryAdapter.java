@@ -34,4 +34,9 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     public boolean existsByWalletIdAndReference(UUID walletId, String reference) {
         return jpaRepository.existsByWalletIdAndReference(walletId, reference);
     }
+
+    @Override
+    public Optional<Payment> findByIdForUpdate(UUID paymentId) {
+        return jpaRepository.findByIdForUpdate(paymentId).map(PaymentJpaEntity::toDomain);
+    }
 }

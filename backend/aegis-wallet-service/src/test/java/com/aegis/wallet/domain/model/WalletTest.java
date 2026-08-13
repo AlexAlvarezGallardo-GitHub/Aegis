@@ -347,4 +347,53 @@ class WalletTest {
         assertThrows(IllegalArgumentException.class,
                 () -> wallet.debitForPayment(BigDecimal.ZERO, "PAY-1", null));
     }
+
+    @Test
+    void creditForRefundShouldIncreaseBalance() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK", "TXN-1", "Deposit");
+        wallet.debitForPayment(new BigDecimal("25.00"), "PAY-1", "Payment");
+
+        wallet.creditForRefund(new BigDecimal("25.00"), "REF-1", "Refund");
+
+        assertEquals(0, new BigDecimal("100.00").compareTo(wallet.getBalance()));
+        assertEquals(4, wallet.getLedgerEntries().size());
+        LedgerEntry refundEntry = wallet.getLedgerEntries().getLast();
+        assertEquals(LedgerEntryType.REFUND, refundEntry.type());
+        assertEquals(0, new BigDecimal("25.00").compareTo(refundEntry.amount()));
+        assertEquals("REF-1", refundEntry.reference());
+    }
+
+    @Test
+    void creditForRefundShouldBeIdempotentByReference() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK", "TXN-1", "Deposit");
+
+        wallet.creditForRefund(new BigDecimal("25.00"), "REF-1", "Refund");
+        BigDecimal balanceAfterFirst = wallet.getBalance();
+
+        wallet.creditForRefund(new BigDecimal("25.00"), "REF-1", "Refund");
+
+        assertEquals(0, balanceAfterFirst.compareTo(wallet.getBalance()));
+        // Should only have 3 entries: OPENING, DEPOSIT, REFUND (not double REFUND)
+        assertEquals(3, wallet.getLedgerEntries().size());
+    }
+
+    @Test
+    void creditForRefundShouldRejectWhenWalletInactive() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        wallet.depositFunds(new BigDecimal("100.00"), "BANK", "TXN-1", "Deposit");
+        wallet.debitForPayment(new BigDecimal("100.00"), "PAY-1", "Payment");
+        wallet.deactivate(WalletStatus.FROZEN);
+
+        assertThrows(com.aegis.wallet.domain.exception.WalletOperationNotAllowedException.class,
+                () -> wallet.creditForRefund(new BigDecimal("25.00"), "REF-1", null));
+    }
+
+    @Test
+    void creditForRefundShouldRejectNonPositiveAmount() {
+        Wallet wallet = Wallet.create(UUID.randomUUID(), "EUR");
+        assertThrows(IllegalArgumentException.class,
+                () -> wallet.creditForRefund(BigDecimal.ZERO, "REF-1", null));
+    }
 }
