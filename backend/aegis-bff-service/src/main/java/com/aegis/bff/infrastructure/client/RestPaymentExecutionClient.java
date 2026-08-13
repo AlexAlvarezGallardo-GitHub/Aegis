@@ -64,4 +64,28 @@ public class RestPaymentExecutionClient implements PaymentExecutionClient {
                 .retrieve()
                 .body(JsonNode.class);
     }
+
+    @Override
+    public JsonNode refundPayment(String accessToken, String userId,
+                                  String paymentId, BigDecimal amount,
+                                  String reason, String reference,
+                                  String correlationId) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        if (amount != null) {
+            body.put("amount", amount);
+        }
+        if (reason != null) {
+            body.put("reason", reason);
+        }
+        body.put("reference", reference);
+
+        return restClient.post()
+                .uri("/api/v1/payments/{paymentId}/refund", paymentId)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("X-User-Id", userId)
+                .header("X-Correlation-Id", correlationId)
+                .body(body)
+                .retrieve()
+                .body(JsonNode.class);
+    }
 }

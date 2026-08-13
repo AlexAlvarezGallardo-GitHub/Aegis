@@ -1,0 +1,16 @@
+:host {
+  display: contents;
+}
+
+.dialog-wallet {
+  font-size: var(--aegis-text-sm);
+  color: var(--aegis-color-text-muted);
+  margin: 0;
+  word-break: break-all;
+}
+
+.dialog-hint {
+  font-size: var(--aegis-text-sm);
+  color: var(--aegis-color-text-muted);
+  margin: 0.5rem 0 1rem 0;
+}
