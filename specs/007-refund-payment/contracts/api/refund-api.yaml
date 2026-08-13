@@ -1,0 +1,174 @@
+openapi: 3.0.3
+info:
+  title: Aegis Refund Payment API (Payment Service)
+  description: |
+    Reverses a completed payment, crediting the payer's wallet with a REFUND
+    ledger entry. See specs/007-refund-payment/spec.md and ADR-016.
+  version: 1.0.0
+  contact:
+    name: Aegis Platform Team
+    url: https://github.com/AlexAlvarezGallardo-GitHub/Aegis
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8084
+    description: Local development server
+
+paths:
+  /api/v1/payments/{paymentId}/refund:
+    post:
+      operationId: refundPayment
+      summary: Refund a completed payment
+      description: |
+        Credits the payer's wallet with the refund amount (full by default,
+        partial if `amount` is provided and ≤ the payment amount). Transitions
+        the payment to REFUNDED and publishes PaymentRefunded. `reference` is the
+        idempotency key.
+      tags: [Refunds]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+            example:
+              amount: 25.00
+              reason: "Product returned"
+              reference: "REF-2026-0001"
+      responses:
+        '200':
+          description: Refund completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          description: Payment owned by another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Payment already refunded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Payment not refundable or amount exceeds payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from the Auth API (propagated by the BFF)
+
+  schemas:
+    RefundRequest:
+      type: object
+      required: [reference]
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Refund amount (optional; defaults to the full payment amount)
+          example: 25.00
+          exclusiveMinimum: 0
+        reason:
+          type: string
+          description: Optional refund reason
+          example: "Product returned"
+          maxLength: 255
+        reference:
+          type: string
+          description: Client-supplied idempotency key
+          example: "REF-2026-0001"
+          maxLength: 255
+
+    RefundResponse:
+      type: object
+      properties:
+        refundId:
+          type: string
+          format: uuid
+        paymentId:
+          type: string
+          format: uuid
+        walletId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        reason:
+          type: string
+          nullable: true
+        reference:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, COMPLETED, FAILED]
+        newBalance:
+          type: number
+          format: double
+          description: Wallet balance after the refund credit
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
