@@ -3,6 +3,7 @@ package com.aegis.payment.infrastructure.persistence;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -28,5 +29,6 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentJpaEntity, UU
      * @return the locked payment, or empty if not found
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from PaymentJpaEntity p where p.id = :id")
     Optional<PaymentJpaEntity> findByIdForUpdate(UUID id);
 }
