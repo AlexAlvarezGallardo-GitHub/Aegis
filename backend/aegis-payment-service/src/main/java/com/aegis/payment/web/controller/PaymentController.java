@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,12 +39,18 @@ public class PaymentController {
     /**
      * Executes a new payment.
      *
+     * <p>The authenticated user id is taken from the {@code X-User-Id} header
+     * (populated by the BFF from the session JWT) — never from the request body,
+     * so a caller cannot pay from another user's wallet.</p>
+     *
      * @param request the validated payment request
+     * @param userId  the authenticated user id (X-User-Id header)
      * @return the completed or failed payment
      */
     @PostMapping
-    public ResponseEntity<PaymentResponse> executePayment(@Valid @RequestBody PaymentRequest request) {
-        ExecutePaymentUseCase.PaymentCommand command = PaymentMapper.toCommand(request);
+    public ResponseEntity<PaymentResponse> executePayment(@Valid @RequestBody PaymentRequest request,
+                                                          @RequestHeader("X-User-Id") UUID userId) {
+        ExecutePaymentUseCase.PaymentCommand command = PaymentMapper.toCommand(request, userId);
         Payment payment = executePaymentUseCase.execute(command);
         PaymentResponse response = PaymentResponse.from(PaymentResult.from(payment));
         return ResponseEntity.created(URI.create("/api/v1/payments/" + payment.getId())).body(response);

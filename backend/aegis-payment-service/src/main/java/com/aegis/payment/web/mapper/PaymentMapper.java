@@ -5,6 +5,8 @@ import com.aegis.payment.domain.model.PayeeType;
 import com.aegis.payment.domain.port.inbound.ExecutePaymentUseCase;
 import com.aegis.payment.web.dto.PaymentRequest;
 
+import java.util.UUID;
+
 /**
  * Maps web-layer DTOs to application commands and domain use-case commands.
  */
@@ -18,9 +20,10 @@ public final class PaymentMapper {
      * {@link ExecutePaymentUseCase.PaymentCommand}.
      *
      * @param request the validated web request
+     * @param userId  the authenticated user id (from the X-User-Id header)
      * @return the inbound port command
      */
-    public static ExecutePaymentUseCase.PaymentCommand toCommand(PaymentRequest request) {
+    public static ExecutePaymentUseCase.PaymentCommand toCommand(PaymentRequest request, UUID userId) {
         Payee payee = new Payee(
                 request.payee().name(),
                 request.payee().id(),
@@ -28,7 +31,7 @@ public final class PaymentMapper {
         );
         return new ExecutePaymentUseCase.PaymentCommand(
                 request.walletId(),
-                request.userId(),
+                userId,
                 request.amount(),
                 request.currency(),
                 payee,
