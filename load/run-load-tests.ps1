@@ -35,6 +35,7 @@ $scenarios = @(
     @{ Name = "deposits";   Pool = "depuser";  }
     @{ Name = "idempotency"; Pool = "idemuser" }
     @{ Name = "transfers";  Pool = "trfuser";  }
+    @{ Name = "payments";   Pool = "payuser";  }
 )
 
 foreach ($s in $scenarios) {

@@ -87,16 +87,16 @@ class PaymentControllerTest {
             String body = """
                     {
                       "walletId": "%s",
-                      "userId": "%s",
                       "amount": 25.00,
                       "currency": "EUR",
                       "payee": {"name": "Cafe Central", "id": "merchant-123", "type": "MERCHANT"},
                       "description": "Coffee",
                       "reference": "PAY-001"
                     }
-                    """.formatted(wallet, user);
+                    """.formatted(wallet);
 
             mockMvc.perform(post("/api/v1/payments")
+                            .header("X-User-Id", user.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
                     .andExpect(status().isCreated())
@@ -112,15 +112,15 @@ class PaymentControllerTest {
             String body = """
                     {
                       "walletId": "%s",
-                      "userId": "%s",
                       "amount": 25.00,
                       "currency": "EUR",
                       "payee": {"name": "Cafe Central", "id": "merchant-123", "type": "MERCHANT"},
                       "reference": "PAY-001"
                     }
-                    """.formatted(UUID.randomUUID(), UUID.randomUUID());
+                    """.formatted(UUID.randomUUID());
 
             mockMvc.perform(post("/api/v1/payments")
+                            .header("X-User-Id", UUID.randomUUID().toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
                     .andExpect(status().isUnprocessableEntity())
@@ -136,15 +136,15 @@ class PaymentControllerTest {
             String body = """
                     {
                       "walletId": "%s",
-                      "userId": "%s",
                       "amount": 25.00,
                       "currency": "EUR",
                       "payee": {"name": "Cafe Central", "id": "merchant-123", "type": "MERCHANT"},
                       "reference": "PAY-001"
                     }
-                    """.formatted(UUID.randomUUID(), UUID.randomUUID());
+                    """.formatted(UUID.randomUUID());
 
             mockMvc.perform(post("/api/v1/payments")
+                            .header("X-User-Id", UUID.randomUUID().toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
                     .andExpect(status().isServiceUnavailable())

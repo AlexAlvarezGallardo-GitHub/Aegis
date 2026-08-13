@@ -10,13 +10,11 @@ import java.util.UUID;
 
 /**
  * Web-layer request object for creating a payment. Contains only validation annotations.
+ * The authenticated user id is supplied via the X-User-Id header, not the body.
  */
 public record PaymentRequest(
         @NotNull(message = "walletId is required")
         UUID walletId,
-
-        @NotNull(message = "userId is required")
-        UUID userId,
 
         @NotNull(message = "amount is required")
         @DecimalMin(value = "0.01", message = "amount must be positive")
