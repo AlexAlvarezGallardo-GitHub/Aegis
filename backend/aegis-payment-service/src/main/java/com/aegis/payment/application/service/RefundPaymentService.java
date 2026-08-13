@@ -1,5 +1,6 @@
 package com.aegis.payment.application.service;
 
+import com.aegis.payment.application.dto.RefundResult;
 import com.aegis.payment.domain.event.PaymentRefunded;
 import com.aegis.payment.domain.exception.PaymentAlreadyRefundedException;
 import com.aegis.payment.domain.exception.PaymentNotFoundException;
@@ -61,14 +62,14 @@ public class RefundPaymentService implements RefundPaymentUseCase, GetRefundUseC
     }
 
     @Override
-    public Refund refund(RefundCommand command) {
+    public RefundResult refund(RefundCommand command) {
         validate(command);
 
         // Idempotency: if a refund with the same reference already exists, return it
         var existingRefund = refundRepository.findByReference(command.reference());
         if (existingRefund.isPresent()) {
             log.info("Refund with reference {} already exists, returning existing", command.reference());
-            return existingRefund.get();
+            return RefundResult.from(existingRefund.get());
         }
 
         // Phase 1 — validate payment + persist PENDING refund (own transaction)
@@ -132,11 +133,10 @@ public class RefundPaymentService implements RefundPaymentUseCase, GetRefundUseC
         return saved;
     }
 
-    private Refund completeRefundSaga(Refund refund) {
+    private RefundResult completeRefundSaga(Refund refund) {
         AtomicReference<RuntimeException> postCommitException = new AtomicReference<>();
-        AtomicReference<BigDecimal> newBalanceRef = new AtomicReference<>();
 
-        Refund result = transactionTemplate.execute(status -> {
+        RefundResult result = transactionTemplate.execute(status -> {
             // Credit wallet
             BigDecimal newBalance;
             try {
@@ -152,10 +152,9 @@ public class RefundPaymentService implements RefundPaymentUseCase, GetRefundUseC
                 log.warn("Wallet credit failed for refund {}: {}",
                         refund.getId(), ex.getMessage());
                 postCommitException.set(ex);
-                return refund;
+                return RefundResult.from(refund);
             }
 
-            newBalanceRef.set(newBalance);
             refund.complete();
             refundRepository.save(refund);
 
@@ -169,7 +168,7 @@ public class RefundPaymentService implements RefundPaymentUseCase, GetRefundUseC
             eventPublisher.publish(new PaymentRefunded(refund, newBalance));
             log.info("Refund completed: id={}, paymentId={}, newBalance={}",
                     refund.getId(), refund.getPaymentId(), newBalance);
-            return refund;
+            return RefundResult.from(refund, newBalance);
         });
 
         if (postCommitException.get() != null) {

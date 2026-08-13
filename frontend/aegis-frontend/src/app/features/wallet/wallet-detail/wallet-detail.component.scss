@@ -251,6 +251,23 @@
   color: var(--aegis-color-text-muted);
 }
 
+.refund-button {
+  margin-top: var(--aegis-space-1);
+  font-size: var(--aegis-text-xs);
+  padding: var(--aegis-space-1) var(--aegis-space-2);
+  min-height: 28px;
+  
+  mat-icon {
+    font-size: var(--aegis-icon-size-sm);
+    width: var(--aegis-icon-size-sm);
+    height: var(--aegis-icon-size-sm);
+  }
+  
+  span {
+    font-size: var(--aegis-text-xs);
+  }
+}
+
 // ── Transactions table ───────────────────────────────────────────────────────
 
 .table-wrap {

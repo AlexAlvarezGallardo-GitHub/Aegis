@@ -12,6 +12,7 @@ import { WalletService } from '../wallet.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { TransferDialogComponent, TransferDialogResult } from './transfer-dialog.component';
 import { PaymentDialogComponent, PaymentDialogResult } from './payment-dialog.component';
+import { RefundDialogComponent, RefundDialogResult } from './refund-dialog.component';
 
 const stubRoutes: Routes = [{ path: 'wallets', component: class {} }];
 
@@ -37,6 +38,7 @@ describe('WalletDetailComponent', () => {
       'getWallet',
       'transferFunds',
       'executePayment',
+      'refundPayment',
       'recordActivity',
       'getActivitiesFor',
     ]);
@@ -431,6 +433,249 @@ describe('WalletDetailComponent', () => {
       tick();
 
       expect(toastService.error).toHaveBeenCalledWith('Unable to complete payment', {
+        description: 'Please try again.',
+      });
+      flush();
+    }));
+  });
+
+  describe('Refund functionality', () => {
+    it('should return correct label for REFUND', () => {
+      expect(component.activityTypeLabel('REFUND')).toBe('Refund');
+    });
+
+    it('should return correct icon for REFUND', () => {
+      expect(component.activityIcon('REFUND')).toBe('undo');
+    });
+
+    it('should open refund dialog when openRefund is called', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const mockDialogRef = {
+        closed: of(undefined),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      const paymentActivity = {
+        id: 'act-1',
+        walletId: 'wallet-123',
+        type: 'PAYMENT' as const,
+        amount: -50,
+        currency: 'USD',
+        reference: 'payment-123',
+        status: 'COMPLETED' as const,
+        timestamp: '2026-01-01T00:00:00Z',
+      };
+
+      component.openRefund(paymentActivity);
+
+      expect(dialog.open).toHaveBeenCalledWith(RefundDialogComponent, {
+        data: { 
+          wallet: mockWallet, 
+          paymentId: 'payment-123',
+          paymentAmount: 50
+        },
+      });
+      flush();
+    }));
+
+    it('should call refundPayment with correct parameters on successful refund', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const refundResult: RefundDialogResult = {
+        amount: 25.50,
+        reason: 'Product returned',
+        reference: 'REF-123',
+      };
+      const mockDialogRef = {
+        closed: of(refundResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.refundPayment.and.returnValue(of({
+        refundId: 'refund-123',
+        paymentId: 'payment-123',
+        walletId: 'wallet-123',
+        userId: 'user-456',
+        amount: 25.50,
+        currency: 'USD',
+        reason: 'Product returned',
+        reference: 'REF-123',
+        status: 'COMPLETED',
+        newBalance: 1025.50,
+        createdAt: '2026-01-01T00:00:00Z',
+        completedAt: '2026-01-01T00:01:00Z',
+      }));
+
+      const paymentActivity = {
+        id: 'act-1',
+        walletId: 'wallet-123',
+        type: 'PAYMENT' as const,
+        amount: -50,
+        currency: 'USD',
+        reference: 'payment-123',
+        status: 'COMPLETED' as const,
+        timestamp: '2026-01-01T00:00:00Z',
+      };
+
+      component.openRefund(paymentActivity);
+      tick();
+
+      expect(walletService.refundPayment).toHaveBeenCalledWith('payment-123', {
+        amount: 25.50,
+        reason: 'Product returned',
+        reference: 'REF-123',
+      });
+
+      expect(walletService.recordActivity).toHaveBeenCalledWith(jasmine.objectContaining({
+        walletId: 'wallet-123',
+        type: 'REFUND',
+        amount: 25.50,
+        currency: 'USD',
+        reference: 'REF-123',
+        status: 'COMPLETED',
+      }));
+
+      expect(toastService.success).toHaveBeenCalledWith('Refund completed', jasmine.any(Object));
+      flush();
+    }));
+
+    it('should reset isOperating via finalize on error', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const refundResult: RefundDialogResult = {
+        amount: 25.50,
+        reference: 'REF-123',
+      };
+      const mockDialogRef = {
+        closed: of(refundResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.refundPayment.and.returnValue(throwError(() => ({ status: 500 })));
+
+      const paymentActivity = {
+        id: 'act-1',
+        walletId: 'wallet-123',
+        type: 'PAYMENT' as const,
+        amount: -50,
+        currency: 'USD',
+        reference: 'payment-123',
+        status: 'COMPLETED' as const,
+        timestamp: '2026-01-01T00:00:00Z',
+      };
+
+      component.openRefund(paymentActivity);
+      tick();
+
+      expect(component.isOperating()).toBeFalse();
+      flush();
+    }));
+
+    it('should show warning toast on 409 error (already refunded)', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const refundResult: RefundDialogResult = {
+        amount: 25.50,
+        reference: 'REF-123',
+      };
+      const mockDialogRef = {
+        closed: of(refundResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.refundPayment.and.returnValue(throwError(() => ({ status: 409 })));
+
+      const paymentActivity = {
+        id: 'act-1',
+        walletId: 'wallet-123',
+        type: 'PAYMENT' as const,
+        amount: -50,
+        currency: 'USD',
+        reference: 'payment-123',
+        status: 'COMPLETED' as const,
+        timestamp: '2026-01-01T00:00:00Z',
+      };
+
+      component.openRefund(paymentActivity);
+      tick();
+
+      expect(toastService.warning).toHaveBeenCalledWith('Payment already refunded', jasmine.any(Object));
+      flush();
+    }));
+
+    it('should show error toast with message on 422 error', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const refundResult: RefundDialogResult = {
+        amount: 25.50,
+        reference: 'REF-123',
+      };
+      const mockDialogRef = {
+        closed: of(refundResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.refundPayment.and.returnValue(throwError(() => ({
+        status: 422,
+        error: { message: 'Payment not refundable' },
+      })));
+
+      const paymentActivity = {
+        id: 'act-1',
+        walletId: 'wallet-123',
+        type: 'PAYMENT' as const,
+        amount: -50,
+        currency: 'USD',
+        reference: 'payment-123',
+        status: 'COMPLETED' as const,
+        timestamp: '2026-01-01T00:00:00Z',
+      };
+
+      component.openRefund(paymentActivity);
+      tick();
+
+      expect(toastService.error).toHaveBeenCalledWith('Unable to complete refund', {
+        description: 'Payment not refundable',
+      });
+      flush();
+    }));
+
+    it('should show generic error toast on other errors', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const refundResult: RefundDialogResult = {
+        amount: 25.50,
+        reference: 'REF-123',
+      };
+      const mockDialogRef = {
+        closed: of(refundResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.refundPayment.and.returnValue(throwError(() => ({ status: 500 })));
+
+      const paymentActivity = {
+        id: 'act-1',
+        walletId: 'wallet-123',
+        type: 'PAYMENT' as const,
+        amount: -50,
+        currency: 'USD',
+        reference: 'payment-123',
+        status: 'COMPLETED' as const,
+        timestamp: '2026-01-01T00:00:00Z',
+      };
+
+      component.openRefund(paymentActivity);
+      tick();
+
+      expect(toastService.error).toHaveBeenCalledWith('Unable to complete refund', {
         description: 'Please try again.',
       });
       flush();

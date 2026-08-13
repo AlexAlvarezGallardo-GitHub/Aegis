@@ -45,4 +45,21 @@ public interface PaymentExecutionClient {
      */
     JsonNode getPayment(String accessToken, String userId,
                         String paymentId, String correlationId);
+
+    /**
+     * Refunds a completed payment.
+     *
+     * @param accessToken   the bearer token
+     * @param userId        the user id extracted from the session JWT
+     * @param paymentId     the payment id to refund
+     * @param amount        the refund amount (null for full refund)
+     * @param reason        the optional refund reason
+     * @param reference     the idempotency / external reference
+     * @param correlationId the correlation id for tracing
+     * @return the created refund
+     */
+    JsonNode refundPayment(String accessToken, String userId,
+                           String paymentId, BigDecimal amount,
+                           String reason, String reference,
+                           String correlationId);
 }

@@ -1,5 +1,6 @@
 package com.aegis.payment.application.service;
 
+import com.aegis.payment.application.dto.RefundResult;
 import com.aegis.payment.domain.event.PaymentRefunded;
 import com.aegis.payment.domain.exception.PaymentAlreadyRefundedException;
 import com.aegis.payment.domain.exception.PaymentNotFoundException;
@@ -89,10 +90,10 @@ class RefundPaymentServiceTest {
             when(walletGateway.creditRefund(any(), any(), any(), any())).thenReturn(new BigDecimal("100.00"));
             when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            Refund result = service.refund(command(null, "REF-001"));
+            RefundResult result = service.refund(command(null, "REF-001"));
 
-            assertEquals(RefundStatus.COMPLETED, result.getStatus());
-            assertEquals(PAYMENT_ID, result.getPaymentId());
+            assertEquals(RefundStatus.COMPLETED, result.status());
+            assertEquals(PAYMENT_ID, result.paymentId());
             verify(walletGateway).creditRefund(any(), eq(WALLET_ID), eq(new BigDecimal("25.00")), eq("EUR"));
             verify(eventPublisher).publish(any(PaymentRefunded.class));
         }
@@ -111,10 +112,10 @@ class RefundPaymentServiceTest {
             when(walletGateway.creditRefund(any(), any(), any(), any())).thenReturn(new BigDecimal("85.00"));
             when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            Refund result = service.refund(command(new BigDecimal("10.00"), "REF-002"));
+            RefundResult result = service.refund(command(new BigDecimal("10.00"), "REF-002"));
 
-            assertEquals(RefundStatus.COMPLETED, result.getStatus());
-            assertEquals(new BigDecimal("10.00"), result.getAmount());
+            assertEquals(RefundStatus.COMPLETED, result.status());
+            assertEquals(new BigDecimal("10.00"), result.amount());
             verify(walletGateway).creditRefund(any(), eq(WALLET_ID), eq(new BigDecimal("10.00")), eq("EUR"));
         }
 
@@ -126,9 +127,9 @@ class RefundPaymentServiceTest {
                     RefundStatus.COMPLETED, java.time.Instant.now(), java.time.Instant.now(), java.time.Instant.now());
             when(refundRepository.findByReference("REF-DUP")).thenReturn(Optional.of(existing));
 
-            Refund result = service.refund(command(null, "REF-DUP"));
+            RefundResult result = service.refund(command(null, "REF-DUP"));
 
-            assertEquals(existing.getId(), result.getId());
+            assertEquals(existing.getId(), result.refundId());
             verifyNoInteractions(paymentRepository);
             verifyNoInteractions(walletGateway);
         }
@@ -218,9 +219,9 @@ class RefundPaymentServiceTest {
 
             RefundPaymentUseCase.RefundCommand cmd = new RefundPaymentUseCase.RefundCommand(
                     PAYMENT_ID, otherUser, null, null, "REF-001", true);
-            Refund result = service.refund(cmd);
+            RefundResult result = service.refund(cmd);
 
-            assertEquals(RefundStatus.COMPLETED, result.getStatus());
+            assertEquals(RefundStatus.COMPLETED, result.status());
         }
 
         @Test

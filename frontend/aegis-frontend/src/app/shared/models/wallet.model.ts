@@ -35,7 +35,7 @@ export interface DepositReceipt {
   timestamp: string;
 }
 
-export type WalletActivityType = 'DEPOSIT' | 'WITHDRAWAL' | 'ADJUSTMENT' | 'TRANSFER' | 'PAYMENT';
+export type WalletActivityType = 'DEPOSIT' | 'WITHDRAWAL' | 'ADJUSTMENT' | 'TRANSFER' | 'PAYMENT' | 'REFUND';
 
 export interface TransferRequest {
   sourceWalletId: string;
@@ -94,6 +94,27 @@ export interface PaymentResponse {
   failureReason?: string | null;
   createdAt: string;
   updatedAt?: string;
+  completedAt?: string | null;
+}
+
+export interface RefundRequest {
+  amount?: number;
+  reason?: string;
+  reference: string;
+}
+
+export interface RefundResponse {
+  refundId: string;
+  paymentId: string;
+  walletId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  reason?: string | null;
+  reference: string;
+  status: string;
+  newBalance: number;
+  createdAt: string;
   completedAt?: string | null;
 }
 

@@ -130,6 +130,12 @@
                     </span>
                     <app-status-chip [label]="activity.status" [variant]="activity.status === 'COMPLETED' ? 'success' : 'error'" size="sm" />
                     <span class="activity-date">{{ activity.timestamp | date: 'MMM d, y · HH:mm' }}</span>
+                    @if (activity.type === 'PAYMENT' && activity.status === 'COMPLETED') {
+                      <button mat-stroked-button class="refund-button" (click)="openRefund(activity)" [disabled]="isOperating()">
+                        <mat-icon>undo</mat-icon>
+                        <span>Refund</span>
+                      </button>
+                    }
                   </div>
                 </li>
               }
@@ -215,6 +221,12 @@
                     </span>
                     <app-status-chip [label]="activity.status" [variant]="activity.status === 'COMPLETED' ? 'success' : 'error'" size="sm" />
                     <span class="activity-date">{{ activity.timestamp | date: 'MMM d, y · HH:mm' }}</span>
+                    @if (activity.type === 'PAYMENT' && activity.status === 'COMPLETED') {
+                      <button mat-stroked-button class="refund-button" (click)="openRefund(activity)" [disabled]="isOperating()">
+                        <mat-icon>undo</mat-icon>
+                        <span>Refund</span>
+                      </button>
+                    }
                   </div>
                 </li>
               }
@@ -250,6 +262,12 @@
                     </span>
                     <app-status-chip [label]="activity.status" [variant]="activity.status === 'COMPLETED' ? 'success' : 'error'" size="sm" />
                     <span class="activity-date">{{ activity.timestamp | date: 'MMM d, y · HH:mm' }}</span>
+                    @if (activity.type === 'PAYMENT' && activity.status === 'COMPLETED') {
+                      <button mat-stroked-button class="refund-button" (click)="openRefund(activity)" [disabled]="isOperating()">
+                        <mat-icon>undo</mat-icon>
+                        <span>Refund</span>
+                      </button>
+                    }
                   </div>
                 </li>
               }

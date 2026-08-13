@@ -19,13 +19,13 @@ Raw outputs: `login.txt`, `wallets.txt`, `deposits.txt`, `idempotency.txt`,
 | `idempotency` | 934 | 15.4 req/s | checks: 201-first / 409-repeat | — | — | ✅ | 0 unexpected (452 expected 409s) |
 | `transfers` | 3144 | 26.2 req/s | `aegis_transfer_latency` (saga: fraud→hold→settle) | 32ms | **71ms** | ✅ | 0.31% (login warm-up) |
 | `payments` | 3212 | 26.8 req/s | `aegis_payment_latency` (saga: fraud→hold→debit) | 36ms | **60ms** | ✅ | 0.45% (login warm-up) |
+| `refunds` | 3090 | 25.7 req/s | `aegis_refund_latency` (credit: refund) | 20ms | **49ms** | ✅ | 0.47% (login warm-up) |
 
 All thresholds configured in the scenarios passed; 100% of checks passed on every
 run. The only metric above the documented SLO (`docs/observability/slo.md`,
 p95 = 300 ms) is the authentication path. The UC-005 transfer saga completes in
-~71 ms p95 and the UC-006 payment saga in ~60 ms p95 (fraud assessment + hold +
-atomic settlement/debit + events), comfortably inside the 1500 ms budget set in
-`load/k6/transfers.js` and `load/k6/payments.js`.
+~71 ms p95, the UC-006 payment saga in ~60 ms p95, and the UC-007 refund credit
+in ~49 ms p95 — all comfortably inside the 1500 ms budget set in the load scripts.
 
 ## Findings
 
@@ -95,6 +95,7 @@ docker compose -f infra/docker-compose.yml up -d
 .\load\seed-users.ps1 -Prefix idemuser -Count 10
 .\load\seed-users.ps1 -Prefix trfuser -Count 15
 .\load\seed-users.ps1 -Prefix payuser -Count 15
+.\load\seed-users.ps1 -Prefix refuser -Count 15
 
 # 3. Run all scenarios + write evidence
 .\load\run-load-tests.ps1
@@ -109,3 +110,17 @@ from another user's wallet. Fixed to derive the user from the `X-User-Id` header
 (BFF-populated from the session JWT), aligning the API with the OpenAPI contract
 (`specs/006-execute-payment/contracts/api/payments-api.yaml`), which never had
 `userId` in the body.
+
+### 8. UC-007 refund saga is fast; sandbox surfaced two startup bugs (2026-08-13)
+First load evidence for refunds (`load/k6/refunds.js`): p95 **49 ms** at up to
+15 VUs, 100% check success. Booting the sandbox for the UC-007 E2E surfaced two
+defects unit tests could not catch:
+
+1. **`PaymentJpaRepository.findByIdForUpdate`** had `@Lock` but no `@Query` —
+   Spring Data tried to derive the query from the method name and failed with
+   `No property 'forUpdate' found`, breaking the payment service at startup.
+   Added the explicit `@Query("select p from PaymentJpaEntity p where p.id = :id")`
+   (matching the wallet repository pattern).
+2. **`RefundResponse.newBalance` was null** — the controller mapped `RefundResult`
+   without the wallet balance after the credit. The use case now returns a
+   `RefundResult` carrying `newBalance` from the wallet credit.

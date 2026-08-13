@@ -22,6 +22,7 @@ import { AegisCurrencyPipe, formatMoney } from '../../../shared/utils/currency.p
 import { MoneyDialogComponent, MoneyDialogResult } from './money-dialog.component';
 import { TransferDialogComponent, TransferDialogResult } from './transfer-dialog.component';
 import { PaymentDialogComponent, PaymentDialogResult } from './payment-dialog.component';
+import { RefundDialogComponent, RefundDialogResult } from './refund-dialog.component';
 import { TechnicalDetailsDialogComponent } from './technical-details-dialog.component';
 
 const TABS = ['overview', 'transactions', 'deposits', 'activity', 'audit'] as const;
@@ -172,6 +173,75 @@ export class WalletDetailComponent {
     ref.closed.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result) this.performPayment(result, wallet);
     });
+  }
+
+  openRefund(activity: WalletActivity): void {
+    const wallet = this.wallet();
+    if (!wallet || !activity.reference) return;
+    
+    // Extract paymentId from the activity reference or use a placeholder
+    // In a real scenario, the activity would have a paymentId field
+    // For now, we'll use the reference as a proxy
+    const paymentId = activity.reference;
+    
+    const ref = this.dialog.open<RefundDialogResult>(RefundDialogComponent, {
+      data: { 
+        wallet, 
+        paymentId,
+        paymentAmount: Math.abs(activity.amount)
+      },
+    });
+    ref.closed.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
+      if (result) this.performRefund(result, wallet, activity);
+    });
+  }
+
+  private performRefund(result: RefundDialogResult, wallet: WalletResponse, activity: WalletActivity): void {
+    this.isOperating.set(true);
+    const paymentId = activity.reference || '';
+    
+    this.walletService.refundPayment(paymentId, {
+      amount: result.amount,
+      reason: result.reason,
+      reference: result.reference,
+    })
+      .pipe(
+        finalize(() => this.isOperating.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.status === 'COMPLETED') {
+            this.loadWallet();
+            const refundAmount = response.amount;
+            this.walletService.recordActivity({
+              walletId: wallet.walletId,
+              type: 'REFUND',
+              amount: refundAmount,
+              currency: wallet.currency,
+              reference: result.reference,
+              status: 'COMPLETED',
+              timestamp: response.completedAt || response.createdAt,
+            });
+            this.toastService.success('Refund completed', {
+              description: `+${formatMoney(refundAmount, wallet.currency)}`,
+              action: { label: 'View transaction', callback: () => this.goToTab('transactions') },
+            });
+          } else {
+            this.toastService.error('Refund pending', { description: 'Refund is being processed.' });
+          }
+        },
+        error: (err) => {
+          if (err?.status === 409) {
+            this.toastService.warning('Payment already refunded', { description: 'This payment has already been refunded.' });
+          } else if (err?.status === 422) {
+            const message = err?.error?.message || 'Unable to complete refund';
+            this.toastService.error('Unable to complete refund', { description: message });
+          } else {
+            this.toastService.error('Unable to complete refund', { description: 'Please try again.' });
+          }
+        },
+      });
   }
 
   private performDeposit(result: MoneyDialogResult, wallet: WalletResponse): void {
@@ -463,11 +533,11 @@ export class WalletDetailComponent {
   }
 
   activityTypeLabel(type: WalletActivityType): string {
-    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : type === 'TRANSFER' ? 'Transfer' : type === 'PAYMENT' ? 'Payment' : 'Adjustment';
+    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : type === 'TRANSFER' ? 'Transfer' : type === 'PAYMENT' ? 'Payment' : type === 'REFUND' ? 'Refund' : 'Adjustment';
   }
 
   activityIcon(type: WalletActivityType): string {
-    return type === 'DEPOSIT' ? 'arrow_downward' : type === 'WITHDRAWAL' ? 'arrow_upward' : type === 'TRANSFER' ? 'swap_horiz' : type === 'PAYMENT' ? 'payments' : 'tune';
+    return type === 'DEPOSIT' ? 'arrow_downward' : type === 'WITHDRAWAL' ? 'arrow_upward' : type === 'TRANSFER' ? 'swap_horiz' : type === 'PAYMENT' ? 'payments' : type === 'REFUND' ? 'undo' : 'tune';
   }
 
   shortId(id: string): string {

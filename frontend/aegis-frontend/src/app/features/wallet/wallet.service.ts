@@ -11,6 +11,8 @@ import {
   TransferResponse,
   PaymentRequest,
   PaymentResponse,
+  RefundRequest,
+  RefundResponse,
 } from '../../shared/models/wallet.model';
 import { environment } from '../../../environments/environment';
 
@@ -77,5 +79,9 @@ export class WalletService {
 
   getPayment(paymentId: string): Observable<PaymentResponse> {
     return this.http.get<PaymentResponse>(`${this.paymentsUrl}/${paymentId}`);
+  }
+
+  refundPayment(paymentId: string, request: RefundRequest): Observable<RefundResponse> {
+    return this.http.post<RefundResponse>(`${this.paymentsUrl}/${paymentId}/refund`, request);
   }
 }
