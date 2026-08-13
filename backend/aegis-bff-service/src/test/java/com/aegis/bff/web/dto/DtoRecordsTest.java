@@ -122,4 +122,51 @@ class DtoRecordsTest {
         // Assert
         assertNull(request.description());
     }
+
+    @Test
+    @DisplayName("PayeeRequest should hold name, id and type")
+    void payeeRequest() {
+        // Arrange & Act
+        PayeeRequest payee = new PayeeRequest("Acme Corp", "acme-001", "MERCHANT");
+
+        // Assert
+        assertEquals("Acme Corp", payee.name());
+        assertEquals("acme-001", payee.id());
+        assertEquals("MERCHANT", payee.type());
+    }
+
+    @Test
+    @DisplayName("CreatePaymentRequest should hold walletId, amount, currency, payee, description and reference")
+    void createPaymentRequest() {
+        // Arrange
+        UUID walletId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        PayeeRequest payee = new PayeeRequest("Store", "store-001", "MERCHANT");
+
+        // Act
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                walletId, new BigDecimal("50.00"), "USD", payee, "purchase", "PAY-123");
+
+        // Assert
+        assertEquals(walletId, request.walletId());
+        assertEquals(new BigDecimal("50.00"), request.amount());
+        assertEquals("USD", request.currency());
+        assertEquals(payee, request.payee());
+        assertEquals("purchase", request.description());
+        assertEquals("PAY-123", request.reference());
+    }
+
+    @Test
+    @DisplayName("CreatePaymentRequest should allow null description")
+    void createPaymentRequestNullDescription() {
+        // Arrange
+        UUID walletId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        PayeeRequest payee = new PayeeRequest("Store", "store-001", "INDIVIDUAL");
+
+        // Act
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                walletId, new BigDecimal("25.00"), "EUR", payee, null, "PAY-456");
+
+        // Assert
+        assertNull(request.description());
+    }
 }

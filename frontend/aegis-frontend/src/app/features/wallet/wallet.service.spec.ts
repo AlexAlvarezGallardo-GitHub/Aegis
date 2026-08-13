@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { WalletService } from './wallet.service';
-import { TransferRequest, TransferResponse } from '../../shared/models/wallet.model';
+import { TransferRequest, TransferResponse, PaymentRequest, PaymentResponse } from '../../shared/models/wallet.model';
 
 describe('WalletService', () => {
   let service: WalletService;
@@ -136,6 +136,97 @@ describe('WalletService', () => {
       const activities = service.getActivitiesFor('wallet-123');
       expect(activities.length).toBe(1);
       expect(activities[0]).toEqual(jasmine.objectContaining(activity));
+    });
+  });
+
+  describe('executePayment', () => {
+    it('should POST to /api/bff/payments with correct body', () => {
+      const request: PaymentRequest = {
+        walletId: 'wallet-123',
+        amount: 50,
+        currency: 'USD',
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        reference: 'PAY-123',
+        description: 'Test payment',
+      };
+
+      const mockResponse: PaymentResponse = {
+        paymentId: 'payment-789',
+        status: 'COMPLETED',
+        walletId: 'wallet-123',
+        userId: 'user-001',
+        amount: 50,
+        currency: 'USD',
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        reference: 'PAY-123',
+        description: 'Test payment',
+        createdAt: '2026-01-01T00:00:00Z',
+      };
+
+      service.executePayment(request).subscribe((response) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne('/api/bff/payments');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.url).toBe('/api/bff/payments');
+      expect(req.request.url).not.toContain('localhost');
+      expect(req.request.body).toEqual(request);
+      req.flush(mockResponse);
+    });
+
+    it('should handle payment without description', () => {
+      const request: PaymentRequest = {
+        walletId: 'wallet-123',
+        amount: 25,
+        currency: 'EUR',
+        payee: { name: 'Store', id: 'store-001', type: 'INDIVIDUAL' },
+        reference: 'PAY-456',
+      };
+
+      service.executePayment(request).subscribe();
+
+      const req = httpMock.expectOne('/api/bff/payments');
+      expect(req.request.body).toEqual(request);
+      req.flush({
+        paymentId: 'payment-999',
+        status: 'COMPLETED',
+        walletId: 'wallet-123',
+        userId: 'user-001',
+        amount: 25,
+        currency: 'EUR',
+        payee: { name: 'Store', id: 'store-001', type: 'INDIVIDUAL' },
+        reference: 'PAY-456',
+        createdAt: '2026-01-01T00:00:00Z',
+      });
+    });
+  });
+
+  describe('getPayment', () => {
+    it('should GET from /api/bff/payments/{paymentId}', () => {
+      const paymentId = 'payment-789';
+      const mockResponse: PaymentResponse = {
+        paymentId: 'payment-789',
+        status: 'COMPLETED',
+        walletId: 'wallet-123',
+        userId: 'user-001',
+        amount: 50,
+        currency: 'USD',
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        reference: 'PAY-123',
+        createdAt: '2026-01-01T00:00:00Z',
+        completedAt: '2026-01-01T00:01:00Z',
+      };
+
+      service.getPayment(paymentId).subscribe((response) => {
+        expect(response).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`/api/bff/payments/${paymentId}`);
+      expect(req.request.method).toBe('GET');
+      expect(req.request.url).toBe(`/api/bff/payments/${paymentId}`);
+      expect(req.request.url).not.toContain('localhost');
+      req.flush(mockResponse);
     });
   });
 });
