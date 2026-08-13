@@ -86,6 +86,7 @@ graph LR
 | `payment.requested` | [[03 - Domain Events/PaymentRequested\|PaymentRequested]] | 3 | 7 days |
 | `payment.executed` | [[03 - Domain Events/PaymentExecuted\|PaymentExecuted]] | 3 | 7 days |
 | `payment.failed` | [[03 - Domain Events/PaymentFailed\|PaymentFailed]] | 3 | 7 days |
+| `payment.refunded` | [[03 - Domain Events/PaymentRefunded\|PaymentRefunded]] | 3 | 7 days |
 
 ## Input Topic (consumed by fraud, no producer in backend)
 
@@ -109,7 +110,7 @@ DLT suffix and retry are configuration-driven (`aegis.kafka.retry.max-attempts`,
 | Group | Service | Topics Consumed |
 |-------|---------|-----------------|
 | `reporting-group` | [[01 - Services/Reporting Service\|Reporting Service]] | `wallet.funds.deposited` |
-| `audit-group` | [[01 - Services/Audit Service\|Audit Service]] | `wallet.funds.deposited`, `fraud.assessment.completed`, `payment.requested`, `payment.executed`, `payment.failed` |
+| `audit-group` | [[01 - Services/Audit Service\|Audit Service]] | `wallet.funds.deposited`, `fraud.assessment.completed`, `payment.requested`, `payment.executed`, `payment.failed`, `payment.refunded` |
 | `fraud-group` | [[01 - Services/Fraud Service\|Fraud Service]] | `payment.transfer.requested` |
 
 ## Configuration
