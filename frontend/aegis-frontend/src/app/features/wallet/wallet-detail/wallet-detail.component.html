@@ -40,6 +40,10 @@
           <mat-icon>swap_horiz</mat-icon>
           <span>Transfer</span>
         </button>
+        <button mat-stroked-button (click)="openPayment()" [disabled]="isOperating()">
+          <mat-icon>payments</mat-icon>
+          <span>Pay</span>
+        </button>
         <button mat-icon-button [matMenuTriggerFor]="moreMenu" aria-label="More actions" [disabled]="isOperating()">
           <mat-icon>more_vert</mat-icon>
         </button>
