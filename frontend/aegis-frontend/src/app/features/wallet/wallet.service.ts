@@ -9,6 +9,8 @@ import {
   WalletResponse,
   TransferRequest,
   TransferResponse,
+  PaymentRequest,
+  PaymentResponse,
 } from '../../shared/models/wallet.model';
 import { environment } from '../../../environments/environment';
 
@@ -19,6 +21,7 @@ export class WalletService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/api/bff/wallets`;
   private readonly transfersUrl = `${environment.apiUrl}/api/bff/transfers`;
+  private readonly paymentsUrl = `${environment.apiUrl}/api/bff/payments`;
 
   // Session-scoped activity log derived from real operations (no backend model).
   // Used to power the Wallet Detail Overview/Transactions/Activity tabs.
@@ -66,5 +69,13 @@ export class WalletService {
 
   getTransfer(transferId: string): Observable<TransferResponse> {
     return this.http.get<TransferResponse>(`${this.transfersUrl}/${transferId}`);
+  }
+
+  executePayment(request: PaymentRequest): Observable<PaymentResponse> {
+    return this.http.post<PaymentResponse>(this.paymentsUrl, request);
+  }
+
+  getPayment(paymentId: string): Observable<PaymentResponse> {
+    return this.http.get<PaymentResponse>(`${this.paymentsUrl}/${paymentId}`);
   }
 }

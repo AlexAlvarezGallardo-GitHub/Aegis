@@ -11,6 +11,7 @@ import { WalletDetailComponent } from './wallet-detail.component';
 import { WalletService } from '../wallet.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { TransferDialogComponent, TransferDialogResult } from './transfer-dialog.component';
+import { PaymentDialogComponent, PaymentDialogResult } from './payment-dialog.component';
 
 const stubRoutes: Routes = [{ path: 'wallets', component: class {} }];
 
@@ -35,6 +36,7 @@ describe('WalletDetailComponent', () => {
     const walletServiceSpy = jasmine.createSpyObj('WalletService', [
       'getWallet',
       'transferFunds',
+      'executePayment',
       'recordActivity',
       'getActivitiesFor',
     ]);
@@ -249,5 +251,189 @@ describe('WalletDetailComponent', () => {
     it('should return correct icon for TRANSFER', () => {
       expect(component.activityIcon('TRANSFER')).toBe('swap_horiz');
     });
+
+    it('should return correct label for PAYMENT', () => {
+      expect(component.activityTypeLabel('PAYMENT')).toBe('Payment');
+    });
+
+    it('should return correct icon for PAYMENT', () => {
+      expect(component.activityIcon('PAYMENT')).toBe('payments');
+    });
+  });
+
+  describe('Payment functionality', () => {
+    it('should open payment dialog when openPayment is called', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const mockDialogRef = {
+        closed: of(undefined),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      component.openPayment();
+
+      expect(dialog.open).toHaveBeenCalledWith(PaymentDialogComponent, {
+        data: { wallet: mockWallet },
+      });
+      flush();
+    }));
+
+    it('should call executePayment with correct parameters on successful payment', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const paymentResult: PaymentDialogResult = {
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        amount: 50,
+        reference: 'PAY-123',
+        description: 'Test payment',
+      };
+      const mockDialogRef = {
+        closed: of(paymentResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.executePayment.and.returnValue(of({
+        paymentId: 'payment-123',
+        status: 'COMPLETED',
+        walletId: 'wallet-123',
+        userId: 'user-456',
+        amount: 50,
+        currency: 'USD',
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        reference: 'PAY-123',
+        createdAt: '2026-01-01T00:00:00Z',
+      }));
+
+      component.openPayment();
+      tick();
+
+      expect(walletService.executePayment).toHaveBeenCalledWith({
+        walletId: 'wallet-123',
+        amount: 50,
+        currency: 'USD',
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        reference: 'PAY-123',
+        description: 'Test payment',
+      });
+
+      expect(walletService.recordActivity).toHaveBeenCalledWith(jasmine.objectContaining({
+        walletId: 'wallet-123',
+        type: 'PAYMENT',
+        amount: -50,
+        currency: 'USD',
+        reference: 'PAY-123',
+        status: 'COMPLETED',
+      }));
+
+      expect(toastService.success).toHaveBeenCalledWith('Payment completed', jasmine.any(Object));
+      flush();
+    }));
+
+    it('should reset isOperating via finalize on error', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const paymentResult: PaymentDialogResult = {
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        amount: 50,
+        reference: 'PAY-123',
+      };
+      const mockDialogRef = {
+        closed: of(paymentResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.executePayment.and.returnValue(throwError(() => ({ status: 500 })));
+
+      component.openPayment();
+      tick();
+
+      expect(component.isOperating()).toBeFalse();
+      flush();
+    }));
+
+    it('should show warning toast and record REJECTED activity on 409 error', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const paymentResult: PaymentDialogResult = {
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        amount: 50,
+        reference: 'PAY-123',
+      };
+      const mockDialogRef = {
+        closed: of(paymentResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.executePayment.and.returnValue(throwError(() => ({ status: 409 })));
+
+      component.openPayment();
+      tick();
+
+      expect(walletService.recordActivity).toHaveBeenCalledWith(jasmine.objectContaining({
+        walletId: 'wallet-123',
+        type: 'PAYMENT',
+        status: 'REJECTED',
+      }));
+
+      expect(toastService.warning).toHaveBeenCalledWith('Duplicate payment reference.');
+      flush();
+    }));
+
+    it('should show error toast with message on 422 error', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const paymentResult: PaymentDialogResult = {
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        amount: 50,
+        reference: 'PAY-123',
+      };
+      const mockDialogRef = {
+        closed: of(paymentResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.executePayment.and.returnValue(throwError(() => ({
+        status: 422,
+        error: { message: 'Insufficient funds' },
+      })));
+
+      component.openPayment();
+      tick();
+
+      expect(toastService.error).toHaveBeenCalledWith('Unable to complete payment', {
+        description: 'Insufficient funds',
+      });
+      flush();
+    }));
+
+    it('should show generic error toast on other errors', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const paymentResult: PaymentDialogResult = {
+        payee: { name: 'Acme Corp', id: 'acme-001', type: 'MERCHANT' },
+        amount: 50,
+        reference: 'PAY-123',
+      };
+      const mockDialogRef = {
+        closed: of(paymentResult),
+      };
+      dialog.open.and.returnValue(mockDialogRef as unknown as DialogRef<unknown, unknown>);
+
+      walletService.executePayment.and.returnValue(throwError(() => ({ status: 500 })));
+
+      component.openPayment();
+      tick();
+
+      expect(toastService.error).toHaveBeenCalledWith('Unable to complete payment', {
+        description: 'Please try again.',
+      });
+      flush();
+    }));
   });
 });

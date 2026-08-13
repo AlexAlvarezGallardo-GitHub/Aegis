@@ -21,6 +21,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { AegisCurrencyPipe, formatMoney } from '../../../shared/utils/currency.pipe';
 import { MoneyDialogComponent, MoneyDialogResult } from './money-dialog.component';
 import { TransferDialogComponent, TransferDialogResult } from './transfer-dialog.component';
+import { PaymentDialogComponent, PaymentDialogResult } from './payment-dialog.component';
 import { TechnicalDetailsDialogComponent } from './technical-details-dialog.component';
 
 const TABS = ['overview', 'transactions', 'deposits', 'activity', 'audit'] as const;
@@ -162,6 +163,17 @@ export class WalletDetailComponent {
     });
   }
 
+  openPayment(): void {
+    const wallet = this.wallet();
+    if (!wallet) return;
+    const ref = this.dialog.open<PaymentDialogResult>(PaymentDialogComponent, {
+      data: { wallet },
+    });
+    ref.closed.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
+      if (result) this.performPayment(result, wallet);
+    });
+  }
+
   private performDeposit(result: MoneyDialogResult, wallet: WalletResponse): void {
     this.isOperating.set(true);
     this.walletService.depositFunds(wallet.walletId, {
@@ -297,6 +309,63 @@ export class WalletDetailComponent {
       });
   }
 
+  private performPayment(result: PaymentDialogResult, wallet: WalletResponse): void {
+    this.isOperating.set(true);
+    this.walletService.executePayment({
+      walletId: wallet.walletId,
+      amount: result.amount,
+      currency: wallet.currency,
+      payee: result.payee,
+      description: result.description,
+      reference: result.reference,
+    })
+      .pipe(
+        finalize(() => this.isOperating.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.status === 'COMPLETED') {
+            this.loadWallet();
+            this.walletService.recordActivity({
+              walletId: wallet.walletId,
+              type: 'PAYMENT',
+              amount: -Math.abs(result.amount),
+              currency: wallet.currency,
+              reference: result.reference,
+              status: 'COMPLETED',
+              timestamp: new Date().toISOString(),
+            });
+            this.toastService.success('Payment completed', {
+              description: `-${formatMoney(result.amount, wallet.currency)} · ${result.payee.name}`,
+              action: { label: 'View transaction', callback: () => this.goToTab('transactions') },
+            });
+          } else {
+            this.toastService.error('Payment pending', { description: 'Payment is being processed.' });
+          }
+        },
+        error: (err) => {
+          if (err?.status === 409) {
+            this.walletService.recordActivity({
+              walletId: wallet.walletId,
+              type: 'PAYMENT',
+              amount: -Math.abs(result.amount),
+              currency: wallet.currency,
+              reference: result.reference,
+              status: 'REJECTED',
+              timestamp: new Date().toISOString(),
+            });
+            this.toastService.warning('Duplicate payment reference.');
+          } else if (err?.status === 422) {
+            const message = err?.error?.message || 'Unable to complete payment';
+            this.toastService.error('Unable to complete payment', { description: message });
+          } else {
+            this.toastService.error('Unable to complete payment', { description: 'Please try again.' });
+          }
+        },
+      });
+  }
+
   // ── Administrative actions ─────────────────────────────────────────────────
 
   openAdjustBalance(): void {
@@ -394,11 +463,11 @@ export class WalletDetailComponent {
   }
 
   activityTypeLabel(type: WalletActivityType): string {
-    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : type === 'TRANSFER' ? 'Transfer' : 'Adjustment';
+    return type === 'DEPOSIT' ? 'Deposit' : type === 'WITHDRAWAL' ? 'Withdrawal' : type === 'TRANSFER' ? 'Transfer' : type === 'PAYMENT' ? 'Payment' : 'Adjustment';
   }
 
   activityIcon(type: WalletActivityType): string {
-    return type === 'DEPOSIT' ? 'arrow_downward' : type === 'WITHDRAWAL' ? 'arrow_upward' : type === 'TRANSFER' ? 'swap_horiz' : 'tune';
+    return type === 'DEPOSIT' ? 'arrow_downward' : type === 'WITHDRAWAL' ? 'arrow_upward' : type === 'TRANSFER' ? 'swap_horiz' : type === 'PAYMENT' ? 'payments' : 'tune';
   }
 
   shortId(id: string): string {
